@@ -1,0 +1,18 @@
+-- AlterTable
+ALTER TABLE "LicenseDetail" ALTER COLUMN "tariffType" DROP NOT NULL,
+ALTER COLUMN "netWeightTON" DROP NOT NULL,
+ALTER COLUMN "netWeightUnit" DROP NOT NULL,
+ALTER COLUMN "netWeightKGM" DROP NOT NULL,
+ALTER COLUMN "netWeightUnitKGM" DROP NOT NULL,
+ALTER COLUMN "quantity" DROP NOT NULL,
+ALTER COLUMN "quantityUnit" DROP NOT NULL,
+ALTER COLUMN "pricePerUnit" DROP NOT NULL,
+ALTER COLUMN "currencyPerTON" DROP NOT NULL,
+ALTER COLUMN "fob" DROP NOT NULL,
+ALTER COLUMN "price" DROP NOT NULL,
+ALTER COLUMN "incoterms" DROP NOT NULL,
+ALTER COLUMN "productDescription" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());

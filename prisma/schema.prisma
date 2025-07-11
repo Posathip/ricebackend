@@ -1,0 +1,163 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model DataFromGoverment {
+  dataID              String         @id @default(uuid())
+  licenseNumber       String  @unique
+  exporter            String
+  recipient           String
+  buyer               String?
+  exportAgent         String
+  companyTax          String
+  product             String
+  issueDate           DateTime
+  expiredDate         DateTime
+  exportDate          DateTime?
+  buyerCountry        String
+  destinationCountry  String
+  exportBy            String?
+  vehicle             String
+  portName            String
+  currency            String
+  exchangeRate        Float
+  permitConditions    String
+
+  licenseDetails      LicenseDetail[]
+}
+
+model LicenseDetail {
+  licenseDetailID     String         @id @default(uuid())
+  permitId            String
+  permit              DataFromGoverment @relation(fields: [permitId], references: [dataID])
+
+  tariffType          String?
+  netWeightTON        Float?
+  netWeightUnit       String?
+  netWeightKGM        Float?
+  netWeightUnitKGM    String?
+  quantity            Int?
+  quantityUnit        String?
+  pricePerUnit        Float?
+  currencyPerTON      String?
+  fob                 Float?
+  price               Float?
+  incoterms           String?
+  productDescription  String?
+}
+
+model Company {
+  companyID           String         @id @default(uuid())
+  companyNameEN       String
+  companyNameTH       String
+  companyDescription  String
+}
+
+model Request {
+  requestID           String         @id @default(uuid())
+  companyID           String
+  requestBy           String
+  requestDate         DateTime
+  shippingDate        String
+  shippingTime        String
+  surveyDistrict      String
+  surveyLocateName    String
+  surveyPaidBy        String
+  surveyProvince      String
+  tel                 String
+  godown              String
+  legacyRequestID     Int
+  descriptions        Description[]
+}
+
+model Description {
+  descriptionID        String         @id @default(uuid())
+  requestId            String
+  request              Request  @relation(fields: [requestId], references: [requestID])
+
+  destination          String
+  exchangeRate         Float
+  pricePerUnit         Float
+  productDescription   String
+  quantity             Int
+  quantityUnit         String
+  weightLeft           Float
+  grossWeight          Float
+  licenseID            String
+  logo                 String
+  netWeight            Float
+  riceTypeExtra        String
+  riceTypeID           String
+  subID                Int
+  vehicleName          String
+}
+
+model validate_Check_Weight {
+  checkWeightID       String         @id @default(uuid())
+  LoadingDetail1      String
+  Time                String
+  bagQuantity         Int
+  grossWeight         Float?
+  jobID               Int
+  licenseID           String
+  netWeight           Float
+  quantity            Float
+  requestID           Int
+  riceTypeID          String
+  shippingDate        DateTime
+}
+
+model certificatesheet {
+  CertificatesheetID  String         @id @default(uuid())
+  jobID               String
+  License             String
+  No                  Int
+  NoOld               Int
+  PackingType1        String
+  PackingType11       String
+  PackingType12       String
+  PackingType2        String
+  Quality1            String   @map("Quality1string")
+  Quality2            String   @map("Quality2string")
+  ShipperBehalf       String
+  TotalGross          String
+  TotalNett           Float
+  TotalTare           String
+  Weight              String   @map("Weightstring")
+  bagQuantity         String
+  companyEN           String
+  currentDate         String
+  destinationCity     String
+  godown              String
+  logo                String
+  shippingDate        String
+  shippingPort        String
+  subID               String
+  title1              String   @map("title1string")
+  vehicleName         String
+
+  @@map("certificatesheet")
+}
+
+model User {
+  id  String   @unique @default(uuid())
+  email String  @unique
+  hashpassword String       
+  password String @unique
+  roleUserLevel String    //Root-Admin,Super-Admin,Subroot-Admin,"User" 
+  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+
+}
