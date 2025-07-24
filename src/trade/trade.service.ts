@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'prisma/prisma.service';
@@ -18,6 +18,7 @@ export class TradeService {
     
   ) {}
  
+
   
   async  getData(req: Request, res: Response) {
   const ORGANCODE = 'e4d88b73-c523-440a-b60f-b243bfdfc540';
@@ -28,6 +29,7 @@ export class TradeService {
 
   let StartDate = `${currentYear}-${currentMonth}-01`;
   let EndDate = `${currentYear}-${currentMonth}-31`;
+  
   if (parseInt(nextMonth) > 12) {
     EndDate = `${currentYear + 1}-01-05`;
   }
@@ -169,8 +171,317 @@ export class TradeService {
   }
 }
   
+async licensequery (licenseNo,req: Request,
+  res: Response){
+try {
+  const newLicenNo = 'พณ' + licenseNo;
+  console.log(newLicenNo);
+  
+  const querydata = await this.prisma.dataFromGoverment.findFirst({
+    where: { licenseNumber: newLicenNo },
+    include: {
+     licenseDetails   : true, // Assuming relation name is LicenseDetail
+    },
+  });
+   if(!querydata){
+    throw new NotFoundException('No License Data')
+   }
+   return {
+        message: 'Logged in sucessfully',
+        querydata
+      };
+} catch (error) {
+   return {error}
+}
+}
+
+
+async createOrder(body: any, req: Request, res: Response) {
+  try {
+    const adddata = await this.prisma.request.create({
+      data: {
+        companyName: body.companyName,
+        requestBy: body.requestBy,
+        requestDate: new Date(body.requestDate),
+        shippingDateTime: new Date(body.shippingDateTime),
+        surveyLocateNameThai: body.surveyLocateNameThai,
+        surveyLocateNameEng: body.surveyLocateNameEng,
+        surveyPaidBy: body.surveyPaidBy,
+        surveyProvince: body.surveyProvince,
+        surveySubDistrict: body.surveySubDistrict,
+        telInspector: body.telInspector,
+        telDebtor: body.telDebtor,
+        license: body.license,
+        descriptions: {
+          create: body.description.map((desc: any) => ({
+            descriptionID: desc.descriptionID,
+            destination: desc.destination,
+            exchangeRate: desc.exchangeRate,
+            pricePerUnit: desc.pricePerUnit,
+            productDescription: desc.productDescription,
+            quantity: desc.quantity,
+            quantityUnit: desc.quantityUnit,
+            weightLeft: desc.weightLeft,
+            grossWeight: desc.grossWeight,
+            licenseID: desc.licenseID,
+            logo: desc.logo,
+            netWeight: desc.netWeight,
+            riceTypeExtra: desc.riceTypeExtra,
+            riceTypeID: desc.riceTypeID,
+            subID: desc.subID,
+            vehicleName: desc.vehicleName,
+          })),
+        },
+      },
+    });
+
+    // ส่ง response กลับ client ว่าสร้างสำเร็จ
+    return res.status(200).json({
+      success: true,
+   
+      message: 'Order created successfully',
+    });
+  } catch (error) {
+    console.error('Error creating order:', error);
+
+    // ส่ง error กลับ client
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to create order',
+      error: error.message || error,
+    });
+  }
+}
+
+async getRequestbydate(date: string, req: Request, res: Response) {
+  try {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date format',     
+      });
+    }
+    const request = await this.prisma.request.findMany({
+      where: {
+        requestDate: {
+          gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
+          lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
+        },
+      },
+      include: {
+        descriptions: true, // Include related descriptions
+      },
+    });
+    if (!request || request.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No requests found for the given date',
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: request,
+    });
+  } catch (error) {
+    console.error('Error fetching request by date:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch request by date',
+      error: error.message || error,
+    });
+  }
+}
+
+  async getRequest(requestID,req: Request, res: Response){
+    try {
+      const request = await this.prisma.request.findUnique({
+        where: { requestID: requestID },
+        include: {
+          descriptions: true, // Include related descriptions
+        },
+      });
+      if (!request) {
+        return res.status(404).json({
+          success: false,
+          message: 'Request not found',
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        data: request,
+      });
+    } catch (error) {
+      console.error('Error fetching request:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch request',
+        error: error.message || error,
+      });
+      
+    }
+  }
+
+async deleteOrder(orderID, req: Request, res: Response) {
+  try {
+    // ตรวจสอบว่ามี order ที่ต้องการลบหรือไม่
+    const existingOrder = await this.prisma.request.findUnique({
+      where: { requestID: orderID },
+    });
+
+    if (!existingOrder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+    //  await this.prisma.description.deleteMany({
+    //   where: { descriptionID  : existingOrder. },
+    // });
+    // ลบ order
+   await this.prisma.description.deleteMany({
+  where: { requestId: orderID },
+});
+
+await this.prisma.request.delete({
+  where: { requestID: orderID },
+});
+
+
+    // ส่ง response กลับ client ว่าลบสำเร็จ
+    return {
+      success: true,
+      message: 'Order deleted successfully',
+    };
+  } catch (error) {
+    console.error('Error deleting order:', error);
+
+    // ส่ง error กลับ client
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete order',
+      error: error.message || error,
+    });
+  }
 
 }
+
+async deleteOrderDetail(descriptionID, req: Request, res: Response) {
+  try {
+    // ตรวจสอบว่ามี order ที่ต้องการลบหรือไม่
+    const existingOrder = await this.prisma.description.findUnique({
+      where: { descriptionID: descriptionID },
+    });
+
+    if (!existingOrder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+    //  await this.prisma.description.deleteMany({
+    //   where: { descriptionID  : existingOrder. },
+    // });
+    // ลบ order
+
+await this.prisma.description.delete({
+  where: { descriptionID: descriptionID },
+});
+
+
+    // ส่ง response กลับ client ว่าลบสำเร็จ
+    return {
+      success: true,
+      message: 'Order deleted successfully',
+    };
+  } catch (error) {
+    console.error('Error deleting order:', error);
+
+    // ส่ง error กลับ client
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete order',
+      error: error.message || error,
+    });
+  }
+
+}
+async updateOrder(id, body: any, req: Request, res: Response) {
+  try {
+    const updateRequestData = {
+      companyName: body.companyName,
+      requestBy: body.requestBy,
+      requestDate: body.requestDate ? new Date(body.requestDate) : undefined,
+      shippingDateTime: body.shippingDateTime ? new Date(body.shippingDateTime) : undefined,
+      surveyLocateNameThai: body.surveyLocateNameThai,
+      surveyLocateNameEng: body.surveyLocateNameEng,
+      surveyPaidBy: body.surveyPaidBy,
+      surveyProvince: body.surveyProvince,
+      surveySubDistrict: body.surveySubDistrict,
+      telInspector: body.telInspector,
+      telDebtor: body.telDebtor,
+      license: body.license,
+    };
+    console.log(updateRequestData);
+    console.log(id);
+    // 1. ตรวจว่ามี field ที่เป็นของ request ไหม
+    const hasRequestData = Object.values(updateRequestData).some((val) => val !== undefined);
+
+
+    if (hasRequestData) {
+      await this.prisma.request.update({
+      where: { requestID: String(id) },
+        data: updateRequestData,
+      });
+    }
+
+    
+    if (Array.isArray(body.description)) {
+    
+      for (const desc of body.description) {
+        if (desc.descriptionID) {
+          const existing = await this.prisma.description.findUnique({
+            where: { descriptionID: desc.descriptionID },
+          });
+          console.log(desc)
+          if (existing) {
+            await this.prisma.description.update({
+              where: { descriptionID: desc.descriptionID },
+              data: {
+                ...desc,
+              },
+            });
+          } else {
+            await this.prisma.description.create({
+              data: {
+                ...desc,
+                requestID: id, // อย่าลืมใส่ relation กลับไปที่ request
+              },
+            });
+          }
+        }
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Order updated successfully',
+    };
+  } catch (error) {
+    console.error('Error updating order:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update order',
+      error: error.message || error,
+    });
+  }
+}
+
+
+
+}
+  
+  
 function convertToAD(dateStr: string): Date {
   if (!dateStr || typeof dateStr !== 'string') {
     throw new Error(`Invalid date string: ${dateStr}`);

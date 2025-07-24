@@ -67,26 +67,28 @@ model Company {
 
 model Request {
   requestID           String         @id @default(uuid())
-  companyID           String
-  requestBy           String
-  requestDate         DateTime
-  shippingDate        String
-  shippingTime        String
-  surveyDistrict      String
-  surveyLocateName    String
-  surveyPaidBy        String
-  surveyProvince      String
-  tel                 String
-  godown              String
-  legacyRequestID     Int
-  descriptions        Description[]
+  companyName          String //ชื่อผู้ส่งออก
+  requestBy           String  //ผู้ขอตรวจสอบ
+  requestDate         DateTime //วันที่ส่งคำขอ
+  shippingDateTime    DateTime  //วันเวลาที่จะบรรลุ
+  surveyLocateNameThai    String //สถานที่ตรวจสอบ
+  surveyLocateNameEng    String //สถานที่ตรวจสอบ ภาษาอังกฤษ
+  surveyPaidBy        String //เรียกเก็บเงิน
+  surveyProvince      String // จังหวัด 
+  surveySubDistrict   String // อำเภอ
+  telInspector        String // เบอร์ติดต่อผู้ตรวจสอบ
+  telDebtor           String   //เบอร์ติดต่อเรียกเก็บเงิน
+  license           String // เลขที่ใบอนุญาต
+
+
+  descriptions        Description[] 
+  validate_Check_Weight validate_Check_Weight[]
 }
 
 model Description {
   descriptionID        String         @id @default(uuid())
   requestId            String
   request              Request  @relation(fields: [requestId], references: [requestID])
-
   destination          String
   exchangeRate         Float
   pricePerUnit         Float
@@ -102,53 +104,64 @@ model Description {
   riceTypeID           String
   subID                Int
   vehicleName          String
+  validate_Check_Weight validate_Check_Weight[]
 }
 
 model validate_Check_Weight {
   checkWeightID       String         @id @default(uuid())
-  LoadingDetail1      String
-  Time                String
-  bagQuantity         Int
+  loadingDetail1      String?
+  time                String?
+  bagQuantity         Int?
   grossWeight         Float?
-  jobID               Int
-  licenseID           String
-  netWeight           Float
-  quantity            Float
-  requestID           Int
-  riceTypeID          String
-  shippingDate        DateTime
+  jobID               String?
+
+  descriptionID     String
+  netWeight           Float?
+  quantity            Float?
+  requestID           String
+  riceTypeID          String?
+  shippingDate        DateTime?
+  staffID             String?
+  statusContinue       String?
+  status              Boolean
+  companyName          String?
+  request              Request  @relation(fields: [requestID], references: [requestID])
+  description        Description @relation(fields: [descriptionID], references: [descriptionID])
+    // licenseID           String
 }
 
 model certificatesheet {
-  CertificatesheetID  String         @id @default(uuid())
+  certificateSheetID  String         @id @default(uuid())
   jobID               String
-  License             String
-  No                  Int
-  NoOld               Int
-  PackingType1        String
-  PackingType11       String
-  PackingType12       String
-  PackingType2        String
-  Quality1            String   @map("Quality1string")
-  Quality2            String   @map("Quality2string")
-  ShipperBehalf       String
-  TotalGross          String
-  TotalNett           Float
-  TotalTare           String
-  Weight              String   @map("Weightstring")
-  bagQuantity         String
-  companyEN           String
-  currentDate         String
-  destinationCity     String
-  godown              String
-  logo                String
-  shippingDate        String
-  shippingPort        String
-  subID               String
-  title1              String   @map("title1string")
-  vehicleName         String
+  license             String?
+  No                  Int?
+  NoOld               Int?
+  PackingType1        String?
+  PackingType11       String?
+  PackingType12       String?
+  PackingType2        String?
+  quality1            String?   @map("Quality1string")
+  quality2            String?   @map("Quality2string")
+  shipperBehalf       String?
+  totalGross          String?
+  totalNett           Float?
+  totalTare           String?
+  weight              String?   @map("Weightstring")
+  bagQuantity         String?
+  companyEN           String?
+  currentDate         String?
+  destinationCity     String?
+  godown              String?
+  // logo                String?
+  shippingDate        String?
+  shippingPort        String?
+  carryVessel         String?
+  destination         String?
+  exportLicenseNo     String?
+  title1              String ?  @map("title1string")
+  vehicleName         String?
 
-  @@map("certificatesheet")
+  // @@map("certificatesheet")
 }
 
 model User {

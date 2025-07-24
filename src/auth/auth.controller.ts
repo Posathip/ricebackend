@@ -1,27 +1,18 @@
-import { Body, Controller, Post, Req, Res,UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Req, Res,UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBadGatewayResponse, ApiCreatedResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateAccountUser, LoginDTO } from 'src/dto/user.dto';
 import { Request, Response } from 'express';
+import { JwtAuthGuard } from 'src/guards/jwt.guard';
 // import { AdminAuthGuard, JwtAuthGuard } from '../guards/jwt.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService,private jwt: JwtService) {}
   // @UseGuards(JwtAuthGuard)
 @Post('createaccountuser')
-// create account and sending email
-@ApiOperation({
-  summary: 'Create Account and Register Subscription details',
-  description: 'ผู้ใช้งานทำการสมัครสมาชิก และ ลงทะเบียนข้อมูลการใช้บริการAgtechAI',
-})
-@ApiCreatedResponse({
-  description: 'Create account email: user1@gmail.com company: CPF complete',
-})
+// create account
 
-@ApiBadGatewayResponse({
-  description: 'Cannot create account and register Subscription details please try again',
-})
 createAccountUser(
   @Body() dto: CreateAccountUser,
   @Req() req: Request,
@@ -31,8 +22,9 @@ createAccountUser(
 }
 
 
-   
+  //  @UseGuards(JwtAuthGuard)  
 @Post('login') //login
+@HttpCode(200)
   @ApiOperation({
     summary: 'Login',
     description: 'ทำการล็อคอินโดยกรอกอีเมลและพาสเวิด',
