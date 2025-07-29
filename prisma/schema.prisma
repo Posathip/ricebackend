@@ -17,6 +17,7 @@ datasource db {
 model DataFromGoverment {
   dataID              String         @id @default(uuid())
   licenseNumber       String  @unique
+    fullLicenseNumber  String @unique
   exporter            String
   recipient           String
   buyer               String?
@@ -34,14 +35,17 @@ model DataFromGoverment {
   currency            String
   exchangeRate        Float
   permitConditions    String
-
+  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
   licenseDetails      LicenseDetail[]
+
 }
 
 model LicenseDetail {
   licenseDetailID     String         @id @default(uuid())
   permitId            String
   permit              DataFromGoverment @relation(fields: [permitId], references: [dataID])
+  licenseNumber      String?
 
   tariffType          String?
   netWeightTON        Float?
@@ -56,6 +60,8 @@ model LicenseDetail {
   price               Float?
   incoterms           String?
   productDescription  String?
+  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
 
 model Company {
@@ -63,7 +69,10 @@ model Company {
   companyNameEN       String
   companyNameTH       String
   companyDescription  String
+  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
+
 
 model Request {
   requestID           String         @id @default(uuid())
@@ -78,8 +87,9 @@ model Request {
   surveySubDistrict   String // อำเภอ
   telInspector        String // เบอร์ติดต่อผู้ตรวจสอบ
   telDebtor           String   //เบอร์ติดต่อเรียกเก็บเงิน
-  license           String // เลขที่ใบอนุญาต
-
+  licenseNumber       String // เลขที่ใบอนุญาต
+  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
   descriptions        Description[] 
   validate_Check_Weight validate_Check_Weight[]
@@ -89,42 +99,62 @@ model Description {
   descriptionID        String         @id @default(uuid())
   requestId            String
   request              Request  @relation(fields: [requestId], references: [requestID])
-  destination          String
-  exchangeRate         Float
-  pricePerUnit         Float
-  productDescription   String
-  quantity             Int
-  quantityUnit         String
-  weightLeft           Float
+  destination          String //ปลายทาง
+  riceType            String // ประเภทข้าว
+  vehicleName          String // ชื่อรถ
+  marker               String // เครื่องหมาย
+  licenseNumber        String // เลขที่ใบอนุญาต
+  quantity             Float
+  quantityUnit         String //ชนิดกระสอบ
   grossWeight          Float
-  licenseID            String
-  logo                 String
   netWeight            Float
-  riceTypeExtra        String
-  riceTypeID           String
-  subID                Int
-  vehicleName          String
+
+  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
   validate_Check_Weight validate_Check_Weight[]
 }
 
 model validate_Check_Weight {
   checkWeightID       String         @id @default(uuid())
-  loadingDetail1      String?
-  time                String?
-  bagQuantity         Int?
-  grossWeight         Float?
-  jobID               String?
+  jobID               String? //ชื่อ job id
+  staffID             String?
+  staffName           String?
+  status              Boolean
+  supplierName       String?
+   time                String?
+   vesselName          String?
+   noOfBags            Float?
+   totalgrossWeight        Float?
+   totalTareWeight     Float?
+   nettWeight          Float?
+   remainingWeight    Float?
+   loadingDetails      String?
+   packingType         String?
+   packingDetailKgs   Float?
+   packingDetailBags Float?
+   remark1            String?
+    remark2            String?
+  remark3            String?
+  remark4            String?
 
-  descriptionID     String
-  netWeight           Float?
+  
+
+
+
+  totalnetWeight           Float?
   quantity            Float?
-  requestID           String
+
   riceTypeID          String?
   shippingDate        DateTime?
-  staffID             String?
+
   statusContinue       String?
-  status              Boolean
+ 
   companyName          String?
+  descriptionID     String
+  requestID           String
+  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  
   request              Request  @relation(fields: [requestID], references: [requestID])
   description        Description @relation(fields: [descriptionID], references: [descriptionID])
     // licenseID           String
@@ -160,6 +190,8 @@ model certificatesheet {
   exportLicenseNo     String?
   title1              String ?  @map("title1string")
   vehicleName         String?
+  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
   // @@map("certificatesheet")
 }

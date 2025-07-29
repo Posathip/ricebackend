@@ -30,6 +30,7 @@ export class TradeService {
   let StartDate = `${currentYear}-${currentMonth}-01`;
   let EndDate = `${currentYear}-${currentMonth}-31`;
   
+  
   if (parseInt(nextMonth) > 12) {
     EndDate = `${currentYear + 1}-01-05`;
   }
@@ -88,18 +89,19 @@ export class TradeService {
     for (const item of parsedList) {
     
         const exists = await this.prisma.dataFromGoverment.findUnique({
-    where: { licenseNumber: item.LicenseNumber },
+    where: {   fullLicenseNumber : item.LicenseNumber },
   });
 
   if (!exists) {
-    console.log(`🔁 Skip: ${item.LicenseNumber} already exists`);
+    
    
   
       const dataID = crypto.randomUUID();
 
       dataGovList.push({
         dataID,
-        licenseNumber: item.LicenseNumber,
+        fullLicenseNumber: item.LicenseNumber, // Remove non-numeric characters
+        licenseNumber: item.LicenseNumber.replace(/\D/g, ''),
         exporter: item.Exporter,
         recipient: item.Recipient,
         buyer: item.Buyer || null,
@@ -135,6 +137,7 @@ export class TradeService {
         if(!existsDetail ){
         licenseDetailList.push({
           permitId: dataID,
+          licenseNumber : item.LicenseNumber.replace(/\D/g, ''),
           tariffType: detail.TariffType,
           netWeightTON: parseFloat(detail.NetWeightTON),
           netWeightUnit: detail.NetWeightUnit,
@@ -152,6 +155,10 @@ export class TradeService {
     }
       }
     }
+}
+else{
+    console.log(`🔁 Skip: ${item.LicenseNumber} already exists`);
+  
 }
     }
 
@@ -174,7 +181,7 @@ export class TradeService {
 async licensequery (licenseNo,req: Request,
   res: Response){
 try {
-  const newLicenNo = 'พณ' + licenseNo;
+  const newLicenNo =  licenseNo;
   console.log(newLicenNo);
   
   const querydata = await this.prisma.dataFromGoverment.findFirst({
@@ -211,25 +218,25 @@ async createOrder(body: any, req: Request, res: Response) {
         surveySubDistrict: body.surveySubDistrict,
         telInspector: body.telInspector,
         telDebtor: body.telDebtor,
-        license: body.license,
+        licenseNumber: body.licenseNumber,
+        
+       
         descriptions: {
           create: body.description.map((desc: any) => ({
             descriptionID: desc.descriptionID,
             destination: desc.destination,
-            exchangeRate: desc.exchangeRate,
-            pricePerUnit: desc.pricePerUnit,
-            productDescription: desc.productDescription,
+            riceType: desc.riceType,
+            vehicleName: desc.vehicleName,
+            marker: desc.marker,
+            licenseNumber: body.licenseNumber,
             quantity: desc.quantity,
             quantityUnit: desc.quantityUnit,
-            weightLeft: desc.weightLeft,
             grossWeight: desc.grossWeight,
-            licenseID: desc.licenseID,
-            logo: desc.logo,
-            netWeight: desc.netWeight,
-            riceTypeExtra: desc.riceTypeExtra,
-            riceTypeID: desc.riceTypeID,
-            subID: desc.subID,
-            vehicleName: desc.vehicleName,
+             netWeight: desc.netWeight,
+         
+      
+           
+            
           })),
         },
       },
@@ -279,10 +286,10 @@ async getRequestbydate(date: string, req: Request, res: Response) {
         message: 'No requests found for the given date',
       });
     }
-    return res.status(200).json({
+    return {
       success: true,
       data: request,
-    });
+    };
   } catch (error) {
     console.error('Error fetching request by date:', error);
     return res.status(500).json({

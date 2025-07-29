@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'prisma/prisma.service';
 import {
-  updateCheckWeightData,
+  UpdateCheckWeightData,
   ValidateCheckWeightDto,
 } from 'src/dto/recordNoti.dto';
 import express, { Request, Response } from 'express';
@@ -16,7 +16,7 @@ export class RecordnotificationService {
 
   async updateCheckWeightData(
     checkWeightID: string,
-    dto: updateCheckWeightData,
+    dto: UpdateCheckWeightData,
     req: Request,
     res: Response,
   ) {
@@ -25,27 +25,19 @@ export class RecordnotificationService {
         await this.prisma.validate_Check_Weight.findUnique({
           where: { checkWeightID: checkWeightID },
         });
+        checkweightdata?.jobID
 
-      const updatedData = await this.prisma.validate_Check_Weight.update({
-        where: { checkWeightID: checkWeightID },
-        data: {
-          loadingDetail1: dto.loadingDetail1,
-          time: dto.time,
-          bagQuantity: dto.bagQuantity,
-          grossWeight: dto.grossWeight,
-          jobID: dto.jobID,
-          descriptionID: dto.descriptionID,
-          netWeight: dto.netWeight,
-          quantity: dto.quantity,
-          requestID: dto.requestID,
-          riceTypeID: dto.riceTypeID,
-          shippingDate: dto.shippingDate,
-          staffID: dto.staffID,
-          statusContinue: dto.statusContinue,
-          status: true,
-          companyName: dto.companyName,
-        },
-      });
+     const dataToUpdate = { ...checkweightdata, ...dto };
+     
+
+if (dto.shippingDate) {
+  dataToUpdate.shippingDate = new Date(dto.shippingDate);
+}
+
+const updatedData = await this.prisma.validate_Check_Weight.update({
+  where: { checkWeightID },
+  data: dataToUpdate,
+});
 
       if (updatedData) {
         const addcertificatesheet = await this.prisma.certificatesheet.create({
@@ -57,7 +49,7 @@ export class RecordnotificationService {
 
       return res.status(200).send({
         message:
-          'Check weight data and addcertificatesheetalready updated successfully',
+          'Check weight data and addcertificatesheet already updated successfully',
         data: updatedData,
       });
     } catch (error) {
@@ -68,25 +60,30 @@ export class RecordnotificationService {
     }
   }
 
-  async postData(dto: ValidateCheckWeightDto, req: Request, res: Response) {
-    try {
-      const postdata = await this.prisma.validate_Check_Weight.create({
-        data: {
-          descriptionID: dto.descriptionID,
-          requestID: dto.requestID,
-          status: false,
-          staffID: dto.staffID,
-          jobID: dto.jobID,
-        },
-      });
-      return { message: 'post check weight data successfully', data: postdata };
-    } catch (error) {
-      return res.status(500).send({
-        message: 'Failed to post data',
-        error: error.message || error,
-      });
-    }
+  async postData(dtoArray: ValidateCheckWeightDto[], req: Request, res: Response) {
+  try {
+    const postdata = await this.prisma.validate_Check_Weight.createMany({
+      data: dtoArray.map((dto) => ({
+        descriptionID: dto.descriptionID,
+        requestID: dto.requestID,
+        status: false,
+        staffID: dto.staffID,
+        jobID: dto.jobID,
+      })),
+    });
+
+    return {
+      message: 'Posted check weight data successfully',
+      data: postdata,
+    };
+  } catch (error) {
+    return res.status(500).send({
+      message: 'Failed to post data',
+      error: error.message || error,
+    });
   }
+}
+
 
   async getCheckWeightData(checkWeightID: string, req: Request, res: Response) {
     try {

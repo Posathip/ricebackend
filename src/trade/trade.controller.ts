@@ -108,13 +108,14 @@ return {
 
   }
 
-// @UseGuards(JwtAuthGuard)
+ @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Post('createorder')
   createOrder(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
      return this.tradeService.createOrder(req.body, req, res);
   }
 
+    @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Delete('deleteorder')
   deleteOrder(
@@ -130,6 +131,7 @@ return {
     return this.tradeService.deleteOrderDetail(descriptionID, req, res);
   }
 
+@UseGuards(JwtAuthGuard)
 @HttpCode(200)
 @Put('updateorder')
 updateOrder(
@@ -140,6 +142,7 @@ updateOrder(
   return this.tradeService.updateOrder(id.trim(), req.body, req, res);
 }
 
+  @UseGuards(JwtAuthGuard)
  @HttpCode(200)
 @Get('getrequest')
 getRequest(
@@ -150,6 +153,7 @@ getRequest(
   return this.tradeService.getRequest(id, req, res);  
 }
 
+  @UseGuards(JwtAuthGuard)
  @HttpCode(200)
 @Get('getrequestbydate')
 getRequestbydate(

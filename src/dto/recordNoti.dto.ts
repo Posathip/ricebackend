@@ -28,65 +28,115 @@ export class ValidateCheckWeightDto {
   jobID?: string;
 }
 
-export class updateCheckWeightData {
-    @IsUUID()
-  @IsOptional() // Prisma auto-generates UUID
-  checkWeightID?: string;
+
+
+export class UpdateCheckWeightData {
+  @IsString()
+  @IsOptional()
+  jobID?: string; // ชื่อ job id
 
   @IsString()
   @IsOptional()
-  loadingDetail1: string;
+  staffID?: string;
 
   @IsString()
   @IsOptional()
-  time: string;
-
-  @IsInt()
-  @IsOptional()
-  bagQuantity: number;
-
-  @IsNumber()
-  @IsOptional()
-  grossWeight: number;
-
-  @IsString()
-  @IsOptional()
-  jobID: string;
-
-  @IsString()
-  descriptionID: string;
-
-  @IsNumber()
-  @IsOptional()
-  netWeight: number;
-
-  @IsNumber()
-  @IsOptional()
-  quantity: number;
-
-  @IsString()
-  requestID: string;
-
-  @IsString()
-  @IsOptional()
-  riceTypeID: string;
-
-  @IsDateString()
-  @IsOptional()
-  shippingDate: string; // e.g., "2025-07-24T08:00:00Z"
-
-  @IsString()
-  @IsOptional()
-  staffID: string;
-
-  @IsString()
-  @IsOptional()
-  statusContinue: string;
+  staffName?: string;
 
   @IsBoolean()
   status: boolean;
 
   @IsString()
   @IsOptional()
-  companyName: string;
+  supplierName?: string;
+
+  @IsString()
+  @IsOptional()
+  time?: string;
+
+  @IsString()
+  @IsOptional()
+  vesselName?: string;
+
+  @IsNumber()
+  @IsOptional()
+  noOfBags?: number;
+
+  @IsNumber()
+  @IsOptional()
+  totalgrossWeight?: number;
+
+  @IsNumber()
+  @IsOptional()
+  totalTareWeight?: number;
+
+  @IsNumber()
+  @IsOptional()
+  nettWeight?: number;
+
+  @IsNumber()
+  @IsOptional()
+  remainingWeight?: number;
+
+  @IsString()
+  @IsOptional()
+  loadingDetails?: string;
+
+  @IsString()
+  @IsOptional()
+  packingType?: string;
+
+  @IsNumber()
+  @IsOptional()
+  packingDetailKgs?: number;
+
+  @IsNumber()
+  @IsOptional()
+  packingDetailBags?: number;
+
+  @IsString()
+  @IsOptional()
+  remark1?: string;
+
+  @IsString()
+  @IsOptional()
+  remark2?: string;
+
+  @IsString()
+  @IsOptional()
+  remark3?: string;
+
+  @IsString()
+  @IsOptional()
+  remark4?: string;
+
+  @IsNumber()
+  @IsOptional()
+  totalnetWeight?: number;
+
+  @IsNumber()
+  @IsOptional()
+  quantity?: number;
+
+  @IsString()
+  @IsOptional()
+  riceTypeID?: string;
+
+  @IsDateString()
+  @IsOptional()
+  shippingDate?: string;
+
+  @IsString()
+  @IsOptional()
+  statusContinue?: string;
+
+  @IsString()
+  @IsOptional()
+  companyName?: string;
+
+  @IsString()
+  descriptionID: string;
+
+  @IsString()
+  requestID: string;
 }
