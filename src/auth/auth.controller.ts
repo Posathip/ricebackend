@@ -3,8 +3,11 @@ import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBadGatewayResponse, ApiCreatedResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateAccountUser, LoginDTO } from 'src/dto/user.dto';
-import { Request, Response } from 'express';
+
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
+import { FastifyReply } from 'fastify';
+import { FastifyRequest } from 'fastify';
+
 // import { AdminAuthGuard, JwtAuthGuard } from '../guards/jwt.guard';
 @Controller('auth')
 export class AuthController {
@@ -15,10 +18,11 @@ export class AuthController {
 
 createAccountUser(
   @Body() dto: CreateAccountUser,
-  @Req() req: Request,
-  @Res({ passthrough: true }) res: Response, // ✅ ต้องมี passthrough
+   @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+// ✅ ต้องมี passthrough
 ) {
-  return this.authService.createAccountUser(dto, req, res );
+  return this.authService.createAccountUser(dto, request, response );
 }
 
 
@@ -40,10 +44,11 @@ createAccountUser(
   })
   signin(
     @Body() dto: LoginDTO,
-   @Req() req: Request,
-  @Res({ passthrough: true }) res: Response, 
+ @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+
   ) {
-    return this.authService.signin(dto, req, res);
+    return this.authService.signin(dto, request, response);
   }
 
 }

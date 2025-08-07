@@ -10,6 +10,7 @@ import * as crypto from 'crypto';
 import { jwt_Access_Secret, jwt_Refresh_Secret } from '../config/app.config';
 import { CreateAccountUser, LoginDTO } from 'src/dto/user.dto';
 import { ConfigService } from '@nestjs/config';
+import { FastifyReply } from 'fastify';
 
 @Injectable()
 export class AuthService {
@@ -25,8 +26,9 @@ export class AuthService {
 async createAccountUser(
 
    dto: CreateAccountUser,
-       req: Request,
-  res: Response
+        @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+
 ){
     const checkEmail = await this.prisma.user.findUnique({
         where: { email: dto.email}
@@ -49,7 +51,7 @@ async createAccountUser(
     });
    
        return response.status(200).send({
-         message: `Create account email: ${dto.email} ${dto.company} complete`,
+         message: `Create account email: ${dto.email}  complete`,
        });
 }
 
@@ -73,8 +75,9 @@ async testsignin(
 }
 async signin(
     dto: LoginDTO,
-     req: Request,
-  res: Response
+     @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+
   ) {
 try {
      const { email, password } = dto;
@@ -112,16 +115,16 @@ try {
       const accesstoken_age = new Date(date.getTime() + 30 * 60000);
       const refreshtoken_age = new Date(date.getTime() + 24 * 60 * 60 * 1000);
        
-      return {
+      return response.status(200).send( {
         message: 'Logged in sucessfully',
         accessTokentime: accesstoken_age,
         accessToken: token,
         refreshToken: refreshtoken,
         refreshTokentime: refreshtoken_age,
-      }; 
+      }); 
 } catch (error) {
     console.error('Login error:', error); // log เต็ม
-  return res.status(500).send({
+  return response.status(500).send({
     message: 'Failed to Login',
     error: error instanceof Error ? error.message : 'Unknown error',
   });

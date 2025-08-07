@@ -49,13 +49,13 @@ export class CreateAccountUser {
   @ApiProperty({ example: 'admin' })
   roleUserLevel: string;
 
-  @IsString()
-  @ApiProperty({ example: 'CPF' })
-  company: string;
+  // @IsString()
+  // @ApiProperty({ example: 'CPF' })
+  // company: string;
 
-  @ApiProperty({ example: '0978654423' })
-  @IsString()
-  tel: string;
+  // @ApiProperty({ example: '0978654423' })
+  // @IsString()
+  // tel: string;
 
   
 }

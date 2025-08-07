@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Req, Res } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'prisma/prisma.service';
 import {
@@ -6,6 +6,7 @@ import {
   ValidateCheckWeightDto,
 } from 'src/dto/recordNoti.dto';
 import express, { Request, Response } from 'express';
+import { FastifyReply } from 'fastify';
 @Injectable()
 export class RecordnotificationService {
   [x: string]: any;
@@ -17,8 +18,9 @@ export class RecordnotificationService {
   async updateCheckWeightData(
     checkWeightID: string,
     dto: UpdateCheckWeightData,
-    req: Request,
-    res: Response,
+     @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+
   ) {
     try {
       const checkweightdata =
@@ -47,20 +49,22 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
         });
       }
 
-      return res.status(200).send({
+      return response.status(200).send({
         message:
           'Check weight data and addcertificatesheet already updated successfully',
         data: updatedData,
       });
     } catch (error) {
-      return res.status(500).send({
+      return response.status(500).send({
         message: 'Failed to update check weight data',
         error: error.message || error,
       });
     }
   }
 
-  async postData(dtoArray: ValidateCheckWeightDto[], req: Request, res: Response) {
+  async postData(dtoArray: ValidateCheckWeightDto[],  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
   try {
     const postdata = await this.prisma.validate_Check_Weight.createMany({
       data: dtoArray.map((dto) => ({
@@ -77,7 +81,7 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
       data: postdata,
     };
   } catch (error) {
-    return res.status(500).send({
+    return response.status(500).send({
       message: 'Failed to post data',
       error: error.message || error,
     });
@@ -85,7 +89,9 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
 }
 
 
-  async getCheckWeightData(checkWeightID: string, req: Request, res: Response) {
+  async getCheckWeightData(checkWeightID: string,  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
     try {
       const checkWeightData = await this.prisma.validate_Check_Weight.findMany({
         where: {
@@ -98,19 +104,19 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
       });
 
       if (!checkWeightData || checkWeightData.length === 0) {
-        return res
+        return response
           .status(404)
           .send({ message: 'No data found for the given check weight ID' });
       }
 
-      return res
+      return response
         .status(200)
         .send({
           message: 'Check weight data retrieved successfully',
           data: checkWeightData,
         });
     } catch (error) {
-      return res.status(500).send({
+      return response.status(500).send({
         message: 'Failed to retrieve check weight data',
         error: error.message || error,
       });

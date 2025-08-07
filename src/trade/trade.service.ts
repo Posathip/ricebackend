@@ -1,8 +1,11 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Req, Res } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'prisma/prisma.service';
-import express, { Request, Response } from 'express';
+
+import { FastifyReply } from 'fastify';
+import { FastifyRequest } from 'fastify';
+
 import * as https from 'https'; // สำหรับ HTTPS request
 import * as http from 'http'; // สำหรับ fallback HTTP
 import { parseStringPromise } from 'xml2js';
@@ -20,7 +23,9 @@ export class TradeService {
  
 
   
-  async  getData(req: Request, res: Response) {
+  async  getData( @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
   const ORGANCODE = 'e4d88b73-c523-440a-b60f-b243bfdfc540';
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -165,21 +170,22 @@ else{
     await this.prisma.dataFromGoverment.createMany({ data: dataGovList, skipDuplicates: true });
     await this.prisma.licenseDetail.createMany({ data: licenseDetailList });
    console.log(licenseDetailList);
-    return res.status(200).json({
+    return response.status(200).send({
       message: '✅ Data fetched and saved from SOAP service',
       inserted: parsedList,
     });
   } catch (err: any) {
     console.error('SOAP Error:', err);
-    return res.status(500).json({
+    return response.status(500).send({
       message: '❌ Failed to fetch SOAP data',
       error: err.message || err,
     });
   }
 }
   
-async licensequery (licenseNo,req: Request,
-  res: Response){
+async licensequery (licenseNo, @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+){
 try {
   const newLicenNo =  licenseNo;
   console.log(newLicenNo);
@@ -203,7 +209,9 @@ try {
 }
 
 
-async createOrder(body: any, req: Request, res: Response) {
+async createOrder(body: any,  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
   try {
     const adddata = await this.prisma.request.create({
       data: {
@@ -243,7 +251,7 @@ async createOrder(body: any, req: Request, res: Response) {
     });
 
     // ส่ง response กลับ client ว่าสร้างสำเร็จ
-    return res.status(200).json({
+    return response.status(200).send({
       success: true,
    
       message: 'Order created successfully',
@@ -252,7 +260,7 @@ async createOrder(body: any, req: Request, res: Response) {
     console.error('Error creating order:', error);
 
     // ส่ง error กลับ client
-    return res.status(500).json({
+    return response.status(500).send({
       success: false,
       message: 'Failed to create order',
       error: error.message || error,
@@ -260,11 +268,13 @@ async createOrder(body: any, req: Request, res: Response) {
   }
 }
 
-async getRequestbydate(date: string, req: Request, res: Response) {
+async getRequestbydate(date: string,  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
   try {
     const parsedDate = new Date(date);
     if (isNaN(parsedDate.getTime())) {
-      return res.status(400).json({
+      return response.status(400).send({
         success: false,
         message: 'Invalid date format',     
       });
@@ -281,7 +291,7 @@ async getRequestbydate(date: string, req: Request, res: Response) {
       },
     });
     if (!request || request.length === 0) {
-      return res.status(404).json({
+      return response.status(404).send({
         success: false,
         message: 'No requests found for the given date',
       });
@@ -292,7 +302,7 @@ async getRequestbydate(date: string, req: Request, res: Response) {
     };
   } catch (error) {
     console.error('Error fetching request by date:', error);
-    return res.status(500).json({
+    return response.status(500).send({
       success: false,
       message: 'Failed to fetch request by date',
       error: error.message || error,
@@ -300,7 +310,9 @@ async getRequestbydate(date: string, req: Request, res: Response) {
   }
 }
 
-  async getRequest(requestID,req: Request, res: Response){
+  async getRequest(requestID, @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+){
     try {
       const request = await this.prisma.request.findUnique({
         where: { requestID: requestID },
@@ -309,18 +321,18 @@ async getRequestbydate(date: string, req: Request, res: Response) {
         },
       });
       if (!request) {
-        return res.status(404).json({
+        return response.status(404).send({
           success: false,
           message: 'Request not found',
         });
       }
-      return res.status(200).json({
+      return response.status(200).send({
         success: true,
         data: request,
       });
     } catch (error) {
       console.error('Error fetching request:', error);
-      return res.status(500).json({
+      return response.status(500).send({
         success: false,
         message: 'Failed to fetch request',
         error: error.message || error,
@@ -329,7 +341,9 @@ async getRequestbydate(date: string, req: Request, res: Response) {
     }
   }
 
-async deleteOrder(orderID, req: Request, res: Response) {
+async deleteOrder(orderID, @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
   try {
     // ตรวจสอบว่ามี order ที่ต้องการลบหรือไม่
     const existingOrder = await this.prisma.request.findUnique({
@@ -337,7 +351,7 @@ async deleteOrder(orderID, req: Request, res: Response) {
     });
 
     if (!existingOrder) {
-      return res.status(404).json({
+      return response.status(404).send({
         success: false,
         message: 'Order not found',
       });
@@ -364,7 +378,7 @@ await this.prisma.request.delete({
     console.error('Error deleting order:', error);
 
     // ส่ง error กลับ client
-    return res.status(500).json({
+    return response.status(500).send({
       success: false,
       message: 'Failed to delete order',
       error: error.message || error,
@@ -373,7 +387,9 @@ await this.prisma.request.delete({
 
 }
 
-async deleteOrderDetail(descriptionID, req: Request, res: Response) {
+async deleteOrderDetail(descriptionID,  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
   try {
     // ตรวจสอบว่ามี order ที่ต้องการลบหรือไม่
     const existingOrder = await this.prisma.description.findUnique({
@@ -381,7 +397,7 @@ async deleteOrderDetail(descriptionID, req: Request, res: Response) {
     });
 
     if (!existingOrder) {
-      return res.status(404).json({
+      return response.status(404).send({
         success: false,
         message: 'Order not found',
       });
@@ -405,7 +421,7 @@ await this.prisma.description.delete({
     console.error('Error deleting order:', error);
 
     // ส่ง error กลับ client
-    return res.status(500).json({
+    return response.status(500).send({
       success: false,
       message: 'Failed to delete order',
       error: error.message || error,
@@ -413,7 +429,9 @@ await this.prisma.description.delete({
   }
 
 }
-async updateOrder(id, body: any, req: Request, res: Response) {
+async updateOrder(id, body: any,  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
   try {
     const updateRequestData = {
       companyName: body.companyName,
@@ -476,7 +494,7 @@ async updateOrder(id, body: any, req: Request, res: Response) {
     };
   } catch (error) {
     console.error('Error updating order:', error);
-    return res.status(500).json({
+    return response.status(500).send({
       success: false,
       message: 'Failed to update order',
       error: error.message || error,

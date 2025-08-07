@@ -2,28 +2,34 @@ import { Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req, Res, U
 import { TradeService } from './trade.service';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
+import { FastifyReply } from 'fastify';
+import { request } from 'http';
 
 @Controller('trade')
 export class TradeController {
   constructor(private readonly tradeService: TradeService) {}
 
   @Post('getdata')
-  getdata(@Req() req: Request, @Res() res: Response) {
-    return this.tradeService.getData(req, res);
+  getdata(@Req() request: any,
+       @Res({ passthrough: true }) response: FastifyReply,
+) {
+    return this.tradeService.getData(request, response);
   }
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Get('licensequery')
-  licensequery(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const licenseNo = req.query.licenseNo;
+  licensequery(@Req() request: any,
+       @Res({ passthrough: true }) response: FastifyReply,) {
+    const licenseNo = request.query.licenseNo;
 
-    return this.tradeService.licensequery(licenseNo, req,res);
+    return this.tradeService.licensequery(licenseNo, request,response);
   }
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Get('province')
-  province(@Req() req: Request, @Res({ passthrough: true }) res: Response){
+  province(@Req() request: any,
+       @Res({ passthrough: true }) response: FastifyReply,){
 return {
   "provinces": [
     "กรุงเทพมหานคร",
@@ -111,24 +117,27 @@ return {
  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Post('createorder')
-  createOrder(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-     return this.tradeService.createOrder(req.body, req, res);
+  createOrder(@Req() req: any,
+       @Res({ passthrough: true }) response: FastifyReply,) {
+     return this.tradeService.createOrder(req.body, req, response);
   }
 
     @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Delete('deleteorder')
   deleteOrder(
-       @Query('id') orderID: string,@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+       @Query('id') orderID: string,@Req() request: any,
+       @Res({ passthrough: true }) response: FastifyReply,) {
 
-    return this.tradeService.deleteOrder(orderID, req, res);
+    return this.tradeService.deleteOrder(orderID, request, response);
   }
   @HttpCode(200)
   @Delete('deletedescription')
   deleteOrdeDetail(
-       @Query('id') descriptionID: string,@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+       @Query('id') descriptionID: string,@Req() request: any,
+       @Res({ passthrough: true }) response: FastifyReply,) {
 
-    return this.tradeService.deleteOrderDetail(descriptionID, req, res);
+    return this.tradeService.deleteOrderDetail(descriptionID, request, response);
   }
 
 @UseGuards(JwtAuthGuard)
@@ -136,10 +145,10 @@ return {
 @Put('updateorder')
 updateOrder(
   @Query('id') id: string,
-  @Req() req: Request,
-  @Res({ passthrough: true }) res: Response
+  @Req() request: any,
+       @Res({ passthrough: true }) response: FastifyReply,
 ) {
-  return this.tradeService.updateOrder(id.trim(), req.body, req, res);
+  return this.tradeService.updateOrder(id.trim(), request.body, request, response);
 }
 
   @UseGuards(JwtAuthGuard)
@@ -147,10 +156,10 @@ updateOrder(
 @Get('getrequest')
 getRequest(
   @Query('id') id: string,
-  @Req() req: Request,
-  @Res({ passthrough: true }) res: Response
+ @Req() request: any,
+       @Res({ passthrough: true }) response: FastifyReply,
 ) {
-  return this.tradeService.getRequest(id, req, res);  
+  return this.tradeService.getRequest(id, request, response);  
 }
 
   @UseGuards(JwtAuthGuard)
@@ -159,10 +168,10 @@ getRequest(
 getRequestbydate(
   @Query('date') date: string,
   
-  @Req() req: Request,
-  @Res({ passthrough: true }) res: Response
+  @Req() request: any,
+       @Res({ passthrough: true }) response: FastifyReply,
 ) {
-  return this.tradeService.getRequestbydate(date, req, res);  
+  return this.tradeService.getRequestbydate(date, request, response);  
 }
 
 }
