@@ -8,12 +8,13 @@ import { Prisma } from 'generated/prisma';
 import { PrismaService } from 'prisma/prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { RecordnotificationModule } from './recordnotification/recordnotification.module';
+import { OrderbillModule } from './orderbill/orderbill.module';
 
 
 @Module({
   imports: [    ConfigModule.forRoot({
       isGlobal: true, // ให้ config ใช้ได้ทั่วแอป
-    }), TradeModule, AuthModule, RecordnotificationModule, 
+    }), TradeModule, AuthModule, RecordnotificationModule, OrderbillModule, 
 ],
   controllers: [AppController],
   providers: [AppService,PrismaService],
