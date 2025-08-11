@@ -23,6 +23,8 @@ async function bootstrap() {
     secret: jwt_Access_Secret, // for cookies signature
   });
   app.enableCors({
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     origin: true,
     credentials: true,
   });
@@ -42,6 +44,17 @@ async function bootstrap() {
     },
     templates: join(__dirname, '..', '/views'),
   });
+
+  // Swagger setup
+  const { SwaggerModule, DocumentBuilder } = await import('@nestjs/swagger');
+  const config = new DocumentBuilder()
+    .setTitle('Rice Project API')
+    .setDescription('API documentation for Rice Project')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
 
   const configService = app.get(ConfigService);

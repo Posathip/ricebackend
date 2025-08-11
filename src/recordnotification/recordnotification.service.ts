@@ -15,6 +15,42 @@ export class RecordnotificationService {
     private jwt: JwtService,
   ) {}
 
+  async getCheckWeightDataFilterDate(date,@Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,){
+      try {
+        const parsedDate = new Date(date);
+        console.log('Parsed Date:', parsedDate);
+        const checkWeightDatafilterbydate = await this.prisma.validate_Check_Weight.findMany({
+  where: {
+    request: {
+      requestDate: {
+        gte:  new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
+        lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
+      }
+    }
+  },
+  include: {
+    request: true,
+  },
+});
+      if(!checkWeightDatafilterbydate || checkWeightDatafilterbydate.length === 0) {
+        return response.status(404).send({
+          message: 'No check weight data found for the given date',
+        });
+      } 
+      return response.status(200).send({
+        message: 'Check weight data retrieved successfully by date',
+        data: checkWeightDatafilterbydate,
+      });
+      } catch (error) {
+        return response.status(500).send({
+          message: 'Failed to retrieve check weight data by date',
+          error: error.message || error,
+        });
+        
+      }
+  }
+
   async updateCheckWeightData(
     checkWeightID: string,
     dto: UpdateCheckWeightData,

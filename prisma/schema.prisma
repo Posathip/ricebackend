@@ -8,201 +8,264 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model DataFromGoverment {
-  dataID              String         @id @default(uuid())
-  licenseNumber       String  @unique
-    fullLicenseNumber  String @unique
-  exporter            String
-  recipient           String
-  buyer               String?
-  exportAgent         String
-  companyTax          String
-  product             String
-  issueDate           DateTime
-  expiredDate         DateTime
-  exportDate          DateTime?
-  buyerCountry        String
-  destinationCountry  String
-  exportBy            String?
-  vehicle             String
-  portName            String
-  currency            String
-  exchangeRate        Float
-  permitConditions    String
-  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
-  licenseDetails      LicenseDetail[]
 
+model DataFromGoverment {
+  dataID             String          @id @default(uuid())
+  licenseNumber      String          @unique
+  fullLicenseNumber  String          @unique
+  exporter           String
+  recipient          String
+  buyer              String?
+  exportAgent        String
+  companyTax         String
+  product            String
+  issueDate          DateTime
+  expiredDate        DateTime
+  exportDate         DateTime?
+  buyerCountry       String
+  destinationCountry String
+  exportBy           String?
+  vehicle            String
+  portName           String
+  currency           String
+  exchangeRate       Float
+  permitConditions   String
+  createdAt          DateTime        @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt          DateTime        @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  licenseDetails     LicenseDetail[]
 }
 
 model LicenseDetail {
-  licenseDetailID     String         @id @default(uuid())
-  permitId            String
-  permit              DataFromGoverment @relation(fields: [permitId], references: [dataID])
-  licenseNumber      String?
+  licenseDetailID String            @id @default(uuid())
+  permitId        String
+  permit          DataFromGoverment @relation(fields: [permitId], references: [dataID])
+  licenseNumber   String?
 
-  tariffType          String?
-  netWeightTON        Float?
-  netWeightUnit       String?
-  netWeightKGM        Float?
-  netWeightUnitKGM    String?
-  quantity            Int?
-  quantityUnit        String?
-  pricePerUnit        Float?
-  currencyPerTON      String?
-  fob                 Float?
-  price               Float?
-  incoterms           String?
-  productDescription  String?
-  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  tariffType         String?
+  netWeightTON       Float?
+  netWeightUnit      String?
+  netWeightKGM       Float?
+  netWeightUnitKGM   String?
+  quantity           Int?
+  quantityUnit       String?
+  pricePerUnit       Float?
+  currencyPerTON     String?
+  fob                Float?
+  price              Float?
+  incoterms          String?
+  productDescription String?
+  createdAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
 
 model Company {
-  companyID           String         @id @default(uuid())
-  companyNameEN       String
-  companyNameTH       String
-  companyDescription  String
-  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  companyID          String   @id @default(uuid())
+  companyNameEN      String
+  companyNameTH      String
+  companyDescription String
+  createdAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
 
-
 model Request {
-  requestID           String         @id @default(uuid())
+  requestID            String   @id @default(uuid())
   companyName          String //ชื่อผู้ส่งออก
-  requestBy           String  //ผู้ขอตรวจสอบ
-  requestDate         DateTime //วันที่ส่งคำขอ
-  shippingDateTime    DateTime  //วันเวลาที่จะบรรลุ
-  surveyLocateNameThai    String //สถานที่ตรวจสอบ
-  surveyLocateNameEng    String //สถานที่ตรวจสอบ ภาษาอังกฤษ
-  surveyPaidBy        String //เรียกเก็บเงิน
-  surveyProvince      String // จังหวัด 
-  surveySubDistrict   String // อำเภอ
-  telInspector        String // เบอร์ติดต่อผู้ตรวจสอบ
-  telDebtor           String   //เบอร์ติดต่อเรียกเก็บเงิน
-  licenseNumber       String // เลขที่ใบอนุญาต
-  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  requestBy            String //ผู้ขอตรวจสอบ
+  requestDate          DateTime //วันที่ส่งคำขอ
+  shippingDateTime     DateTime //วันเวลาที่จะบรรลุ
+  surveyLocateNameThai String //สถานที่ตรวจสอบ
+  surveyLocateNameEng  String //สถานที่ตรวจสอบ ภาษาอังกฤษ
+  surveyPaidBy         String //เรียกเก็บเงิน
+  surveyProvince       String // จังหวัด 
+  surveySubDistrict    String // อำเภอ
+  telInspector         String // เบอร์ติดต่อผู้ตรวจสอบ
+  telDebtor            String //เบอร์ติดต่อเรียกเก็บเงิน
+  licenseNumber        String // เลขที่ใบอนุญาต
+  createdAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
-  descriptions        Description[] 
+  descriptions          Description[]
   validate_Check_Weight validate_Check_Weight[]
 }
 
 model Description {
-  descriptionID        String         @id @default(uuid())
-  requestId            String
-  request              Request  @relation(fields: [requestId], references: [requestID])
-  destination          String //ปลายทาง
-  riceType            String // ประเภทข้าว
-  vehicleName          String // ชื่อรถ
-  marker               String // เครื่องหมาย
-  licenseNumber        String // เลขที่ใบอนุญาต
-  quantity             Float
-  quantityUnit         String //ชนิดกระสอบ
-  grossWeight          Float
-  netWeight            Float
+  descriptionID String  @id @default(uuid())
+  requestId     String
+  request       Request @relation(fields: [requestId], references: [requestID])
+  destination   String //ปลายทาง
+  riceType      String // ประเภทข้าว
+  vehicleName   String // ชื่อรถ
+  marker        String // เครื่องหมาย
+  licenseNumber String // เลขที่ใบอนุญาต
+  quantity      Float
+  quantityUnit  String //ชนิดกระสอบ
+  grossWeight   Float
+  netWeight     Float
 
-  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  createdAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
   validate_Check_Weight validate_Check_Weight[]
 }
 
 model validate_Check_Weight {
-  checkWeightID       String         @id @default(uuid())
-  jobID               String? //ชื่อ job id
-  staffID             String?
-  staffName           String?
-  status              Boolean
-  supplierName       String?
-   time                String?
-   vesselName          String?
-   noOfBags            Float?
-   totalgrossWeight        Float?
-   totalTareWeight     Float?
-   nettWeight          Float?
-   remainingWeight    Float?
-   loadingDetails      String?
-   packingType         String?
-   packingDetailKgs   Float?
-   packingDetailBags Float?
-   remark1            String?
-    remark2            String?
-  remark3            String?
-  remark4            String?
+  checkWeightID     String  @id @default(uuid())
+  jobID             String? //ชื่อ job id
+  staffID           String?
+  staffName         String?
+  status            Boolean
+  supplierName      String?
+  time              String?
+  vesselName        String?
+  noOfBags          Float?
+  totalgrossWeight  Float?
+  totalTareWeight   Float?
+  nettWeight        Float?
+  remainingWeight   Float?
+  loadingDetails    String?
+  packingType       String?
+  packingDetailKgs  Float?
+  packingDetailBags Float?
+  remark1           String?
+  remark2           String?
+  remark3           String?
+  remark4           String?
+  note             String?
+  totalnetWeight Float?
+  quantity       Float?
 
-  
+  riceTypeID   String?
+  shippingDate DateTime?
 
+  statusContinue String?
 
+  companyName   String?
+  descriptionID String
+  requestID     String
+  wage        Float?
+  wageVehicle Float?
+  wegeOverTime Float?
+  allWage    Float?
+  createdAt     DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt     DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
-  totalnetWeight           Float?
-  quantity            Float?
-
-  riceTypeID          String?
-  shippingDate        DateTime?
-
-  statusContinue       String?
- 
-  companyName          String?
-  descriptionID     String
-  requestID           String
-  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
-  
-  request              Request  @relation(fields: [requestID], references: [requestID])
-  description        Description @relation(fields: [descriptionID], references: [descriptionID])
-    // licenseID           String
+  request     Request     @relation(fields: [requestID], references: [requestID])
+  description Description @relation(fields: [descriptionID], references: [descriptionID])
+  // licenseID           String
 }
 
 model certificatesheet {
-  certificateSheetID  String         @id @default(uuid())
-  jobID               String
-  license             String?
-  No                  Int?
-  NoOld               Int?
-  PackingType1        String?
-  PackingType11       String?
-  PackingType12       String?
-  PackingType2        String?
-  quality1            String?   @map("Quality1string")
-  quality2            String?   @map("Quality2string")
-  shipperBehalf       String?
-  totalGross          String?
-  totalNett           Float?
-  totalTare           String?
-  weight              String?   @map("Weightstring")
-  bagQuantity         String?
-  companyEN           String?
-  currentDate         String?
-  destinationCity     String?
-  godown              String?
+  certificateSheetID String   @id @default(uuid())
+  jobID              String
+  license            String?
+  No                 Int?
+  NoOld              Int?
+  PackingType1       String?
+  PackingType11      String?
+  PackingType12      String?
+  PackingType2       String?
+  quality1           String?  @map("Quality1string")
+  quality2           String?  @map("Quality2string")
+  shipperBehalf      String?
+  totalGross         String?
+  totalNett          Float?
+  totalTare          String?
+  weight             String?  @map("Weightstring")
+  bagQuantity        String?
+  companyEN          String?
+  currentDate        String?
+  destinationCity    String?
+  godown             String?
   // logo                String?
-  shippingDate        String?
-  shippingPort        String?
-  carryVessel         String?
-  destination         String?
-  exportLicenseNo     String?
-  title1              String ?  @map("title1string")
-  vehicleName         String?
-  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  shippingDate       String?
+  shippingPort       String?
+  carryVessel        String?
+  destination        String?
+  exportLicenseNo    String?
+  title1             String?  @map("title1string")
+  vehicleName        String?
+  createdAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
   // @@map("certificatesheet")
 }
 
 model User {
-  id  String   @unique @default(uuid())
-  email String  @unique
-  hashpassword String       
-  password String @unique
-  roleUserLevel String    //Root-Admin,Super-Admin,Subroot-Admin,"User" 
-  createdAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt         DateTime       @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  id            String   @unique @default(uuid())
+  email         String   @unique
+  hashpassword  String
+  password      String   @unique
+  roleUserLevel String //Root-Admin,Super-Admin,Subroot-Admin,"User" 
+  createdAt     DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt     DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
 
+model orderBill {
+  orderBillID String   @id @default(uuid())
+  status      String // สถานะการชำระเงิน
+  date           DateTime?
+  createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+
+  // Relations
+  physicalAnalyses physicalAnalysis[]
+  extraInvoices    extraInvoice[]
+  sellingLiquids   sellingLiquids[]
+}
+
+model physicalAnalysis {
+  physicalAnalysisID String   @id @default(uuid())
+  orderBillID        String
+  orderBill          orderBill @relation(fields: [orderBillID], references: [orderBillID],onDelete: Cascade)
+
+  orderNo        String
+  date           DateTime
+  companyName    String
+  physicalAnalysis Boolean
+  physicalChemical String[]
+  totalPrice     Float?
+  note           String?
+
+  createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
+
+model extraInvoice {
+  extraInvoiceID String   @id @default(uuid())
+  orderBillID    String
+  orderBill      orderBill @relation(fields: [orderBillID], references: [orderBillID],onDelete: Cascade)
+
+  orderNo        String
+  companyName    String
+  numberSample   Float?
+  pricePerUnit   Float?
+  totalPrice     Float?
+  note           String?
+  date           DateTime
+
+  createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
+
+model sellingLiquids {
+  sellingLiquidsID String   @id @default(uuid())
+  orderBillID      String
+  orderBill        orderBill @relation(fields: [orderBillID], references: [orderBillID],onDelete: Cascade)
+
+  orderNo          String
+  companyName      String
+  date             DateTime
+  liquidsBoolean   Boolean
+  numberNo1        Float?
+  pricePerUnitNo1  Float?
+  totalPriceNo1    Float?
+  numberNo2        Float?
+  pricePerUnitNo2  Float?
+  totalPriceNo2    Float?
+
+  createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }

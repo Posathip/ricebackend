@@ -20,6 +20,12 @@ export class RecordnotificationController {
 ) {
         return this.recordnotificationService.getCheckWeightData(checkWeightID,request, response);
     } 
+     @Get('getcheckweightdatafilterbydate')
+    getCheckWeightDatafilterDate( @Query('date') date: string, @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
+        return this.recordnotificationService.getCheckWeightDataFilterDate(date,request, response);
+    } 
     @Put('updatecheckweightdata')
     updatecheckweightdata( @Query('checkWeightID') checkWeightID: string, @Body() dto: UpdateCheckWeightData,
       @Req() request: any,

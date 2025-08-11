@@ -112,7 +112,7 @@ try {
     //     domain: 'asia-southeast1-agtechaibackend.cloudfunctions.net'
     //   });
       const date = new Date();
-      const accesstoken_age = new Date(date.getTime() + 30 * 60000);
+      const accesstoken_age = new Date(date.getTime() + 24 * 60 * 60 * 60000);
       const refreshtoken_age = new Date(date.getTime() + 24 * 60 * 60 * 1000);
        
       return response.status(200).send( {
@@ -169,7 +169,7 @@ async hashPassword(password: string) {
 
     const token = await this.jwt.signAsync(payload, {
       secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-      expiresIn: '30m',
+      expiresIn: '1d',
     });
 
     // const token = await this.jwt.signAsync(payload)
