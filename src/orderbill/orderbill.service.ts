@@ -2,7 +2,7 @@ import { Injectable, Req, Res } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { FastifyReply } from 'fastify';
 import { PrismaService } from 'prisma/prisma.service';
-import { UpdateOrderStatusDto } from 'src/dto/orderBill.dto';
+import { UpdateDataAnalysisDto, UpdateExtraInvoiceDto, UpdateOrderStatusDto, UpdateSellingLiquidsDto } from 'src/dto/orderBill.dto';
 
 
 @Injectable()
@@ -249,4 +249,88 @@ async updateStatus(dto: UpdateOrderStatusDto,@Req() request: any,
     }
 }
 
+async updatedataanalysis( physicalAnalysisID, dto: UpdateDataAnalysisDto, @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) { 
+  try {
+    const finddata = await this.prisma.physicalAnalysis.findUnique({
+      where: { physicalAnalysisID:physicalAnalysisID },
+    });
+    if (!finddata) {
+      return response.status(404).send({
+        message: 'Physical analysis data not found for the given order bill ID',
+      });
+    }
+    const updatedata = await this.prisma.physicalAnalysis.update({
+      where: { physicalAnalysisID: physicalAnalysisID },
+      data: dto,
+    });
+  } catch (error) {
+    return response.status(500).send({
+      message: 'Failed to update physical analysis data',
+      error: error.message || error,
+    });
+    
+  }
+}
+
+async updatedataextrainvoice(extrainvoiceID,dto: UpdateExtraInvoiceDto, @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) { 
+  try {
+    const finddata = await this.prisma.extraInvoice.findUnique({
+      where: { extraInvoiceID:extrainvoiceID },
+      
+    });
+    if (!finddata) {
+      return response.status(404).send({
+        message: 'Extra invoice data not found for the given order bill ID',
+      });
+    }
+    const updatedata = await this.prisma.extraInvoice.update({
+      where: { extraInvoiceID: extrainvoiceID },
+      data: dto,
+    });
+    return response.status(200).send({
+      message: 'Extra invoice data updated successfully',
+
+    });
+  } catch (error) {
+    return response.status(500).send({
+      message: 'Failed to update extra invoice data',
+      error: error.message || error,
+    });
+    
+  }
+
+}
+
+async updatedatasellingliquids(sellingLiquidsID,dto: UpdateSellingLiquidsDto, @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
+  try {
+    const finddata = await this.prisma.sellingLiquids.findUnique({
+      where: { sellingLiquidsID:sellingLiquidsID },
+    });
+    if (!finddata) {
+      return response.status(404).send({
+        message: 'Selling liquids data not found for the given order bill ID',
+      });
+    }
+    const updatedata = await this.prisma.sellingLiquids.update({
+      where: { sellingLiquidsID: sellingLiquidsID },
+      data: dto,
+    });
+    return response.status(200).send({
+      message: 'Selling liquids data updated successfully',
+    });
+    
+  } catch (error) {
+    return response.status(500).send({
+      message: 'Failed to update selling liquids data',
+      error: error.message || error,
+    });
+    
+  }
+}
     }

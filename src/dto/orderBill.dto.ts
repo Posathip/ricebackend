@@ -2,6 +2,147 @@ import { IsString, IsBoolean, IsOptional, IsNumber, IsDateString, IsArray, Valid
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
+export class  UpdateDataAnalysisDto{
+
+
+    @ApiProperty({ example: 'ORD12345' })
+    @IsString()
+    @IsOptional()
+    orderNo: string;
+
+    @ApiProperty({ example: '2024-06-01' })
+    @IsDateString()
+        @IsOptional()
+    date: Date;
+
+    @ApiProperty({ example: 'Acme Rice Co.' })
+    @IsString()
+    @IsOptional()
+    companyName: string;
+
+    @ApiProperty({ example: true })
+    @IsBoolean()
+        @IsOptional()
+    physicalAnalysis: boolean;
+
+    @ApiProperty({ example: ['Moisture', 'Protein'], type: [String] })
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    physicalChemical: string[];
+
+    @ApiProperty({ example: 1500, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    totalPrice?: number;
+
+    @ApiProperty({ example: 'Urgent order', required: false })
+    @IsOptional()
+    @IsString()
+    note?: string;
+}
+
+export class UpdateExtraInvoiceDto {
+   
+
+    @ApiProperty({ example: 'ORD12345' })
+    @IsString()
+     @IsOptional()
+    orderNo: string;
+
+    @ApiProperty({ example: 'Acme Rice Co.' })
+    @IsString()
+        @IsOptional()
+    companyName: string;
+
+    @ApiProperty({ example: 10, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    numberSample: number;
+
+    @ApiProperty({ example: 100, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    pricePerUnit?: number;
+
+    @ApiProperty({ example: 1000, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    totalPrice?: number;
+
+    @ApiProperty({ example: 'Extra charge for rush', required: false })
+    @IsOptional()
+    @IsString()
+    note?: string;
+
+    @ApiProperty({ example: '2024-06-01' })
+    @IsDateString()
+    @IsOptional()
+    date: Date;
+}
+
+export class UpdateSellingLiquidsDto {
+
+    @ApiProperty({ example: 'ORD12345' })
+    @IsString()
+        @IsOptional()
+    orderNo: string;
+
+    @ApiProperty({ example: 'Acme Rice Co.' })
+    @IsString()
+        @IsOptional()
+    companyName: string;
+
+    @ApiProperty({ example: '2024-06-01' })
+    @IsDateString()
+        @IsOptional()
+    date: Date;
+
+    @ApiProperty({ example: true })
+    @IsBoolean()
+    liquidsBoolean: boolean;
+
+    @ApiProperty({ example: 5, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    numberNo1?: number;
+
+    @ApiProperty({ example: 200, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    pricePerUnitNo1?: number;
+
+    @ApiProperty({ example: 1000, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    totalPriceNo1?: number;
+
+    @ApiProperty({ example: 3, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    numberNo2?: number;
+
+    @ApiProperty({ example: 150, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    pricePerUnitNo2?: number;
+
+    @ApiProperty({ example: 450, required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    totalPriceNo2?: number;
+}
+
 export class CreatePhysicalAnalysisDto {
     @ApiProperty({ example: 'completed' })
     @IsString()

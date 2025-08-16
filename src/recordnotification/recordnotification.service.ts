@@ -111,7 +111,16 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
         jobID: dto.jobID,
       })),
     });
-
+  const updateStatus = await this.prisma.request.updateMany({
+  where: {
+    requestID: {
+      in: dtoArray.map((item) => item.requestID), 
+    },
+  },
+  data: {
+    status: 'completed', // Update status to 'completed'
+  },
+});
     return {
       message: 'Posted check weight data successfully',
       data: postdata,

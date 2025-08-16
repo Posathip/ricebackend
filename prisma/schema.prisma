@@ -44,7 +44,7 @@ model LicenseDetail {
   permitId        String
   permit          DataFromGoverment @relation(fields: [permitId], references: [dataID])
   licenseNumber   String?
-
+ 
   tariffType         String?
   netWeightTON       Float?
   netWeightUnit      String?
@@ -85,6 +85,7 @@ model Request {
   telInspector         String // เบอร์ติดต่อผู้ตรวจสอบ
   telDebtor            String //เบอร์ติดต่อเรียกเก็บเงิน
   licenseNumber        String // เลขที่ใบอนุญาต
+  status              String? // สถานะการตรวจสอบ
   createdAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
@@ -95,7 +96,7 @@ model Request {
 model Description {
   descriptionID String  @id @default(uuid())
   requestId     String
-  request       Request @relation(fields: [requestId], references: [requestID])
+  request       Request @relation(fields: [requestId], references: [requestID],onDelete: Cascade)
   destination   String //ปลายทาง
   riceType      String // ประเภทข้าว
   vehicleName   String // ชื่อรถ

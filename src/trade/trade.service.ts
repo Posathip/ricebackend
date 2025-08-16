@@ -227,6 +227,7 @@ async createOrder(body: any,  @Req() request: any,
         telInspector: body.telInspector,
         telDebtor: body.telDebtor,
         licenseNumber: body.licenseNumber,
+        status: "incomplete",
         
        
         descriptions: {
@@ -356,9 +357,16 @@ async deleteOrder(orderID, @Req() request: any,
         message: 'Order not found',
       });
     }
-    //  await this.prisma.description.deleteMany({
-    //   where: { descriptionID  : existingOrder. },
-    // });
+    const findOrder = await this.prisma.validate_Check_Weight.findFirst({
+      where: { descriptionID: orderID },
+    })
+    if (findOrder) {
+      return response.status(400).send({
+        success: false,
+        message: 'Order is submitted already cannot delete',
+      });
+    }
+   console.log(findOrder);
     // ลบ order
    await this.prisma.description.deleteMany({
   where: { requestId: orderID },
@@ -370,12 +378,12 @@ await this.prisma.request.delete({
 
 
     // ส่ง response กลับ client ว่าลบสำเร็จ
-    return {
+    return  response.status(200).send({
       success: true,
       message: 'Order deleted successfully',
-    };
+    });
   } catch (error) {
-    console.error('Error deleting order:', error);
+    
 
     // ส่ง error กลับ client
     return response.status(500).send({
@@ -391,11 +399,21 @@ async deleteOrderDetail(descriptionID,  @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
 ) {
   try {
+    const checkWeight = await this.prisma.validate_Check_Weight.findFirst({
+      where: { descriptionID: descriptionID },
+    });
+    console.log(checkWeight);
+    if (checkWeight) {
+      return response.status(400).send({
+        success: false,
+        message: 'Cannot delete order detail, it has been submitted for weight check',
+      });
+    }
     // ตรวจสอบว่ามี order ที่ต้องการลบหรือไม่
     const existingOrder = await this.prisma.description.findUnique({
       where: { descriptionID: descriptionID },
     });
-
+    console.log(existingOrder);
     if (!existingOrder) {
       return response.status(404).send({
         success: false,
@@ -413,10 +431,10 @@ await this.prisma.description.delete({
 
 
     // ส่ง response กลับ client ว่าลบสำเร็จ
-    return {
+    return response.status(200).send({
       success: true,
       message: 'Order deleted successfully',
-    };
+    });
   } catch (error) {
     console.error('Error deleting order:', error);
 

@@ -1,7 +1,7 @@
 import { OrderbillService } from './orderbill.service';
 import { FastifyReply } from 'fastify';
 import { Body, Controller, Delete, Get, Post, Put, Query, Req, Res } from '@nestjs/common';
-import { CreateExtraInvoiceDto, CreatePhysicalAnalysisDto, CreateSellingLiquidsDto, UpdateOrderStatusDto,  } from 'src/dto/orderBill.dto';
+import { CreateExtraInvoiceDto, CreatePhysicalAnalysisDto, CreateSellingLiquidsDto, UpdateDataAnalysisDto, UpdateExtraInvoiceDto, UpdateOrderStatusDto, UpdateSellingLiquidsDto,  } from 'src/dto/orderBill.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('Orderbill')
@@ -91,4 +91,45 @@ export class OrderbillController {
   ){
     return this.orderbillService.updateStatus(dto, request, response);
   }
+  @Put('updatedataanalysis')
+  @ApiOperation({ summary: 'Update physical analysis data' })
+  @ApiQuery({ name: 'physicaldataanalysisid', type: String, required: true })
+  @ApiResponse({ status: 200, description: 'Physical analysis data updated successfully.' })
+  updatedataanalysis(
+     @Query('physicaldataanalysisid') physicaldataanalysisID: string,
+     @Body() dto: UpdateDataAnalysisDto,
+     @Req() request: any,
+     @Res({ passthrough: true }) response: FastifyReply,
+  ) {
+    return this.orderbillService.updatedataanalysis(physicaldataanalysisID, dto, request, response);
+  }
+
+    @Put('updatedataextrainvoice')
+    @ApiOperation({ summary: 'Update extra invoice data' })
+    @ApiQuery({ name: 'extrainvoiceid', type: String, required: true })
+    @ApiBody({ type: UpdateExtraInvoiceDto })
+    @ApiResponse({ status: 200, description: 'Extra invoice data updated successfully.' })
+    updatedataextrainvoice(
+      @Query('extrainvoiceid') extrainvoiceID: string,
+      @Body() dto: UpdateExtraInvoiceDto,
+      @Req() request: any,
+      @Res({ passthrough: true }) response: FastifyReply,
+    ) {
+      return this.orderbillService.updatedataextrainvoice(extrainvoiceID, dto, request, response);
+    }
+
+
+    @Put('updatedatasellingliquids')
+    @ApiOperation({ summary: 'Update selling liquids data' })
+    @ApiQuery({ name: 'sellingliquidsid', type: String, required: true })
+    @ApiBody({ type: UpdateSellingLiquidsDto })
+    @ApiResponse({ status: 200, description: 'Selling liquids data updated successfully.' })
+    updatedatasellingliquids(
+      @Query('sellingliquidsid') sellingLiquidsID: string,
+      @Body() dto: UpdateSellingLiquidsDto,
+      @Req() request: any,
+      @Res({ passthrough: true }) response: FastifyReply,
+    ) {
+      return this.orderbillService.updatedatasellingliquids(sellingLiquidsID, dto, request, response);
+    }
 }
