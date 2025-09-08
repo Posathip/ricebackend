@@ -1,0 +1,2632 @@
+{
+  "-MBASdsdbXb54kVlO88k": {
+    "surveyNameEN": "ARPA AGRICULTURE",
+    "surveyNameTH": "อาภาการเกษตร",
+    "amphoes": "เมือง",
+    "changwat": "นครปฐม",
+    "fare": "0"
+  },
+  "-MBASdsdbXb54kVlO88l": {
+    "amphoes": "หนองไผ่",
+    "changwat": "ขอนแก่น",
+    "surveyNameEN": "ARUN  PATTANA  RICE  MILL",
+    "surveyNameTH": "อรุณพัฒนา",
+    "fare": "0"
+  },
+  "-MBASdsjgDu874vONx5K": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "BLUE ELEPHANT ",
+    "surveyNameTH": "บลูเอเลเฟ่น",
+    "fare": "0"
+  },
+  "-MBASdsxuYAY1pWpsBAu": {
+    "amphoes": "เมือง",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "CHAROEN PHON RICE MILL",
+    "surveyNameTH": "เจริญผล",
+    "fare": "0"
+  },
+  "-MBASdsyAtoa0wqcmHik": {
+    "amphoes": "เมือง",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "CHAWIN EXPORT",
+    "surveyNameTH": "ชวิน เอ็กซ์ปอร์ต",
+    "fare": "0"
+  },
+  "-MBASdt1WtHJiR09Ckni": {
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "CHIA MENG - KORAT",
+    "surveyNameTH": "เจียเม้ง",
+    "amphoes": "เมือง",
+    "fare": "0"
+  },
+  "-MBASdt3j0a2hgJQfiRn": {
+    "surveyNameEN": "CHOR NUMTHONG",
+    "surveyNameTH": "ฉ.น้ำทอง",
+    "amphoes": "ดอนเจดีย์",
+    "changwat": "สุพรรณบุรี",
+    "fare": "0"
+  },
+  "-MBASdt8C_hAqMqeadth": {
+    "amphoes": "สามโคก",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "EAMTIP RICE",
+    "surveyNameTH": "ข้าวอิ่มทิพย์",
+    "fare": "0"
+  },
+  "-MBASdt8C_hAqMqeadti": {
+    "amphoes": "พนัสนิคม",
+    "changwat": "ชลบุรี",
+    "surveyNameEN": "EASTERN  RICE ",
+    "surveyNameTH": "อีสเทิร์นไรซ์ ",
+    "fare": "0"
+  },
+  "-MBASdsbjByMntpHAbh-": {
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "AIR SEA FREIGHT FORWARDERS",
+    "surveyNameTH": "ลาน AIR SEA FRIGHT",
+    "surveyNameENFull": "",
+    "amphoes": "บางเสาธง",
+    "fare": "0"
+  },
+  "-MBASdsczQJqACQsXW-d": {
+    "amphoes": "สูงเนิน",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "AKJAROEN  RICE  ( EXSENG  RICE )  CO.,LTD.  ",
+    "fare": "0",
+    "surveyNameTH": "ข้าวเอกเจริญ (เอ็กเส็งไรซ์)"
+  },
+  "-MBASdsczQJqACQsXW-e": {
+    "amphoes": "บางพลี",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "ALL LOVE CORPORATION",
+    "fare": "0",
+    "surveyNameTH": "ออลเลิฟ คอร์ปอเรชั่น"
+  },
+  "-MBASdsftDSt2dlgAAwf": {
+    "amphoes": "หนองไผ่",
+    "changwat": "ขอนแก่น",
+    "surveyNameEN": "ARUN  RICE  TRADING  ",
+    "surveyNameTH": "อรุณไรซ์ เทรดดิ้ง",
+    "fare": "0"
+  },
+  "-MBASdsg1Tcm6vyHMCQg": {
+    "amphoes": "บางปะกง",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "ASIA GOLDEN RICE",
+    "fare": "0",
+    "surveyNameTH": "เอเซียโกลเด้นไรซ์"
+  },
+  "-MBASdshQL543D0QXA-c": {
+    "amphoes": "เดิมบางนางบวช",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "ATTAPHAN RICE MILL                           ",
+    "surveyNameTH": "อรรถพันธ์",
+    "fare": "0"
+  },
+  "-MBASdshQL543D0QXA-d": {
+    "amphoes": "เสาไห้",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "AURORA EXPORT & IMPORT",
+    "fare": "0",
+    "surveyNameTH": "ออโรร่า เอ็กซ์ปอร์ต แอนด์ อิมปอร์ต"
+  },
+  "-MBASdsiG7uH3T2g0guu": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "BANGKOK BARGE TERMINAL",
+    "fare": "0",
+    "surveyNameTH": "บางกอกบาร์จ เทอร์มินัล"
+  },
+  "-MBASdsiG7uH3T2g0guv": {
+    "amphoes": "สามพราน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "BANGKOK STARCH INDUSTRIAL",
+    "fare": "0",
+    "surveyNameTH": "กรุงเทพสต๊าซ อินดัสเทรี่ยล"
+  },
+  "-MBASdsiG7uH3T2g0guw": {
+    "amphoes": "เมือง",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "BANGSUE CHIA MENG RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "บางซื่อโรงสีไฟเจียเม้ง"
+  },
+  "-MBASdsjgDu874vONx5H": {
+    "amphoes": "สามชุก",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "BANSRA KHAODEE RICE MILL",
+    "surveyNameTH": "บ้านสระข้าวดี",
+    "fare": "0"
+  },
+  "-MBASdsjgDu874vONx5I": {
+    "amphoes": "ราษีไศล",
+    "changwat": "ศรีสะเกษ",
+    "surveyNameEN": "BAN UM SANG ORGANIC RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "วิสาหกิจชุมชนบ้านอุ่มแสง "
+  },
+  "-MBASdsjgDu874vONx5J": {
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "B-BEST INTER SERVICE - LADKRABANG",
+    "fare": "0",
+    "surveyNameTH": "บี-เบสท์ อินเตอร์ เซอร์วิส - ลาดกระบัง"
+  },
+  "-MBASdskaVZ53SLVRY7P": {
+    "amphoes": "เดิมบางนางบวช",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "BOONCHAROENPANICH RICE MILL",
+    "surveyNameTH": "บุญเจริญพาณิชย์",
+    "fare": "0"
+  },
+  "-MBASdtAaaXfiMf_kXlw": {
+    "surveyNameTH": "แฟมมิลี่ ทรีฟูดส์",
+    "amphoes": "ปลวกแดง",
+    "changwat": "ระยอง",
+    "surveyNameEN": "FAMILY TREE FOODS",
+    "fare": "0"
+  },
+  "-MBASdtCognlo3QyUcW9": {
+    "surveyNameEN": "FANCY RICE",
+    "surveyNameTH": "แฟนซีไรซ์",
+    "amphoes": "บางปลาม้า",
+    "changwat": "สุพรรณบุรี",
+    "fare": "0"
+  },
+  "-MBASdtCognlo3QyUcWA": {
+    "amphoes": "สีคิ้ว",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "GENERAL RICE",
+    "surveyNameTH": "เยนเนอรัล ไรซ์",
+    "fare": "0"
+  },
+  "-MBASdtDMyuKRFP4eN8M": {
+    "amphoes": "สามพราน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "GGR GROUP",
+    "surveyNameTH": "จีจีอาร์ กรุ๊ป",
+    "fare": "0"
+  },
+  "-MBASdtGMIC8fsZ-6El7": {
+    "changwat": "นครปฐม",
+    "surveyNameEN": "GREENLIVING CAMP",
+    "surveyNameTH": "กรีนลีฟวิ่งแคมป์",
+    "amphoes": "ดอนตูม",
+    "fare": "0"
+  },
+  "-MBASdtOKB6RTSlhc2Ua": {
+    "surveyNameEN": "HONEY THAI LOGISTICS",
+    "surveyNameTH": "ลาน HONEY THAI",
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "fare": "0"
+  },
+  "-MBASdtOKB6RTSlhc2Ub": {
+    "amphoes": "พระราม 3",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "JACK HUA ",
+    "surveyNameTH": "แจ็คฮั้ว",
+    "fare": "0"
+  },
+  "-MBASdtP6sE8nEICBGOV": {
+    "amphoes": "ห้วงยขวาง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "JASSBERRY",
+    "surveyNameTH": "แจสเบอร์รี่",
+    "fare": "0"
+  },
+  "-MBASdthI7tRrOzzNINW": {
+    "amphoes": "บ้านไผ่",
+    "changwat": "ขอนแก่น",
+    "surveyNameEN": "KAMOL KANKASET RICE MILL",
+    "surveyNameTH": "กมลการเกษตร",
+    "fare": "0"
+  },
+  "-MBASdtiLvj720RH_qOj": {
+    "amphoes": "ปากเกร็ด",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "KAMOLKIJ",
+    "surveyNameTH": "กมลกิจ",
+    "fare": "0"
+  },
+  "-MBASdtiLvj720RH_qOl": {
+    "amphoes": "ท่าม่วง",
+    "changwat": "กาญจนบุรี",
+    "surveyNameEN": "KARNPANICH RICE MILL",
+    "surveyNameTH": "การพานิช",
+    "fare": "0"
+  },
+  "-MBASdsmEEzNvfHCSgEW": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "C & A RICEMILL",
+    "fare": "0",
+    "surveyNameTH": "ซี แอนด์ เอ ไรซ์ มิล"
+  },
+  "-MBASdso8JS3b6xZEmaW": {
+    "amphoes": "พนมสารคาม",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "CENTURY INDUSTRIES",
+    "fare": "0",
+    "surveyNameTH": "เซ็นจูรี่ อุตสาหกรรม"
+  },
+  "-MBASdssYEmYiGx6xsCd": {
+    "amphoes": "ศรีประจันต์",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "CHAROENDEE KAKHAO",
+    "surveyNameTH": "เจริญดีค้าข้าว",
+    "surveyNameENFull": "Charoendee  Kakhao  godown",
+    "fare": "0"
+  },
+  "-MBASdt2vji3D4KfygEY": {
+    "amphoes": "ท่าวุ้ง",
+    "changwat": "ลพบุรี",
+    "surveyNameEN": "CHOKWORALUCK RUNGRUANGKIJ RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "โชควรลักษณ์ รุ่งเรืองกิจ"
+  },
+  "-MBASdt3j0a2hgJQfiRo": {
+    "amphoes": "บางน้ำเปรี้ยว",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "CHUMSANGTHAI GOLDRICE",
+    "fare": "0",
+    "surveyNameTH": "ชุมแสงไทยโกลเด้นไรซ์"
+  },
+  "-MBASdt4OXYnH3oHRHo0": {
+    "amphoes": "บางเสาธง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "DAN D FOODS (THAILAND)",
+    "fare": "0",
+    "surveyNameTH": "แดน ดี ฟูดส์ (ประเทศไทย)"
+  },
+  "-MBASdt5NCJS02dtG2cj": {
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "EAKWICHTHANA RICE",
+    "surveyNameTH": "เอกวิชธนาไรซ์",
+    "amphoes": "บางพลี",
+    "fare": "0"
+  },
+  "-MBASdt97WTD1p0VPSoz": {
+    "amphoes": "ยางตลาด",
+    "changwat": "กาฬสินธ์",
+    "surveyNameEN": "EASTERN  RICE  MILL",
+    "fare": "0",
+    "surveyNameTH": "อีสเทิร์นไรซ์ มิลล์"
+  },
+  "-MBASdsg1Tcm6vyHMCQh": {
+    "amphoes": "เมือง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "ASIA INTERTRADE RICE EXPORT",
+    "fare": "0",
+    "surveyNameTH": "เอเชีย อินเตอร์เทรด ไรซ์ เอ็กซ์ปอร์ต",
+    "companyTaxID": { "0": { "companyTax": "0135550033851", "fare": "500" } }
+  },
+  "-MBASdsiG7uH3T2g0gut": {
+    "changwat": "สระบุรี",
+    "surveyNameEN": "AURORA RICE",
+    "surveyNameTH": "ออโรร่าไร้ซ์",
+    "amphoes": "เสาไห้",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0195557000207", "fare": "800" } }
+  },
+  "-MBASdskaVZ53SLVRY7O": {
+    "amphoes": "พระราม 2",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "B-ONE INTERTRADE",
+    "fare": "0",
+    "surveyNameTH": "บี-วัน อินเตอร์เทรด",
+    "companyTaxID": { "0": { "companyTax": "0107547000311", "fare": "500" } }
+  },
+  "-MBASdtjj6-7__UE1W4G": {
+    "amphoes": "ปากเกร็ด",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "KASISURI",
+    "surveyNameTH": "กสิสุรีย์",
+    "fare": "0"
+  },
+  "-MBASdtjj6-7__UE1W4H": {
+    "surveyNameTH": "ท่าเคซี",
+    "amphoes": "บางไทร",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "KC PORT",
+    "fare": "0"
+  },
+  "-MBASduHj159Cwef-0Vn": {
+    "amphoes": "บางปะกง",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "KHAO PUN DEE",
+    "surveyNameTH": "ข้าวพันดี",
+    "fare": "0"
+  },
+  "-MBASduMv5oNYcfwtuu0": {
+    "amphoes": "ท่าตะโก",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "LAIKANOK RICE",
+    "surveyNameTH": "ลายกนกไรซ์",
+    "fare": "0"
+  },
+  "-MBASduMv5oNYcfwtuu1": {
+    "surveyNameEN": "LOETDAMRONG SIRI RICE MILL",
+    "surveyNameTH": "เลิศดำรงค์ศิริ",
+    "amphoes": "หันคา",
+    "changwat": "ชัยนาท",
+    "fare": "0"
+  },
+  "-MBASduNzP2p4pyRRpjw": {
+    "amphoes": "หนองจอก",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "MAHANAKORN RICE",
+    "surveyNameTH": "มหานครไรซ์",
+    "fare": "0"
+  },
+  "-MBASduNzP2p4pyRRpjx": {
+    "amphoes": "พยุหะคีรี",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "MALEE THANYAKIT",
+    "surveyNameTH": "มาลีธัญญกิจ",
+    "fare": "0"
+  },
+  "-MBASdt97WTD1p0VPSp-": {
+    "amphoes": "บางพลัด",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "ERAWAN MARKETING",
+    "fare": "0",
+    "surveyNameTH": "เอราวัณ มาร์เก็ตติ้ง"
+  },
+  "-MBASdtDMyuKRFP4eN8N": {
+    "surveyNameEN": "GOLDEN GRAIN ENTERPRISE",
+    "amphoes": "บางใหญ่",
+    "changwat": "นนทบุรี",
+    "fare": "0",
+    "surveyNameTH": "โกลเด้นเกรนเอ็นเตอร์ไพรส์"
+  },
+  "-MBASdtGMIC8fsZ-6El6": {
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "GREAT OCEAN RICE",
+    "surveyNameTH": "มหาสมุทรค้าข้าว",
+    "amphoes": "พระสมุทรเจดีย์",
+    "fare": "0"
+  },
+  "-MBASdtGMIC8fsZ-6El8": {
+    "amphoes": "หนองใหญ่",
+    "changwat": "ชลบุรี",
+    "surveyNameEN": "H.H.L. INTERTRADE",
+    "fare": "0",
+    "surveyNameTH": "เอช.เอช.แอล. อินเตอร์ทรด"
+  },
+  "-MBASdtP6sE8nEICBGOU": {
+    "amphoes": "สามชุก",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "JAROENSAP  BUNJARUT",
+    "fare": "0",
+    "surveyNameTH": "เจริญทรัพย์ปัญจรัตน์"
+  },
+  "-MBASdtP6sE8nEICBGOW": {
+    "changwat": "ขอนแก่น",
+    "surveyNameEN": "K.M.C. INTER RICE (2002)",
+    "amphoes": "เมือง",
+    "fare": "0",
+    "surveyNameTH": "เค. เอ็ม. ซี. อินเตอร์ ไรซ์ (2002)"
+  },
+  "-MBASdtQTV4q1x4s1-rv": {
+    "amphoes": "เมือง",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "K.V.C. RICE INTERTRADE",
+    "fare": "0",
+    "surveyNameTH": "เค. วี. ซี. ไร้ซ์ อินเตอร์เทรด"
+  },
+  "-MBASdtiLvj720RH_qOk": {
+    "amphoes": "คลองขลุง",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "KAMPHAENGPHET EXPORT",
+    "fare": "0",
+    "surveyNameTH": "กำแพงเพชร เอ็กซ์ปอร์ต"
+  },
+  "-MBASdsl0zjLZHD6IKf5": {
+    "changwat": "อยุธยา",
+    "surveyNameEN": "BOONTAWEEPATTANAKIJ RICE",
+    "amphoes": "บางซ้าย",
+    "fare": "0",
+    "surveyNameTH": "ข้าวบุญทวีพัฒนะกิจ",
+    "companyTaxID": { "0": { "companyTax": "0105554013341", "fare": "700" } }
+  },
+  "-MBASdsnV61c7--J_Wa7": {
+    "surveyNameEN": "CAPITAL CEREALS - BANGSAI",
+    "amphoes": "บางไทร",
+    "changwat": "อยุธยา",
+    "fare": "500",
+    "surveyNameTH": "แคปปิตัล ซีเรียลส์ - บางไทร",
+    "companyTaxID": { "0": { "companyTax": "0105521008488", "fare": "600" } }
+  },
+  "-MBASdsnV61c7--J_Wa8": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "CAPITAL CEREALS - MAHAWONG",
+    "fare": "0",
+    "surveyNameTH": "แคปปิตัล ซีเรียลส์ - มหาวงษ์",
+    "companyTaxID": { "0": { "companyTax": "0105549002271", "fare": "300" } }
+  },
+  "-MBASdspJh_JwQurR_MJ": {
+    "surveyNameEN": "CHAITIP",
+    "surveyNameTH": "ชัยทิพย์",
+    "amphoes": "หนองแค",
+    "changwat": "สระบุรี",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105549002271", "fare": "700" } }
+  },
+  "-MBASdswtoSvO64vQ9kb": {
+    "surveyNameEN": "CHAROEN POKPHAND SEEDS",
+    "surveyNameENFull": "Charoen  Pokphand  Seeds  godown",
+    "amphoes": "หันคา",
+    "changwat": "ชัยนาท",
+    "fare": "0",
+    "surveyNameTH": "เจริญโภคภัณฑ์เมล็ดพันธุ์"
+  },
+  "-MBASdt7hBCjCc59fH6S": {
+    "amphoes": "พระพุทธบาท",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "EAM HENG LONG RICE MILL (SARABURI)",
+    "fare": "0",
+    "surveyNameTH": "โรงสีเอี่ยมเฮงล้ง(สระบุรี)",
+    "companyTaxID": { "0": { "companyTax": "0105549002271", "fare": "1000" } }
+  },
+  "-MBASdsczQJqACQsXW-c": {
+    "amphoes": "บางบัวทอง",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "AKE RICE MILL",
+    "surveyNameTH": "โรงสีเอกไรซ์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0125540008145", "fare": "500" } }
+  },
+  "-MBASdsdbXb54kVlO88j": {
+    "surveyNameTH": "อเมริเทคกรุ๊ป",
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "AMERITECH GROUP",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105547121125", "fare": "300" } }
+  },
+  "-MBASdshQL543D0QXA-b": {
+    "surveyNameTH": "เอเชี่ยนพารากอน",
+    "amphoes": "บางไทร",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "ASIAN PARAGON",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0145544000645", "fare": "600" } }
+  },
+  "-MBASdskaVZ53SLVRY7N": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "BMT PORT",
+    "surveyNameTH": "ท่าเรือ BMT",
+    "surveyNameENFull": "BMT  Port  godown ",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105552112546", "fare": "400" } }
+  },
+  "-MBASdsl0zjLZHD6IKf4": {
+    "surveyNameEN": "BOONSONG SIAM LAND",
+    "surveyNameTH": "บุญส่งสยามแลนด์",
+    "amphoes": "บางไทร",
+    "changwat": "อยุธยา",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105544099650", "fare": "600" } }
+  },
+  "-MBASduVeHnpaRr9bQ6d": {
+    "surveyNameEN": "NARAI - TPK",
+    "surveyNameTH": "ท่านารายณ์",
+    "amphoes": "บางไทร",
+    "changwat": "อยุธยา",
+    "fare": "0"
+  },
+  "-MBASdubXJr8usXHcovP": {
+    "amphoes": "บุคคโล",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "P.W.O. # 1",
+    "surveyNameTH": "คลังธนบุรี 1",
+    "fare": "0"
+  },
+  "-MBASduf0fDAmOI0oWG-": {
+    "amphoes": "องครักษ์",
+    "changwat": "นครนายก",
+    "surveyNameEN": "PIMARN RICE",
+    "surveyNameTH": "พิมานไรซ์",
+    "fare": "0"
+  },
+  "-MBASdtk7m7NKwW1tGdp": {
+    "changwat": "อยุธยา",
+    "surveyNameEN": "KHAO C.P. - NAKHONLUANG",
+    "amphoes": "นครหลวง",
+    "fare": "0",
+    "surveyNameTH": "ข้าว ซี. พี. - นครหลวง"
+  },
+  "-MBASdtk7m7NKwW1tGdq": {
+    "amphoes": "สามชุก",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "KHAO C.P. - SUPHANBURI",
+    "fare": "0",
+    "surveyNameTH": "ข้าว ซี. พี. - สุพรรณบุรี"
+  },
+  "-MBASduDrasHRd9Rx3k_": {
+    "amphoes": "ท่าเรือ",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "KHAO C.P. -WANGDAENG",
+    "surveyNameTH": "ข้าว ซี. พี. - วังแดง",
+    "surveyNameENFull": "Khao  C.P.  -  Wangdaeng  godown",
+    "fare": "0"
+  },
+  "-MBASduIGSrpx2IhAk_b": {
+    "amphoes": "บางระจัน",
+    "changwat": "สิงห์บุรี",
+    "surveyNameEN": "KIJCHAROEN PORNCHAI",
+    "surveyNameTH": "กิจเจริญพรชัย",
+    "fare": "0"
+  },
+  "-MBASduIGSrpx2IhAk_c": {
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "KITTICHAI GOLDEN RICE",
+    "surveyNameTH": "กิตติชัยข้าวทอง",
+    "amphoes": "บางพลี",
+    "fare": "0"
+  },
+  "-MBASduKtCF2gnu-Eu7C": {
+    "surveyNameTH": "เคเอส สยามไรซ์",
+    "surveyNameENFull": "KS  Siamrice  godown",
+    "amphoes": "ลาดหลุมแก้ว",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "KS SIAMRICE",
+    "fare": "0"
+  },
+  "-MBASduQ8KKhMQ32oZA6": {
+    "amphoes": "มโนรมย์",
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "MANOROM THANYAKIT RICE MILL",
+    "surveyNameTH": "มโนรมย์ธัญญกิจ",
+    "fare": "0"
+  },
+  "-MBASduRVZlu04ILJONe": {
+    "amphoes": "แก้งคร้อ",
+    "changwat": "ชัยภูมิ",
+    "surveyNameEN": "MEDIFOODS (THAILAND)",
+    "fare": "0",
+    "surveyNameTH": "เมดิฟูดส์ (ประเทศไทย)"
+  },
+  "-MBASdtE9mviuXqkPtkM": {
+    "changwat": "สมุทรสาคร",
+    "surveyNameEN": "GREAT DRAGON RICE (THAILAND)",
+    "amphoes": "กระทุ่มแบน",
+    "fare": "0",
+    "surveyNameTH": "เกรท ดรากอนไรซ์ (ไทยแลนด์)",
+    "companyTaxID": { "0": { "companyTax": "0745554001240", "fare": "600" } }
+  },
+  "-MBASdt_4h0HY-V_Mj-c": {
+    "amphoes": "เมือง",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "KAMCHAN RICE",
+    "surveyNameTH": "คำฉันท์ไรซ์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0735554002858", "fare": "700" } }
+  },
+  "-MBASdtjj6-7__UE1W4F": {
+    "amphoes": "หนองจอก",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "KASET CHOKCHAI KANKASET",
+    "fare": "0",
+    "surveyNameTH": "เกษตรโชคชัยการเกษตร",
+    "companyTaxID": { "0": { "companyTax": "0105540091247", "fare": "600" } }
+  },
+  "-MBASdso8JS3b6xZEmaX": {
+    "surveyNameEN": "CH. BUNCHOO PUEDPOL",
+    "surveyNameTH": "ช. บุญชูพืชผล",
+    "surveyNameENFull": "CH.  Bunchoo  Puedpol  godown",
+    "amphoes": "ท่าเรือ",
+    "changwat": "อยุธยา",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105546097484", "fare": "800" } }
+  },
+  "-MBASdt2vji3D4KfygEX": {
+    "amphoes": "เฉลิมพระเกียรติ",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "CHOK CHATCHAI RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "โชคฉัตรไชยไรซ์มิล",
+    "companyTaxID": { "0": { "fare": "800" } }
+  },
+  "-MBASdt3j0a2hgJQfiRp": {
+    "surveyNameENFull": "CM  Premium  Rice  godown",
+    "amphoes": "เมือง",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "CM PREMIUM RICE",
+    "fare": "0",
+    "surveyNameTH": "ซีเอ็ม พรีเมี่ยมไรซ์",
+    "companyTaxID": { "0": { "companyTax": "0125540008145", "fare": "500" } }
+  },
+  "-MBASdt4OXYnH3oHRHo-": {
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "CUSTOMS STATION",
+    "surveyNameTH": "ท่าเรือคลองเตย",
+    "amphoes": "คลองเตย",
+    "fare": "0",
+    "companyTaxID": { "0": { "fare": "200" } }
+  },
+  "-MBASdt5NCJS02dtG2ci": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "DK RICE MILL",
+    "surveyNameTH": "ดีเค",
+    "surveyNameENFull": "DK  Rice  Mill  godown",
+    "fare": "0",
+    "companyTaxID": {
+      "0": { "companyTax": "0107547000311", "fare": "600" },
+      "1": { "companyTax": "0125553009943", "fare": "600" }
+    }
+  },
+  "-MBASdupF5f5ATRQ3pZd": {
+    "changwat": "ขอนแก่น",
+    "surveyNameEN": "POR NATTAPHON RICE MILL",
+    "surveyNameTH": "ป.ณัฐตพล",
+    "amphoes": "พล",
+    "fare": "0"
+  },
+  "-MBASduyx-3bbKy82Md1": {
+    "surveyNameTH": "พูนศักดิ์",
+    "amphoes": "ปราสาท",
+    "changwat": "สุรินทร์",
+    "surveyNameEN": "RONGSIKAOPOONSAK",
+    "fare": "0"
+  },
+  "-MBASdv21xLmDG39f5ZG": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "SANDEE RICE",
+    "surveyNameTH": "แสนดีไรซ์",
+    "fare": "0"
+  },
+  "-MBASdv3dLTUV2ysJb9R": {
+    "amphoes": "สรรคบุรี",
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "SANRUAMPHOL 999",
+    "surveyNameTH": "สรรรวมผล 999",
+    "fare": "0"
+  },
+  "-MBASdv3dLTUV2ysJb9S": {
+    "amphoes": "คลองขลุง",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "SANUNMUANG RICE MILL",
+    "surveyNameTH": "สนั่นเมือง",
+    "fare": "0"
+  },
+  "-MBASduS3w4xKEB3rYub": {
+    "amphoes": "ดอนเจดีย์",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "MITNUMCHAI RICE",
+    "surveyNameTH": "มิตรนำชัยไรซ์",
+    "fare": "0"
+  },
+  "-MBASduS3w4xKEB3rYud": {
+    "amphoes": "บ้านบึง",
+    "changwat": "ชลบุรี",
+    "surveyNameEN": "MT CENTERTRADE",
+    "surveyNameENFull": "MT  Centertrade  godown",
+    "fare": "0",
+    "surveyNameTH": "เอ็มที เซ็นเตอร์เทรด"
+  },
+  "-MBASduTw6kMRFBl1oRT": {
+    "surveyNameEN": "NAKORNRAJASIMA SIRICHOKECHAI",
+    "amphoes": "เมือง",
+    "changwat": "นครราชสีมา",
+    "fare": "0",
+    "surveyNameTH": "นครราชสีมา ศิริโชคชัย"
+  },
+  "-MBASduWAN60pin3N6Qc": {
+    "surveyNameTH": "ลาน NHP - ลาดกระบัง",
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "NH PROSPERITY - LADKRABANG",
+    "surveyNameENFull": "NH  Prosperity - Ladkrabang  godown",
+    "fare": "0"
+  },
+  "-MBASduWAN60pin3N6Qd": {
+    "amphoes": "ขาณุวรลักษณ์บุรี",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "NITINUNSUPAKIT  ",
+    "surveyNameTH": "นิธินันท์ศุภกิจ",
+    "fare": "0"
+  },
+  "-MBASduXsS3Bzm58JygS": {
+    "amphoes": "ปากเกร็ด",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "OLAM (THAILAND) - NONTHABURI",
+    "fare": "0",
+    "surveyNameTH": "โอแลม (ประเทศไทย) - ปากเกร็ด"
+  },
+  "-MBASduXsS3Bzm58JygT": {
+    "amphoes": "กระทุ่มแบน",
+    "changwat": "สมุทรสาคร",
+    "surveyNameEN": "OLAM (THAILAND) - SAMUT SAKHON",
+    "fare": "0",
+    "surveyNameTH": "โอแลม (ประเทศไทย) - กระทุ่มแบน"
+  },
+  "-MBASdu_dSw8Knv8_LLS": {
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "ORIENTAL JASMINE RICE",
+    "amphoes": "ลาดพร้าว",
+    "fare": "0",
+    "surveyNameTH": "โอเรียนเต็ล จัสมินไรซ์"
+  },
+  "-MBASdubXJr8usXHcovN": {
+    "amphoes": "ตาคลี",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "P.  DUSIWANRUNGRUENG  RICE  (2003)",
+    "fare": "0",
+    "surveyNameTH": "ป. ดุสิตวรรณรุ่งเรืองไรซ์ (2003)"
+  },
+  "-MBASducbycrj4OXpPhG": {
+    "amphoes": "สีคิ้ว",
+    "changwat": "นครราชสีมา",
+    "fare": "0",
+    "surveyNameEN": "PATUM RICE MILL AND GRANARY PUBLIC - NAKHON RATCHASIMA",
+    "surveyNameTH": "ปทุมไรซ์ มิล แอนด์ แกรนารี - นครราชสีมา"
+  },
+  "-MBASducbycrj4OXpPhH": {
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "PATUM RICE MILL AND GRANARY PUBLIC - PATHUM THANI",
+    "amphoes": "เมือง",
+    "fare": "0",
+    "surveyNameTH": "ปทุมไรซ์ มิล แอนด์ แกรนารี - ปทุมธานี"
+  },
+  "-MBASducbycrj4OXpPhI": {
+    "amphoes": "ราษฎร์บูรณะ",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "PHALANG THAI INTER RICE",
+    "fare": "0",
+    "surveyNameTH": "พลังไทย อินเตอร์ไรซ์"
+  },
+  "-MBASdudkXQ3RCt2RkRC": {
+    "amphoes": "บ้านลาด",
+    "changwat": "เพชรบุรี",
+    "surveyNameEN": "PHETCHABURI INTER RICE",
+    "fare": "0",
+    "surveyNameTH": "เพชรบุรี อินเตอร์ไรซ์"
+  },
+  "-MBASdueY-uQct1ED2DY": {
+    "amphoes": "หนองจอก",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "PIMAN WORAKIT (1999)",
+    "surveyNameTH": "พิมานวรกิจ (1999)",
+    "surveyNameENFull": "Piman  Worakit  (1999)  godown",
+    "fare": "0"
+  },
+  "-MBASduf0fDAmOI0oWFz": {
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "PIMAN GOLDEN RICE",
+    "surveyNameTH": "พิมานโกลเด้นไรซ์",
+    "amphoes": "หนองจอก",
+    "fare": "0"
+  },
+  "-MBASduRVZlu04ILJONf": {
+    "amphoes": "สามชุก",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "MINGMONGKON JARAINTANYA SEIRO",
+    "fare": "0",
+    "surveyNameTH": "มิ่งมงคล เจริญธัญญา",
+    "companyTaxID": { "0": { "companyTax": "0725558000442", "fare": "900" } }
+  },
+  "-MBASdt97WTD1p0VPSp0": {
+    "surveyNameEN": "EXCEL RICE & PRODUCTS",
+    "amphoes": "บางน้ำเปรี้ยว",
+    "changwat": "ฉะเชิงเทรา",
+    "fare": "0",
+    "surveyNameTH": "เอ็กเซลไรซ์ แอนด์ โปรดักส์",
+    "companyTaxID": { "0": { "companyTax": "0105548057790", "fare": "600" } }
+  },
+  "-MBASdtE9mviuXqkPtkL": {
+    "surveyNameTH": "โกลเด้น แกรนารี่",
+    "amphoes": "บางปะอิน",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "GOLDEN GRANARY",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0195557000207", "fare": "800" } }
+  },
+  "-MBASdtH4IijX2j70xXI": {
+    "amphoes": "หนองแค",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "HERBA BANGKOK S.L.",
+    "surveyNameTH": "เอลล์บา บางกอก",
+    "surveyNameENFull": "Herba  Bangkok  S.L.  godown",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105549002271", "fare": "700" } }
+  },
+  "-MBASdv51SO6v-JzjozW": {
+    "amphoes": "บางพลี",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SIAM DEPOT",
+    "surveyNameTH": "สยาม เดโปท์",
+    "fare": "0"
+  },
+  "-MBASdvrlWz6AdzXdKxB": {
+    "surveyNameEN": "SIAM PARBOILED RICE",
+    "surveyNameTH": "สยามพาร์บอยไรซ์",
+    "amphoes": "ไชโย",
+    "changwat": "อ่างทอง",
+    "fare": "0"
+  },
+  "-MBASdvt7hwr0F7bo3Hq": {
+    "surveyNameTH": "สินธนโชติ",
+    "amphoes": "บางนา",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "SINTANACHOTE",
+    "fare": "0"
+  },
+  "-MBASdvvdrs1rGpopzUj": {
+    "surveyNameEN": "SIRIMONGKOL RICE",
+    "surveyNameTH": "ข้าวสิริมงคล",
+    "amphoes": "เมือง",
+    "changwat": "นครราชสีมา",
+    "fare": "0"
+  },
+  "-MBASdvxwwAxSAAZMbap": {
+    "changwat": "นครปฐม",
+    "surveyNameEN": "SOMBOON KANKA RICE MILL",
+    "surveyNameTH": "สมบูรณ์การค้า",
+    "amphoes": "สามพราน",
+    "fare": "0"
+  },
+  "-MBASdvyWN7niG9Smcgb": {
+    "amphoes": "สามชุก",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "SUCHIN RICE MILL",
+    "surveyNameTH": "สุชินการเกษตร",
+    "fare": "0"
+  },
+  "-MBASdug7BUo-tyoATAt": {
+    "surveyNameEN": "PONGPAIROJ RICE",
+    "surveyNameTH": "พงษ์ไพโรจน์ไรซ์",
+    "amphoes": "โพธิ์ประทับช้าง",
+    "changwat": "พิจิตร",
+    "fare": "0"
+  },
+  "-MBASduiaYP1F9GCqvbP": {
+    "amphoes": "บางไทร",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "POONPIPAT PORT - BANGSAI",
+    "fare": "0",
+    "surveyNameTH": "ท่าพูลพิพัฒน์ - บางไทร"
+  },
+  "-MBASduiaYP1F9GCqvbQ": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "POONPIPAT PORT - SAMUTPRAKARN",
+    "fare": "0",
+    "surveyNameTH": "ท่าพูลพิพัฒน์ - พระประแดง"
+  },
+  "-MBASduoQTPmIMGZF-DS": {
+    "amphoes": "อู่ทอง",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "POONSINTHAI GOLDEN RICE",
+    "fare": "0",
+    "surveyNameTH": "พูนสินไทยโกลเด้นไรซ์"
+  },
+  "-MBASdupF5f5ATRQ3pZe": {
+    "amphoes": "บางบัวทอง",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "PRIMA FOODS SUPPLY",
+    "fare": "0",
+    "surveyNameTH": "พรีมา ฟูดส์ ซัพพลาย"
+  },
+  "-MBASduu1XYGQEV5--HC": {
+    "amphoes": "สามชุก",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "PROGRESS CEREAL",
+    "surveyNameTH": "โปรเกรสซีเรียล",
+    "fare": "0"
+  },
+  "-MBASduwIiVt_uiRKu3C": {
+    "amphoes": "เมือง",
+    "changwat": "ศรีสะเกษ",
+    "surveyNameEN": "RAITONG ORGANICS FARM",
+    "fare": "0",
+    "surveyNameTH": "ไร่ทอง ออร์แกนิกส์ ฟาร์ม"
+  },
+  "-MBASdux38bLs6OK0vyB": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "RICELAND INTERNATIONAL - SAMRONGTAI",
+    "fare": "0",
+    "surveyNameTH": "ไร้ซ์แลนด์ อินเตอร์เนชั่นแนล - สำโรงใต้"
+  },
+  "-MBASdv11HaoPsEN_YbB": {
+    "amphoes": "เมือง",
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "RUAMTHUN RUNGRUANG RICE MILL",
+    "surveyNameTH": "ร่วมทุน รุ่งเรือง",
+    "fare": "0"
+  },
+  "-MBASdv21xLmDG39f5ZF": {
+    "surveyNameTH": "สามัคคีกิจธัญญา",
+    "amphoes": "พนัสนิคม",
+    "changwat": "ชลบุรี",
+    "surveyNameEN": "SAMAKHI KIJTHANYA RICE MILLING",
+    "fare": "0"
+  },
+  "-MBASduTw6kMRFBl1oRU": {
+    "amphoes": "ลาดบัวหลวง",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "NANAPAN AGRI-INDUSTRIAL",
+    "surveyNameENFull": "Nanapan  Agri  -  Industrial  godown",
+    "fare": "0",
+    "surveyNameTH": "นานาพรรณเกษตรอุตสาหกรรม"
+  },
+  "-MBASdudkXQ3RCt2RkRB": {
+    "amphoes": "โพธิ์ทอง",
+    "changwat": "อ่างทอง",
+    "surveyNameEN": "PHET SIAM PIPATTANYA",
+    "fare": "0",
+    "surveyNameTH": "เพชรสยามพิพัฒน์ธัญญา",
+    "companyTaxID": { "0": { "fare": "800" } }
+  },
+  "-MBASdug7BUo-tyoATAs": {
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "PONGLARP",
+    "surveyNameTH": "พงษ์ลาภ",
+    "amphoes": "เมือง",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105521008488", "fare": "500" } }
+  },
+  "-MBASduJR0fIQQskthhi": {
+    "amphoes": "พนัสนิคม",
+    "changwat": "ชลบุรี",
+    "surveyNameEN": "KJ WORLD FOODS",
+    "surveyNameTH": "เคเจ เวิลด์ฟูดส์",
+    "surveyNameENFull": "KJ  World  Foods  godown",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0205555001876", "fare": "1000" } }
+  },
+  "-MBASduJR0fIQQskthhj": {
+    "amphoes": "เดิมบางนางบวช",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "KOHKAEW CHAROEN THUNYA RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "เกาะแก้วเจริญธัญญา",
+    "companyTaxID": { "0": { "companyTax": "0105540091247", "fare": "1100" } }
+  },
+  "-MBASduJR0fIQQskthhk": {
+    "amphoes": "บางน้ำเปรี้ยว",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "KRIENGCHAI GOLDEN RICE",
+    "fare": "0",
+    "surveyNameTH": "เกรียงชัย โกลเด้นไรซ์",
+    "companyTaxID": { "0": { "companyTax": "0405562002520", "fare": "600" } }
+  },
+  "-MBASduKtCF2gnu-Eu7D": {
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "LADKRABANG # 1",
+    "surveyNameTH": "ลาดกระบังประตู 1",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0655541000127", "fare": "500" } }
+  },
+  "-MBASduLiO0IGBfo12kO": {
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "LADKRABANG # 2",
+    "surveyNameTH": "ลาดกระบังประตู 2",
+    "fare": "0",
+    "companyTaxID": { "0": { "fare": "500" } }
+  },
+  "-MBASduLiO0IGBfo12kP": {
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "LADKRABANG # 3",
+    "surveyNameTH": "ลาดกระบังประตู 3",
+    "fare": "0",
+    "companyTaxID": { "0": { "fare": "500" } }
+  },
+  "-MBASduLiO0IGBfo12kQ": {
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "LADKRABANG # 4",
+    "surveyNameTH": "ลาดกระบังประตู 4",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105543082672", "fare": "500" } }
+  },
+  "-MBASduMv5oNYcfwtutz": {
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "LADKRABANG # 5",
+    "surveyNameTH": "ลาดกระบังประตู 5",
+    "fare": "0",
+    "companyTaxID": { "0": { "fare": "500" } }
+  },
+  "-MBASduMv5oNYcfwtuu-": {
+    "surveyNameTH": "ลาดกระบังประตู 6",
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "LADKRABANG # 6",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105543082672", "fare": "500" } }
+  },
+  "-MBASdw3Shig3jL0FSx-": {
+    "amphoes": "ตาคลี",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "TANAPORN PUADPOL",
+    "surveyNameTH": "ธนพรพืชผล",
+    "fare": "0"
+  },
+  "-MBASdw4iDPg_sg4mi6W": {
+    "amphoes": "มโนรมย์",
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "TANASAN RICE",
+    "surveyNameTH": "ธนสรรไรซ์",
+    "fare": "0"
+  },
+  "-MBASdw9jQ_Bg7kqj5br": {
+    "amphoes": "บางบ่อ",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "TAWEEPHOL RICE MILL (2004)",
+    "surveyNameTH": "ทวีผล (2004)",
+    "fare": "0"
+  },
+  "-MBASdwANbXjOlcC0pK0": {
+    "amphoes": "สามง่าม",
+    "changwat": "พิจิตร",
+    "surveyNameEN": "TBS RICE MILL",
+    "surveyNameTH": "ทีบีเอส ไรซ์มิลล์",
+    "fare": "0"
+  },
+  "-MBASdwBUeYyDiIULl6l": {
+    "amphoes": "พระราม 3",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "TEP PHANICH",
+    "surveyNameTH": "เทพพาณิชย์",
+    "fare": "0"
+  },
+  "-MBASdwDF89JUndCj_0i": {
+    "surveyNameEN": "THAI HUA (2511)",
+    "surveyNameTH": "ไทยฟ้า (2511)",
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "fare": "0"
+  },
+  "-MBASdwGeRFq6n95wnWN": {
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "THANAKORN RUAMPOL 999",
+    "surveyNameTH": "ธนกรรวมผล 999",
+    "amphoes": "หันคา",
+    "fare": "0"
+  },
+  "-MBASdv4VuBdw7xVYbF0": {
+    "amphoes": "บางปะหัน",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "SAWATPAIBOON AGRICULTURE",
+    "fare": "0",
+    "surveyNameTH": "สวัสด์ไพบูลย์การเกษตร"
+  },
+  "-MBASdv51SO6v-JzjozV": {
+    "amphoes": "คลองขลุง",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "SAWATPAIBOON RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "โรงสีสวัสดิ์ไพบูลย์"
+  },
+  "-MBASdv51SO6v-JzjozX": {
+    "amphoes": "คลองสาน",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "SIAM F.C. INTERNATIONAL",
+    "fare": "0",
+    "surveyNameTH": "สยาม เอฟ. ซี. อินเตอร์เนชั่นแนล"
+  },
+  "-MBASdv6WV1ccuDzJTTU": {
+    "surveyNameEN": "SIAM FIRST RICE",
+    "surveyNameTH": "สยามเฟิสท์ไรซ์",
+    "amphoes": "พระพุทธบาท",
+    "changwat": "สระบุรี",
+    "fare": "0"
+  },
+  "-MBASdvsEMKQ1QFTEm1g": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SIAM RICE TRADING (THAI)",
+    "fare": "0",
+    "surveyNameTH": "สยามไรซ์ เทรดดิ้ง (ไทย)"
+  },
+  "-MBASdvsEMKQ1QFTEm1h": {
+    "amphoes": "บางปลาม้า",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "SIN UDOM MONGKHOL RICE MILL",
+    "surveyNameTH": "สินอุดมมงคล",
+    "fare": "0"
+  },
+  "-MBASdvsEMKQ1QFTEm1i": {
+    "amphoes": "เมือง",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "SINGTOTHONG RICE CORPORATION",
+    "fare": "0",
+    "surveyNameTH": "สิงห์โตทองไรซ์ คอร์ปอเรชั่น"
+  },
+  "-MBASdvt7hwr0F7bo3Hp": {
+    "amphoes": "เมือง",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "SINSUP THAVORN RICE MILL",
+    "surveyNameTH": "สินทรัพย์ถาวร",
+    "fare": "0"
+  },
+  "-MBASdvu-JAhcjvq4msQ": {
+    "amphoes": "เมือง",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "SIRICHOKECHAI NAKORNRAJASIMA",
+    "fare": "0",
+    "surveyNameTH": "นครราชสีมา ศิริโชคชัย"
+  },
+  "-MBASdvvdrs1rGpopzUk": {
+    "amphoes": "บางน้ำเปรี้ยว",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "SIRIPINYO RICEMILL",
+    "surveyNameTH": "ศิริภิญโญ",
+    "fare": "0"
+  },
+  "-MBASdvw8SutAnJoBZWO": {
+    "surveyNameEN": "SIRISUP SUPPLY",
+    "amphoes": "บางน้ำเปรี้ยว",
+    "changwat": "ฉะเชิงเทรา",
+    "fare": "0",
+    "surveyNameTH": "สิริทรัพย์ ซัพพลาย"
+  },
+  "-MBASdvxwwAxSAAZMbao": {
+    "amphoes": "เมือง",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "SITTO INTERTRADE",
+    "fare": "0",
+    "surveyNameTH": "ซิตโต้ อินเตอร์เทรด"
+  },
+  "-MBASdvzaGFPAZGYU2kK": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SUKSAWAT TERMINAL ",
+    "fare": "0",
+    "surveyNameTH": "ท่าเรือสุขสวัสดิ์"
+  },
+  "-MBASdvzaGFPAZGYU2kL": {
+    "surveyNameTH": "ข้าวสุวรรณภูมิ",
+    "amphoes": "บางเสาธง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SUWANNAPHUM RICE",
+    "fare": "0"
+  },
+  "-MBASdupF5f5ATRQ3pZc": {
+    "amphoes": "พล",
+    "changwat": "ขอนแก่น",
+    "surveyNameEN": "POR NATTAPHON RICE EXPORTER",
+    "fare": "0",
+    "surveyNameTH": "ป. ณัฐตพล ไร้ซ์ เอ็กซ์ปอร์ตเตอร์",
+    "companyTaxID": { "0": { "companyTax": "0405549000012", "fare": "2300" } }
+  },
+  "-MBASduwIiVt_uiRKu3E": {
+    "amphoes": "เมือง",
+    "changwat": "อ่างทอง",
+    "surveyNameEN": "RICELAND GROUP - ANGTHONG",
+    "fare": "0",
+    "surveyNameTH": "ไร้ซ์แลนด์ กรุ๊ป - อ่างทอง",
+    "companyTaxID": {
+      "0": { "companyTax": "0105521008488", "fare": "800" },
+      "1": { "companyTax": "0105549002271", "fare": "800" }
+    }
+  },
+  "-MBASdux38bLs6OK0vy9": {
+    "amphoes": "เมือง",
+    "changwat": "อ่างทอง",
+    "surveyNameEN": "RICELAND INTERNATIONAL - ANGTHONG",
+    "fare": "0",
+    "surveyNameTH": "ไร้ซ์แลนด์ อินเตอร์เนชั่นแนล - อ่างทอง",
+    "companyTaxID": { "0": { "companyTax": "0105521008488", "fare": "800" } }
+  },
+  "-MBASdux38bLs6OK0vyA": {
+    "amphoes": "นครหลวง",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "RICELAND INTERNATIONAL - NAKHONLUANG",
+    "fare": "0",
+    "surveyNameTH": "ไร้ซ์แลนด์ อินเตอร์เนชั่นแนล - นครหลวง",
+    "companyTaxID": { "0": { "companyTax": "0105521008488", "fare": "700" } }
+  },
+  "-MBASdv3dLTUV2ysJb9Q": {
+    "amphoes": "ป่าโมกข์",
+    "changwat": "อ่างทอง",
+    "surveyNameEN": "WHA LOGISTICS",
+    "surveyNameTH": "WHA LOGISTICS",
+    "surveyNameENFull": "",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105558153520", "fare": "500" } }
+  },
+  "-MBASduS3w4xKEB3rYuc": {
+    "amphoes": "เฉลิมพระเกียรติ",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "MITTAPHARP FRAGRANT RICE",
+    "surveyNameTH": "มิตรภาพข้าวหอม",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105537141531", "fare": "800" } }
+  },
+  "-MBASduWAN60pin3N6Qe": {
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "NPS RICE ",
+    "surveyNameTH": "เอ็น พี เอส ไรซ์",
+    "amphoes": "บางปลาม้า",
+    "fare": "0",
+    "companyTaxID": {
+      "0": { "companyTax": "0105511005125", "fare": "700" },
+      "1": { "companyTax": "0107547000311", "fare": "700" }
+    }
+  },
+  "-MBASdubXJr8usXHcovO": {
+    "amphoes": "อินทร์บุรี",
+    "changwat": "สิงห์บุรี",
+    "surveyNameEN": "P. RUNGRUANG THUNYA RICE MILL",
+    "surveyNameTH": "ป. รุ่งเรืองธัญญา",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105540091247", "fare": "1100" } }
+  },
+  "-MBASdueY-uQct1ED2DX": {
+    "amphoes": "บางระจัน",
+    "changwat": "สิงห์บุรี",
+    "surveyNameEN": "PIAMSINSOMBOON RICE MILL",
+    "surveyNameTH": "เปี่ยมสินสมบูรณ์",
+    "fare": "0",
+    "companyTaxID": {
+      "0": { "companyTax": "0105511005125", "fare": "1200" },
+      "1": { "companyTax": "0105554013341", "fare": "1200" }
+    }
+  },
+  "-MBASdwJUvmeTYJvz8n4": {
+    "surveyNameEN": "THANYAMITR RICE",
+    "surveyNameTH": "ข้าวธัญญมิตร",
+    "amphoes": "พระราม 2",
+    "changwat": "กรุงเทพฯ",
+    "fare": "0"
+  },
+  "-MBASdwKDH5ft3-pG9B5": {
+    "amphoes": "สามโคก",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "THEPTHUNYATIP",
+    "surveyNameTH": "เทพธัญญาทิพย์",
+    "fare": "0"
+  },
+  "-MBASdwKDH5ft3-pG9B6": {
+    "amphoes": "ไชโย",
+    "changwat": "อ่างทอง",
+    "surveyNameEN": "THONGCHAIYO RICE MILL",
+    "surveyNameTH": "ทองชัยโย",
+    "fare": "0"
+  },
+  "-MBASdwL74UaY-kf39L4": {
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "TONG HUA RICE",
+    "surveyNameTH": "ตงฮั้วไร้ซ์",
+    "amphoes": "บัวใหญ่",
+    "fare": "0"
+  },
+  "-MBASdwOOiqzL7CbZirH": {
+    "amphoes": "ไทรน้อย",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "UDOMSUK RICE",
+    "surveyNameTH": "อุดมสุขไรซ์",
+    "fare": "0"
+  },
+  "-MBASdwPq7ZwCVIpUM09": {
+    "amphoes": "สามพราน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "UNIGRAIN",
+    "surveyNameTH": "ยูนิเกรน",
+    "fare": "0"
+  },
+  "-MBASdxOdjCadkN5HyLu": {
+    "amphoes": "บางพลี",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "UTHAI PRODUCE",
+    "surveyNameTH": "อุทัยโปรดิวส์",
+    "fare": "0"
+  },
+  "-MBASdxPce83L69BPtrx": {
+    "surveyNameTH": "วิริยะโรจน์",
+    "amphoes": "ท่าเรือ",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "VIRIYAROJ",
+    "fare": "0"
+  },
+  "-MBASdw2FmhliIjob52w": {
+    "amphoes": "ลาดหลุมแก้ว",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "T.T.S. RICE",
+    "surveyNameTH": "ที.ที.เอส. ไรซ์",
+    "fare": "0"
+  },
+  "-MBASdwBUeYyDiIULl6k": {
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "TEK RUNGRUENG PANICH",
+    "amphoes": "บางปลาม้า",
+    "fare": "0",
+    "surveyNameTH": "เต็กรุ่งเรืองพาณิชย์"
+  },
+  "-MBASdwCTlzjqQS3Eetz": {
+    "amphoes": "พระสมุทรเจดีย์",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "THAI CAPITAL CROPS",
+    "surveyNameTH": "กรุงไทยพืชผล",
+    "fare": "0"
+  },
+  "-MBASdwEWS9uqeo31ZBo": {
+    "amphoes": "เฉลิมพระเกียรติ",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "THAI STANDARD RICE",
+    "fare": "0",
+    "surveyNameTH": "ไทยสแตนดาร์ดไร้ส์"
+  },
+  "-MBASdwFKgzsXLzxMr0m": {
+    "amphoes": "คลองขลุง",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "THAISAREE EXPORT",
+    "fare": "0",
+    "surveyNameTH": "ไทยเสรีเอ็กซ์ปอร์ต"
+  },
+  "-MBASdwGeRFq6n95wnWM": {
+    "surveyNameTH": "ธนกรบรรจงสรร",
+    "amphoes": "สามง่าม",
+    "changwat": "พิจิตร",
+    "surveyNameEN": "THANAKORN BUNJONGSAN RICE MILL",
+    "fare": "0"
+  },
+  "-MBASdwHvP01CmGMIvHa": {
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "THANAPATTARA POONSAENG",
+    "surveyNameTH": "ธนภัทรพูนแสง",
+    "amphoes": "ดอนเจดีย์",
+    "fare": "0"
+  },
+  "-MBASdwHvP01CmGMIvHb": {
+    "amphoes": "เมือง",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "THANASINSOMBOON RICE MILL",
+    "surveyNameTH": "ธนสินสมบูรณ์",
+    "fare": "0"
+  },
+  "-MBASdv4VuBdw7xVYbF1": {
+    "amphoes": "บางปะหัน",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "SAWATPAIBOON PORT",
+    "fare": "0",
+    "surveyNameTH": "สวัสดิ์ไพบูลย์พอร์ต",
+    "companyTaxID": { "0": { "companyTax": "0105554013341", "fare": "800" } }
+  },
+  "-MBASdvqnTgQ3xT3ACHW": {
+    "amphoes": "บางพลี",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SIAM GRAINS",
+    "surveyNameTH": "สยามเกรนส์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105525018429", "fare": "500" } }
+  },
+  "-MBASdupF5f5ATRQ3pZb": {
+    "surveyNameEN": "POONSINTHAI RICE MILL",
+    "surveyNameTH": "พูนสินไทย",
+    "amphoes": "อู่ทอง",
+    "changwat": "สุพรรณบุรี",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105554013341", "fare": "900" } }
+  },
+  "-MBASduwIiVt_uiRKu3D": {
+    "amphoes": "เมือง",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "RICELAND FOODS",
+    "surveyNameTH": "ไร้ส์แลนด์ฟู้ดส์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105525013800", "fare": "800" } }
+  },
+  "-MBASdv11HaoPsEN_YbA": {
+    "amphoes": "บางระจัน",
+    "changwat": "สิงห์บุรี",
+    "surveyNameEN": "RUAMJAI CHAROENSAP RICE MILL",
+    "surveyNameTH": "รวมใจเจริญทรัพย์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105554013341", "fare": "1200" } }
+  },
+  "-MBASdv21xLmDG39f5ZD": {
+    "surveyNameTH": "ท่าสหไทย",
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SAHATHAI TERMINAL",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0205555001876", "fare": "300" } }
+  },
+  "-MBASdv21xLmDG39f5ZE": {
+    "amphoes": "พุทธมณฑล",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "SAHAWATTANA RICE MILL",
+    "surveyNameTH": "สหวัฒนาไรซ์มิลล์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0107547000311", "fare": "500" } }
+  },
+  "-MBASdxQ3VagjePc5rRn": {
+    "surveyNameTH": "วังกระชาย",
+    "amphoes": "หันคา",
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "WANGKRACHAY RICE MILL",
+    "fare": "0"
+  },
+  "-MBASdxQ3VagjePc5rRp": {
+    "surveyNameTH": "วิรัชชนก",
+    "amphoes": "บรรพตพิสัย",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "WIRATCHANOK",
+    "fare": "0"
+  },
+  "-MBASdxR_XfohJK-7dzj": {
+    "amphoes": "ท่าเรือ",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "WONNAPOB",
+    "surveyNameTH": "วรรณภพ",
+    "fare": "0"
+  },
+  "-MBASdxR_XfohJK-7dzk": {
+    "amphoes": "ศรีประจันต์",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "YONG SENG RICE MILL",
+    "surveyNameTH": "ย่งเส็ง",
+    "fare": "0"
+  },
+  "-MBhEeKPbGudnlJUVCkV": {
+    "surveyNameEN": "BLUE ELEPHANT ",
+    "surveyNameTH": "บลูเอเลเฟ่นท์",
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "fare": "0"
+  },
+  "-MBrhQkmFJOMBm9XdX9V": {
+    "surveyNameEN": "V-SERVE LOGISTICS",
+    "surveyNameENFull": "V-Serve  Logistics  godown",
+    "surveyNameTH": "วีเซิร์ฟ",
+    "fare": "0"
+  },
+  "-MBASdwI0em2W2g4IG2P": {
+    "amphoes": "บางบ่อ",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "THANYA RICE (THAILAND)",
+    "fare": "0",
+    "surveyNameTH": "ธัญญไรซ์ (ไทยแลนด์)"
+  },
+  "-MBASdwI0em2W2g4IG2Q": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "THANYAKIT NAKORNPATHOM (2521) ROP",
+    "surveyNameTH": "ธัญญกิจ นครปฐม (2521)",
+    "fare": "0"
+  },
+  "-MBASdwJUvmeTYJvz8n5": {
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "THANYATHIP RICE ",
+    "surveyNameTH": "ธัญญาทิพย์ไรซ์",
+    "amphoes": "บางน้ำเปรี้ยว",
+    "fare": "0"
+  },
+  "-MBASdwJUvmeTYJvz8n6": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "THANYAWAT RICE MILLS",
+    "fare": "0",
+    "surveyNameTH": "โรงสีข้าว ธัญญาวัฒน์"
+  },
+  "-MBASdwKDH5ft3-pG9B3": {
+    "changwat": "สระบุรี",
+    "surveyNameEN": "THAVATCHAI INTER RICE",
+    "amphoes": "หนองแค",
+    "fare": "0",
+    "surveyNameTH": "ธวัชชัยอินเตอร์ไรซ์"
+  },
+  "-MBASdwL74UaY-kf39L3": {
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "TMP RICE MILL",
+    "amphoes": "บางปะกง",
+    "fare": "0",
+    "surveyNameTH": "ทีเอ็มพี ไรซ์มิลล์"
+  },
+  "-MBASdwOOiqzL7CbZirF": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "TOUMI FOODS & PRODUCT",
+    "fare": "0",
+    "surveyNameTH": "โตมี ฟู้ดส์ แอนด์โปรดักส์"
+  },
+  "-MBASdwOOiqzL7CbZirG": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "TOUMI INTERTRADE",
+    "surveyNameTH": "โตมีอินเตอร์เทรด",
+    "fare": "0"
+  },
+  "-MBASdxLmkDDy-j-o5XA": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "UNITED FLOUR MILL",
+    "fare": "0",
+    "surveyNameTH": "ท่ายูไนเต็ดฟาวน์มิล"
+  },
+  "-MBASdxNtZP9vDd3CAMC": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "UNITHAI CONTAINER TERMINAL",
+    "surveyNameTH": "ท่ายูนิไทย",
+    "fare": "0"
+  },
+  "-MBASdxOdjCadkN5HyLv": {
+    "amphoes": "เมือง",
+    "changwat": "อุทัยธานี",
+    "surveyNameEN": "UTHAITHANI GRANARY",
+    "fare": "0",
+    "surveyNameTH": "อุทัยธานี แกรนารี่"
+  },
+  "-MBASdxPce83L69BPtrw": {
+    "amphoes": "ดอนตูม",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "VARA FOOD & DRINK CO., LTD.",
+    "fare": "0",
+    "surveyNameTH": "วราฟู้ดส์ แอนด์ ดริ้งค์"
+  },
+  "-MBASdvzaGFPAZGYU2kM": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "T.K. RICEMILL AND ASH",
+    "surveyNameENFull": "T.K.  Ricemill  and  ASH  godown",
+    "fare": "0",
+    "surveyNameTH": "ที.เค. ไรซ์มิลล์ แอนด์ แอช"
+  },
+  "-MBASdw4iDPg_sg4mi6V": {
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "TANASAN MARINA",
+    "surveyNameTH": "ธนสรรมารีน่า",
+    "amphoes": "สามโคก",
+    "fare": "0",
+    "companyTaxID": { "0": { "fare": "600" } }
+  },
+  "-MBASdw4iDPg_sg4mi6X": {
+    "surveyNameEN": "TANKCHAI",
+    "surveyNameTH": "ตังชัย",
+    "amphoes": "นวนคร",
+    "changwat": "ปทุมธานี",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0195550000295", "fare": "500" } }
+  },
+  "-MBASdw5xQiIdtu-EcyC": {
+    "amphoes": "เมือง",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "TANYARUNGROENGCHAI RICE MILL (THAILAND)",
+    "fare": "0",
+    "surveyNameTH": "โรงสีธัญญะรุ่งเรืองชัย",
+    "companyTaxID": { "0": { "companyTax": "0305546001264", "fare": "1800" } }
+  },
+  "-MBASdw8J9o_LPKj27kC": {
+    "surveyNameTH": "ทวีพัฒนา",
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "TAWEE PATTANA RICE MILL",
+    "fare": "0",
+    "companyTaxID": { "0": { "fare": "600" } }
+  },
+  "-MBASdwBUeYyDiIULl6j": {
+    "amphoes": "บางบัวทอง",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "TD INTER-SUPPLIES",
+    "surveyNameENFull": "TD  Inter - Supplies  godown",
+    "fare": "0",
+    "surveyNameTH": "ทีดี อินเตอร์ซัพพลาย"
+  },
+  "-MBASdwCTlzjqQS3Eeu-": {
+    "amphoes": "สามพราน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "THAI HA PUBLIC",
+    "surveyNameTH": "ไทยฮา ",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0107547000311", "fare": "500" } }
+  },
+  "-MBASdvo-2IKSBRMkW2M": {
+    "amphoes": "เฉลิมพระเกียรติ",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "SIAM GOLDEN RICE",
+    "surveyNameTH": "สยามโกลเด้นไรซ์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0195557000207", "fare": "800" } }
+  },
+  "-MBASdvvdrs1rGpopzUl": {
+    "surveyNameEN": "SIRIPORNMAEYINGJARERNSUB ",
+    "amphoes": "วิเศษชัยชาญ",
+    "changwat": "สุพรรณบุรี",
+    "fare": "0",
+    "surveyNameTH": "ศิริพรแม่ยิ่งเจริญทรัพย์",
+    "companyTaxID": { "0": { "companyTax": "0105552112546", "fare": "800" } }
+  },
+  "-MBASdvxwwAxSAAZMbaq": {
+    "surveyNameEN": "SOMDET GREEN MILL",
+    "surveyNameTH": "สมเด็จกรีนมิลล์",
+    "amphoes": "สมเด็จ",
+    "changwat": "กาฬสินธ์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0465550000098", "fare": "3900" } }
+  },
+  "-MGlYedbOfrPFVazZJEZ": {
+    "surveyNameEN": "ICD - LADKRABANG",
+    "surveyNameTH": "ลาน ICD",
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "fare": "0"
+  },
+  "-MHjHRdaVzeZNBHLDjL-": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SAHATHAI TERMINAL",
+    "surveyNameTH": "สหไทย",
+    "fare": "0"
+  },
+  "-MNXJMZVUc7NXMy1tcJy": {
+    "changwat": "นครปฐม",
+    "surveyNameEN": "UDOMTHANYA  RICE  MILL",
+    "surveyNameTH": "โรงสีอุดมธัญญะ",
+    "amphoes": "เมือง",
+    "fare": "0"
+  },
+  "-MNbOLMi3K_zkNAjn_bq": {
+    "surveyNameEN": "YONG HUAT RICE MILL",
+    "surveyNameTH": "ย่งฮวด",
+    "amphoes": "เกษตรวิสัย",
+    "changwat": "ร้อยเอ็ด",
+    "fare": "0"
+  },
+  "-MNgN8oNnKBUh-yD5CaI": {
+    "surveyNameEN": "PHAI TUM",
+    "surveyNameTH": "โกดังไผ่ต่ำ",
+    "amphoes": "หนองแค",
+    "changwat": "สระบุรี",
+    "fare": "0"
+  },
+  "-MO5J3akYHmkqeZ36m-W": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "SANDEE RICE",
+    "surveyNameTH": "ข้าวแสนดี",
+    "fare": "0"
+  },
+  "-MOZDqksr3UcRJtQFz11": {
+    "surveyNameEN": "SAOHAI  RICE  MILL",
+    "surveyNameTH": "เสาไห้ไรซ์มิลล์",
+    "amphoes": "เสาไห้",
+    "changwat": "สระบุรี",
+    "fare": "0"
+  },
+  "-MYsGujflMqB_BAGSkqd": {
+    "amphoes": "เมือง",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "SIEW HUA NGEAB",
+    "surveyNameTH": "เซียวฮั่วเงี๊ยบ",
+    "fare": "0"
+  },
+  "-MZMBgrRk2JoINY0VQYr": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "THAI TAIYO",
+    "surveyNameTH": "ไทย ไทโย",
+    "fare": "0"
+  },
+  "-MBASdxPce83L69BPtry": {
+    "amphoes": "บางพลี",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "VUDHICHAI PRODUCE",
+    "surveyNameTH": "วุฒิชัยโปรดิวส์",
+    "fare": "0"
+  },
+  "-MBASdxQ3VagjePc5rRo": {
+    "amphoes": "ลาดหลุมแก้ว",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "WING ON RICE TRADING",
+    "fare": "0",
+    "surveyNameTH": "วิงออนไรซ์ เทรดดิ้ง"
+  },
+  "-MBbYtv-t9YcdAsZddFs": {
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "SANUNMUANG RICE MILL",
+    "surveyNameTH": "โรงสีสนั่นเมือง",
+    "amphoes": "คลองขลุง",
+    "fare": "0"
+  },
+  "-MBbsZ9PVkfBQMhEnh-i": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "TOUMI FOODS & PRODUCT",
+    "fare": "0",
+    "surveyNameTH": "โตมีฟูดส์แอนด์โปรดักส์"
+  },
+  "-MBhOZW40xzVFq3a9fI-": {
+    "amphoes": "เมืองขอนแก่น",
+    "changwat": "ขอนแก่น",
+    "surveyNameEN": "K.C. GOLDEN RICE",
+    "fare": "0",
+    "surveyNameTH": "เค.ซี. โกลเด้นไร้ซ์"
+  },
+  "-MBlN3APsgnjvgog1qAy": {
+    "amphoes": "เมือง",
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "RUAMTHUN RUNGRUANG RICE MILL",
+    "surveyNameTH": "ร่วมทุนรุ่งเรือง",
+    "fare": "0"
+  },
+  "-MBle0Z_J7XOJqGiMNkN": {
+    "amphoes": "เมืองบุรีรัมย์",
+    "changwat": "บุรีรัมย์",
+    "surveyNameEN": "BURIRAM SAHASIN THAIRICE",
+    "fare": "0",
+    "surveyNameTH": "บุรีรัมย์สหสินข้าวไทย"
+  },
+  "-MBmCIaEvIC1PDXWhEC2": {
+    "surveyNameTH": "ลานฮันนี่ไทย",
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "HONEY THAI LOGISTICS",
+    "fare": "0"
+  },
+  "-MBrLlvxSrK201OA67fH": {
+    "surveyNameEN": "BANGKOK BARGE TERMINAL",
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "fare": "0",
+    "surveyNameTH": "บางกอก บาร์จ เทอร์มินัล"
+  },
+  "-MBASdwNFW66LFf2tkbK": {
+    "surveyNameTH": "ท๊อปคร๊าฟท์",
+    "amphoes": "พระราม 3",
+    "changwat": "กรุงเทพฯ",
+    "surveyNameEN": "TOP CRAFTS",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105538085391", "fare": "200" } }
+  },
+  "-MBASdwDF89JUndCj_0j": {
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "THAI LEE AGRICULTURE",
+    "surveyNameTH": "ไทยลีการเกษตร",
+    "amphoes": "บางปะกง",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105539128876", "fare": "600" } }
+  },
+  "-MBASdwEWS9uqeo31ZBp": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "THAI SUGAR TERMINAL",
+    "surveyNameTH": "ท่าเรือไทยซูการ์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0455541000021", "fare": "300" } }
+  },
+  "-MBASdwEWS9uqeo31ZBq": {
+    "surveyNameTH": "ไทยธัญญะไรซ์(2000)",
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "THAI THUNYA RICE (2000)",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105543031920", "fare": "500" } }
+  },
+  "-Mi5IT_Euo6ZtaGh8N75": {
+    "amphoes": "กำแพงแสน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "CHOKTHAWORN RICE MILL",
+    "surveyNameTH": "โรงสีโชคถาวร",
+    "fare": "0"
+  },
+  "-MDXc4oOlM0ozUY-9KvL": {
+    "amphoes": "สองพี่น้อง",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "",
+    "surveyNameTH": "โรงสีไทยเกษตรผล",
+    "fare": "0"
+  },
+  "-ME1QaL5euDWxWMN7RA1": {
+    "surveyNameEN": "TOUMI FOODS & PRODUCT",
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "fare": "0",
+    "surveyNameTH": "โตมี ฟูดส์ แอนด์ โปรดักส์"
+  },
+  "-MFZhHBaOUBMyYNiSdv7": {
+    "surveyNameEN": "PHETCHABURI RICE MILL",
+    "surveyNameTH": "เพชรบุรี ไรซ์มิล",
+    "amphoes": "ท่ายาง",
+    "changwat": "เพชรบุรี",
+    "fare": "0"
+  },
+  "-MFd_TX8dWqbLWUfIsqG": {
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "HITACHI TRANSPORT BLC 5",
+    "fare": "0",
+    "surveyNameTH": "คลังสินค้าฮิตาชิทรานสปอร์ต"
+  },
+  "-MGl_5KPlisWSxb8_zD_": {
+    "surveyNameTH": "ลานท่าปูน",
+    "surveyNameENFull": "TPT  godown",
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "TPT",
+    "fare": "0"
+  },
+  "-MHUx3DoiwcVEwEm08f2": {
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "CHAROENSAP RICE MILL",
+    "surveyNameTH": "โรงสีเจริญทรัพย์",
+    "amphoes": "บ้านโพธิ์",
+    "fare": "0"
+  },
+  "-MMsx958Uh1BclR_Pd7V": {
+    "amphoes": "สามโคก",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "AAA AGRITEC & AQUACULTURE (THAILAND)",
+    "fare": "0",
+    "surveyNameTH": "เอเอเอ อกริเทค แอนด์ อควาคัลเจอร์ (ประเทศไทย)"
+  },
+  "-MHzCjcM6dxzQO7dJS4u": {
+    "surveyNameEN": "CAPITAL  CHAINAT  RICE  MILL",
+    "amphoes": "หันคา",
+    "changwat": "ชัยนาท",
+    "fare": "0",
+    "surveyNameTH": "โรงสีนครหลวงชัยนาท"
+  },
+  "-MNMnBWeIQzHw5oWaJkJ": {
+    "surveyNameEN": "CHAROEN POKPHAND SEEDS",
+    "amphoes": "หันคา",
+    "changwat": "ชัยนาท",
+    "fare": "0",
+    "surveyNameTH": "โรงงานปรับสภาพเมล็ดพันธุ์ข้าว"
+  },
+  "-MNXI-BBmcqgVFlPVhDN": {
+    "amphoes": "ลาดพร้าว",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "N3J.GROUP.(THAILAND)",
+    "fare": "0",
+    "surveyNameTH": "เอ็นทรีเจ.กรุ๊ป. (ประเทศไทย)"
+  },
+  "-MNfeapKQnZARelQPWE2": {
+    "surveyNameEN": "MOST INTERNATIONAL",
+    "amphoes": "คลองหลวง",
+    "changwat": "ปทุมธานี",
+    "fare": "0",
+    "surveyNameTH": "โมสต์ อินเตอร์เนชั่นแนล"
+  },
+  "-MY2ox5Wwpx2RYg3I2oO": {
+    "amphoes": "บางปลาม้า",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "T.  TAWEERUNGRUENG  ( 1992 )",
+    "surveyNameTH": "ต. ทวีรุ่งเรือง (1992)",
+    "surveyNameENFull": "T.  Taweerungrueng  (1992)  godown",
+    "fare": "0"
+  },
+  "-MZME_QbeDgBL4KFDif0": {
+    "amphoes": "ลาดหลุมแก้ว",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "SANG TONG VATANA MILL",
+    "surveyNameTH": "โรงสีแสงทองวัฒนา",
+    "fare": "0"
+  },
+  "-MBASdxQ3VagjePc5rRm": {
+    "amphoes": "ท่าเรือ",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "W & P EXPORT",
+    "fare": "0",
+    "surveyNameTH": "ดับบิว แอนด์ พี เอ็กซ์ปอร์ต",
+    "companyTaxID": { "0": { "companyTax": "0105539045245", "fare": "800" } }
+  },
+  "-MBASdxSlHaaN9idVkgq": {
+    "amphoes": "ไชโย",
+    "changwat": "อ่างทอง",
+    "surveyNameEN": "YUNG  YUEN  PUEDPOL ",
+    "surveyNameTH": "ยั่งยืนพืชผล",
+    "fare": "0",
+    "companyTaxID": {
+      "0": { "companyTax": "0107547000311", "fare": "800" },
+      "1": { "companyTax": "0135550033851", "fare": "800" }
+    }
+  },
+  "-MBb48zOTehd0GjKhiWA": {
+    "amphoes": "เมืองขอนแก่น",
+    "changwat": "ขอนแก่น",
+    "surveyNameEN": "KHAO BUATIP MARKETING",
+    "fare": "0",
+    "surveyNameTH": "ข้าวบัวทิพย์ มาร์เก็ตติ้ง",
+    "companyTaxID": { "0": { "companyTax": "0405562002520", "fare": "2700" } }
+  },
+  "-MBbA0kQfbE8WudIH-9H": {
+    "surveyNameEN": "CHAI PRASIT PRODUCTS",
+    "amphoes": "ท่าเรือ",
+    "changwat": "พระนครศรีอยุธยา",
+    "fare": "0",
+    "surveyNameTH": "ชัยประสิทธิ์พืชผล",
+    "companyTaxID": { "0": { "companyTax": "0105517000052", "fare": "800" } }
+  },
+  "-MBbERSGUj6Rk_ESobQD": {
+    "amphoes": "ท่าเรือ",
+    "changwat": "พระนครศรีอยุธยา",
+    "surveyNameEN": "W & P EXPORT",
+    "fare": "0",
+    "surveyNameTH": "ดับบลิว แอนด์ พี เอ็กซ์ปอร์ต",
+    "companyTaxID": { "0": { "companyTax": "0105539045245", "fare": "800" } }
+  },
+  "-MBc3Pqs-pQdNDd1vJuR": {
+    "amphoes": "ธวัชบุรี",
+    "changwat": "ร้อยเอ็ด",
+    "surveyNameEN": "KRITSANAKORN ORGANIC FARM",
+    "fare": "0",
+    "surveyNameTH": "กฤษณกรณ์ ออร์กานิคฟาร์ม",
+    "companyTaxID": {
+      "0": { "companyTax": "0455558000038", "fare": "4000" },
+      "1": { "companyTax": "0", "fare": "0" }
+    }
+  },
+  "-MBhVJFbTQ_VjyfphnvF": {
+    "amphoes": "หนองแค",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "B.P. RICE",
+    "surveyNameTH": "บี.พี. ไรซ์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105544066565", "fare": "700" } }
+  },
+  "-MC6LFPXanajO8vlqQvN": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "DK RICE MILL",
+    "surveyNameTH": "ดี.เค. ไรซ์มิลล์",
+    "fare": "0",
+    "companyTaxID": { "0": { "fare": "600" } }
+  },
+  "-MBASdwKDH5ft3-pG9B4": {
+    "amphoes": "บางซ้าย",
+    "changwat": "อยุธยา",
+    "surveyNameEN": "THEPMONGKHOL RICE MILL",
+    "surveyNameTH": "โรงสีเทพมงคล",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0125540008145", "fare": "700" } }
+  },
+  "-MBASdwL74UaY-kf39L2": {
+    "amphoes": "บ้านสร้าง",
+    "changwat": "ปราจีนบุรี",
+    "surveyNameEN": "TIA LEE HONG RICE MILL 2 (2008)",
+    "surveyNameTH": "เตียหลีฮง 2 (2008)",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0135550033851", "fare": "900" } }
+  },
+  "-MBASdxNtZP9vDd3CAMD": {
+    "surveyNameEN": "UNIVERSAL RICE",
+    "surveyNameTH": "ยูนิเวอร์แซลไรซ์",
+    "amphoes": "เมือง",
+    "changwat": "สมุทรสาคร",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105539044966", "fare": "500" } }
+  },
+  "-MBASdxOdjCadkN5HyLw": {
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "VAJANASURAT",
+    "surveyNameTH": "วัจนสุรัตน์",
+    "amphoes": "บางน้ำเปรี้ยว",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105540091247", "fare": "600" } }
+  },
+  "-MsnDK2Z6mWkv0I2BEcM": {
+    "amphoes": "เมือง",
+    "changwat": "หนองบัวลำภู",
+    "surveyNameEN": "KLATHIP",
+    "surveyNameTH": "กล้าทิพย์์",
+    "fare": "0"
+  },
+  "-N5ZAbvMzMDsEZBre9Lb": {
+    "amphoes": "เมือง",
+    "changwat": "พิจิตร",
+    "surveyNameEN": "NITKAMON RICE MILL",
+    "surveyNameTH": "โรงสีณิชกมล",
+    "fare": "0"
+  },
+  "-N5btMuKnkvADkBbog02": {
+    "amphoes": "ลำลูกกา",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "FOODSTHERN",
+    "surveyNameTH": "ฟู้ดส์เทิร์น",
+    "fare": "0"
+  },
+  "-N9ZHTTkZdRi53jQtkLC": {
+    "amphoes": "วัดโบสถ์",
+    "changwat": "พิษณุโลก",
+    "surveyNameEN": "T.S.P. RICE",
+    "surveyNameTH": "ที.เอส.พี.ไรซ์",
+    "fare": "0"
+  },
+  "-N9egAXA56f6NS_zQ8OL": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "NIWAT PANICH",
+    "surveyNameTH": "โรงสีณิวัฒน์",
+    "fare": "0"
+  },
+  "-M_ZQihgi5YWv7fLbb9c": {
+    "amphoes": "บางน้ำเปรี้ยว",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "RONGSISUMPAOTHONG",
+    "surveyNameTH": "โรงสีสำเภาทอง",
+    "fare": "0"
+  },
+  "-M_ZfGR067A_20u2WQIw": {
+    "amphoes": "บางนา",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "V-SERVE LOGISTICS - LASALLE",
+    "fare": "0",
+    "surveyNameTH": "วีเซิร์ฟ โลจิสติกส์ - ลาซาล"
+  },
+  "-M_c_SgRCdL1_qjABhTx": {
+    "amphoes": "ราษฎร์บูรณะ",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "SUPER J",
+    "surveyNameTH": "ซูปเปอร์เจ",
+    "fare": "0"
+  },
+  "-MagfQOwzXJ77Rou71y1": {
+    "amphoes": "บึงกุ่ม",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "CPL WAREHOUSE 2",
+    "fare": "0",
+    "surveyNameTH": "ซีพีแอล แวร์เฮ้าส์ 2"
+  },
+  "-MbKqhjYlXURWm0z-uvW": {
+    "amphoes": "ค่ายบางระจัน",
+    "changwat": "สิงห์บุรี",
+    "surveyNameEN": "KHAO CHAROENKIJ SAHAMIT",
+    "fare": "0",
+    "surveyNameTH": "ข้าวเจริญกิจสหมิตร"
+  },
+  "-MdZoHUEOVZGB5sAPlN9": {
+    "amphoes": "ศรีสำโรง",
+    "changwat": "สุโขทัย",
+    "surveyNameEN": "SANAE KHAO THAI",
+    "fare": "0",
+    "surveyNameTH": "โรงสีเสน่ห์ข้าวไทย"
+  },
+  "-MeYi2_KjDoYVYpzfkYe": {
+    "amphoes": "บางน้ำเปรี้ยว",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "CHAIWATTANA  RICEMILL",
+    "fare": "0",
+    "surveyNameTH": "ชัยวัฒนาไรซ์มิลล์"
+  },
+  "-Mf7F1r2j0whkwPcl6oq": {
+    "amphoes": "เดิมบางนางบวช",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "SUWANMEECHAI RICE MILL",
+    "surveyNameTH": "สุวรรณมีชัย",
+    "fare": "0"
+  },
+  "-MfGxcjz6TZQj4PgOeXs": {
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "SIWANART EXPORT AND IMPORT",
+    "fare": "0",
+    "surveyNameTH": "ศิวนาถ เอ็กซ์พอร์ต แอนด์ อิมพอร์ต"
+  },
+  "-MfMCK-3RnYlbE-63o18": {
+    "amphoes": "ไทรน้อย",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "THAICHAROENTHAWEEKIJ RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "โรงสีไทยเจริญทวีกิจ"
+  },
+  "-MfkzNuCJzJfzOjERZj8": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "KIJPRASERT  RICE  MILL",
+    "surveyNameTH": "โรงสีกิจประเสริฐ",
+    "fare": "0"
+  },
+  "-MgYeuorvizZuSry8Jjp": {
+    "amphoes": "บรรพตพิสัย",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "BANPHOT PHISAI RICE MILL",
+    "surveyNameTH": "บรรพตพิสัยพืชผล",
+    "fare": "0"
+  },
+  "-MgYfZSh0cHrEzjHukdt": {
+    "amphoes": "บรรพตพิสัย",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "KIATTIKUN  RICE  MILL",
+    "fare": "0",
+    "surveyNameTH": "เกียรติคุณไรซ์มิลล์"
+  },
+  "-MgYgpaat5kQhGbv6j92": {
+    "amphoes": "ชุมแสง",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "THANSUWAN RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "ธัญสุวรรณไรซ์มิลล์"
+  },
+  "-Mh3731ergfTMlCNUEgs": {
+    "amphoes": "นครหลวง",
+    "changwat": "พระนครศรีอยุธยา",
+    "surveyNameEN": "SUVARN  GLEAWTHONG  PORT",
+    "fare": "0",
+    "surveyNameTH": "ท่าเรือสุวรรณเกลียวทอง"
+  },
+  "-MhatfwFMuWcQPR72DcC": {
+    "amphoes": "ราชสาสน์",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "RATCHASAN  RICE  INTERTRADE",
+    "fare": "0",
+    "surveyNameTH": "ราชสาสน์ไรซ์ อินเตอร์เทรด"
+  },
+  "-MiUfW0_na-clSzNBo8n": {
+    "amphoes": "ศรีประจันต์",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "T N A INTER RICE",
+    "fare": "0",
+    "surveyNameTH": "ที เอ็น เอ อินเตอร์ไรซ์"
+  },
+  "-MNMzbZRqxuzNwvsQVcT": {
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "KYS INTER RICE",
+    "amphoes": "เมืองนครราชสีมา",
+    "surveyNameENFull": "KYS  Inter  Rice  godown",
+    "fare": "0",
+    "surveyNameTH": "เควายเอส อินเตอร์ไรซ์"
+  },
+  "-MBlUWfuUUEUVBvmEUxC": {
+    "changwat": "พระนครศรีอยุธยา",
+    "surveyNameEN": "KASET RUNGRUEANG PANICH  ",
+    "amphoes": "ลาดบัวหลวง",
+    "fare": "0",
+    "surveyNameTH": "เกษตรรุ่งเรืองพานิช",
+    "companyTaxID": { "0": { "companyTax": "0105554013341", "fare": "700" } }
+  },
+  "-MBrRJ7UshyMIswYRWkU": {
+    "changwat": "สมุทรปราการ",
+    "surveyNameTH": "ลาน BBT",
+    "amphoes": "พระประแดง",
+    "fare": "0",
+    "surveyNameEN": "BANGKOK BARGE TERMINAL",
+    "companyTaxID": { "0": { "companyTax": "0105543082672", "fare": "300" } }
+  },
+  "-ND1KQBtopVyT2P3PVb_": {
+    "amphoes": "ศรีราชา",
+    "changwat": "ชลบุรี",
+    "surveyNameEN": "SIAM NISTRANS",
+    "surveyNameTH": "สยามนิสทรานส์",
+    "fare": "0"
+  },
+  "-NgMfy3QKrSntJugT2sY": {
+    "amphoes": "บางใหญ่",
+    "changwat": "นนทบุรี",
+    "surveyNameEN": "THANYA FARM",
+    "surveyNameTH": "ไร่ธัญญะ"
+  },
+  "-Njq5dpAs_o_N6Tvoez0": {
+    "amphoes": "บางบ่อ",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "UNI TRINITY",
+    "surveyNameTH": "ยูนิ ทรินิตี้"
+  },
+  "-Njq5qDTqAUTWMmHDXR9": {
+    "amphoes": "หันคา",
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "BEST EXPORT",
+    "surveyNameTH": "เบส เอกซ์พอร์ต"
+  },
+  "-MjYPvVQmzgzOvnSOYvN": {
+    "amphoes": "บางปะกง",
+    "changwat": "ฉะเชิงเทรา",
+    "surveyNameEN": "THAI GRANLUX INTERNATIONAL RICE",
+    "fare": "0",
+    "surveyNameTH": "ไทยแกรนลักซ์ อินเตอร์เนชั่นแนล ไรซ์"
+  },
+  "-Mk12GPiktOj_aBh1QXs": {
+    "amphoes": "เมืองสมุทรปราการ",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "AP WAREHOUSE",
+    "surveyNameTH": "เอพี แวร์เฮ้าส์",
+    "fare": "0"
+  },
+  "-Ml9PIFvuVpCDhXzSQx_": {
+    "amphoes": "บางคอแหลม",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "TOP  CRAFTS",
+    "surveyNameTH": "ท๊อป คราฟส์ท",
+    "fare": "0"
+  },
+  "-MmHKTp6nZ_5SiaIKm4C": {
+    "amphoes": "บางพลี",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "V-SERVE TRUCK TERMINAL",
+    "fare": "0",
+    "surveyNameTH": "วีเซิร์ฟ - กิ่งแก้ว"
+  },
+  "-MnOXSWM3GjQ8149g6to": {
+    "amphoes": "บางรัก",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "BRISTLECONE",
+    "surveyNameTH": "บริสเติ้ลโคน",
+    "fare": "0"
+  },
+  "-Mqlt96FvcT5X7djS2mc": {
+    "amphoes": "วังน้อย",
+    "changwat": "พระนครศรีอยุธยา",
+    "surveyNameEN": "THANANAN RICE (2003)",
+    "surveyNameTH": "ธนานันต์ไรซ์ (2003)",
+    "fare": "0"
+  },
+  "-MuF7Yu356lBpxbcJJOn": {
+    "amphoes": "บ้านโป่ง",
+    "changwat": "ราชบุรี",
+    "surveyNameEN": "KARNPANICH RICE MILL 2",
+    "fare": "0",
+    "surveyNameTH": "โรงสีข้าวการพานิช 2"
+  },
+  "-MvRj7WKgtQJSqmHhCDx": {
+    "amphoes": "ปราสาท",
+    "changwat": "สุรินทร์",
+    "surveyNameEN": "RONGSIKAOPOONSAK",
+    "fare": "0",
+    "surveyNameTH": "โรงสีข้าวพูนศักดิ์"
+  },
+  "-Mtfu7iD7vAyAi-DUNLk": {
+    "amphoes": "หนองแซง",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "NATURE FOOD PRODUCTS AND MARKETING",
+    "fare": "0",
+    "surveyNameTH": "เนเจอร์ฟู้ดโปรดักส์แอนด์มาร์เก็ตติ้ง"
+  },
+  "-MvXNCh0yuxZWG6VWhYR": {
+    "amphoes": "ปางศิลาทอง",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "SANGFAH PRODUCTS - KAMPHAENGPHET",
+    "fare": "0",
+    "surveyNameTH": "แสงฟ้าโปรดักส์ - กำแพงเพชร"
+  },
+  "-MxlR47MOZTVhsUzGaZh": {
+    "amphoes": "คลองเตย",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "NYS LOGISTICS",
+    "surveyNameTH": "ท่าเรือชายฝั่ง NYS",
+    "fare": "0"
+  },
+  "-N-vEHc0JrCw6VYe1zTF": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SUKSAWADI AGRICULTURE PRODUCT",
+    "surveyNameTH": "สุขสวัสดิ์ พืชผล",
+    "fare": "0"
+  },
+  "-N17dp90-ttfMOFaRmyP": {
+    "amphoes": "คันนายาว",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "THAIWARA PROJECT (THAILAND)",
+    "fare": "0",
+    "surveyNameTH": "ไทยวราโปรเจคท์ (ไทยแลนด์)"
+  },
+  "-N409w65XQ9m3rYmo-y7": {
+    "amphoes": "บางบ่อ",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "SIAM CONTAINER TERMINAL",
+    "fare": "0",
+    "surveyNameTH": "สยามคอนเทนเนอร์เทอร์มินอล"
+  },
+  "-N5ropWowWEy0xXmiDKt": {
+    "amphoes": "บัวใหญ่",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "TONG HUA BUAYAI (1994)",
+    "surveyNameTH": "ตงฮั้ว บัวใหญ่ (1994)",
+    "fare": "0"
+  },
+  "-N6uraqYPvBaOCk2lmsK": {
+    "amphoes": "ขาณุวรลักษบุรี",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "KIATBOONKRONG EXPORT",
+    "fare": "0",
+    "surveyNameTH": "เกียรติบุญครอง เอ็กซ์ปอร์ต"
+  },
+  "-N9ivHUbTrYKEh8A_zJL": {
+    "amphoes": "บางปลาม้า",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "EAKJAROENWATTANA-SUPHANBURI",
+    "fare": "0",
+    "surveyNameTH": "เอกเจริญวัฒนา-สุพรรณบุรี"
+  },
+  "-M_OCB4Wd8Im3BSkLQX7": {
+    "amphoes": "ขาณุวรลักษบุรี",
+    "changwat": "กำแพงเพชร",
+    "surveyNameEN": "T.C.S. Tapioca Starch Industry",
+    "fare": "0",
+    "surveyNameTH": "ที.ซี.เอส. แป้งมันอุตสาหกรรม"
+  },
+  "-Mei9NeqheW8_G17jGeY": {
+    "amphoes": "สีคิ้ว",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "PRG CORPORATION PUBLIC",
+    "fare": "0",
+    "surveyNameTH": "พี อาร์ จี คอร์ปอเรชั่น จำกัด (มหาชน)",
+    "companyTaxID": { "0": { "fare": "1400" } }
+  },
+  "-MieUlDPPE-JC4sljCXw": {
+    "amphoes": "เมืองสมุทรปราการ",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "V-SERVE LOGISTICS - BANGPOO",
+    "fare": "0",
+    "surveyNameTH": "วีเซิร์ฟ โลจิสติกส์ - บางปู"
+  },
+  "-MjY6xr46BTL8Q8rChWt": {
+    "amphoes": "พระสมุทรเจดีย์",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "CHAIYAPORN RICE AND FOOD PRODUCTS",
+    "fare": "0",
+    "surveyNameTH": "ไชยพรไรซแอนด์ฟู้ดโปรดักส์"
+  },
+  "-MDsAMgHIbwI8Ghl79Bu": {
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "SRIKRUNG LADKRABANG RICE MILL",
+    "amphoes": "ลาดกระบัง",
+    "fare": "0",
+    "surveyNameTH": "โรงสีไฟศรีกรุงลาดกระบัง",
+    "companyTaxID": { "0": { "fare": "500" } }
+  },
+  "-MN7jYB7Hpy8Yb9CHErj": {
+    "amphoes": "ทุ่งครุ",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "CAL INTERTRADE",
+    "surveyNameTH": "เคล อินเตอร์เทรด",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105531089375", "fare": "200" } }
+  },
+  "-NpSdCGqWsn8e5zI600h": {
+    "amphoes": "นครหลวง",
+    "changwat": "พระนครศรีอยุธยา",
+    "surveyNameEN": "PANDS GROUP",
+    "surveyNameTH": "แพนกรุ๊ป"
+  },
+  "-N9iwI52x_yiiOdapWB_": {
+    "amphoes": "หนองแซง",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "EAKJAROENWATTANA-SARABURI",
+    "fare": "0",
+    "surveyNameTH": "เอกเจริญวัฒนา-สระบุรี"
+  },
+  "-N9nyOjhrUh6YUNlGytJ": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "NIWAT PANICH",
+    "fare": "0",
+    "surveyNameTH": "โรงสีนิวัตรพาณิชย์"
+  },
+  "-NGVh3MWo-FgSFXkmaPv": {
+    "amphoes": "เมืองเพชรบุรี",
+    "changwat": "เพชรบุรี",
+    "surveyNameEN": "T.M. THAI RICE",
+    "surveyNameTH": "ที.เอ็ม. ไทย ไรซ์"
+  },
+  "-NH2XyXdm_pCPeTKKG3k": {
+    "amphoes": "บางระจัน",
+    "changwat": "สิงห์บุรี",
+    "surveyNameEN": "LOAMRUKTHANYA",
+    "surveyNameTH": "โรงสีล้อมรักธัญญา"
+  },
+  "-NJdK6FDW8vCS1Yv7rg5": {
+    "amphoes": "ค่ายบางระจัน",
+    "changwat": "สิงห์บุรี",
+    "surveyNameEN": "GLOBAL PRECIOUS RICE",
+    "surveyNameTH": "โกลบอล พรีเซียส ไรซ์"
+  },
+  "-NIpfyzkAcEFjFxkcZ72": {
+    "amphoes": "เสาไห้",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "SAHAMITR BANGKOK AGRITRADE",
+    "surveyNameTH": "สหมิตรกรุงเทพ การเกษตร"
+  },
+  "-NMCnjQn3mRTKXxPISRV": {
+    "amphoes": "นครหลวง",
+    "changwat": "พระนครศรีอยุธยา",
+    "surveyNameEN": "NAKORNLUANG  RICE  MILL",
+    "surveyNameTH": "โรงสีไฟนครหลวง"
+  },
+  "-NRksElMvrX8MYU28FI7": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "T S WAREHOUSE",
+    "surveyNameTH": "ที เอส คลังสินค้า"
+  },
+  "-NSFAqZxM9VkUy7F3Dsk": {
+    "amphoes": "บางกะปิ",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "IONIC LOGISTICS",
+    "surveyNameTH": "ไอโอนิค โลจีสติกส์"
+  },
+  "-NbTCsefMAhrHxFmryOd": {
+    "amphoes": "วังทอง",
+    "changwat": "พิษณุโลก",
+    "surveyNameEN": "KOHKAEW CHAROEN THUNYA RICE MILL 2",
+    "surveyNameTH": "เกาะแก้วเจริญธัญญา 2"
+  },
+  "-NWu-JNl3pO0Y4W9r05G": {
+    "amphoes": "คลองเตย",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "i-STORE SELF STORAGE",
+    "surveyNameTH": "ไอ โตร เซลฟ์ สโตเรจ"
+  },
+  "-NcW6J_s8zlcLMIRg2z3": {
+    "amphoes": "ลาดกระบัง",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "WISDOM LOGISTICS",
+    "surveyNameTH": "วิสดอม โลจิสติกส์"
+  },
+  "-Ne0v8_QKgtdseG8H1Fx": {
+    "amphoes": "เมืองอ่างทอง",
+    "changwat": "อ่างทอง",
+    "surveyNameEN": "THAI RUAM TOON WAREHOUSE",
+    "surveyNameTH": "ไทยรวมทุนคลังสินค้า"
+  },
+  "-NgvZ-CvQAIOzk6hsX9c": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "CAPITAL RICE - MAHAWONG",
+    "surveyNameTH": "นครหลวงค้าข้าว - มหาวงษ์"
+  },
+  "-NjLwAF1PNuhrAZii2xh": {
+    "amphoes": "เมืองชัยนาท",
+    "changwat": "ชัยนาท",
+    "surveyNameEN": "AURA RICE MILL",
+    "surveyNameTH": "ออร่า ไรซ์ มิลล์"
+  },
+  "-Nk-4_-llKYqv3IElPvi": {
+    "amphoes": "เดิมบางนางบวช",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "DIN SUWAN KASET",
+    "surveyNameTH": "ดินสุวรรณเกษตร"
+  },
+  "-NkmjLIbgJZEXp1t65wI": {
+    "amphoes": "บางระจัน",
+    "changwat": "สิงห์บุรี",
+    "surveyNameEN": "NINETY NINE RICE",
+    "surveyNameTH": "ไนน์ตี้ไนน์ไรซ์"
+  },
+  "-NmoZMBavkFvPC8g8J0s": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "BDS TERMINAL",
+    "surveyNameTH": "ท่าเรือบีดีเอส"
+  },
+  "-Mw4ifcFgLdO2cTOQqtW": {
+    "amphoes": "ศรีราชา",
+    "changwat": "ชลบุรี",
+    "surveyNameEN": "SIAM COMMERCIAL SEAPORT",
+    "fare": "0",
+    "surveyNameTH": "สยามคอมเมอร์เชียล ซีพอร์ท",
+    "companyTaxID": { "0": { "fare": "1200" } }
+  },
+  "-N1MfMU5u0TLhhqMXXZB": {
+    "amphoes": "บางเลน",
+    "changwat": "นครปฐม",
+    "surveyNameEN": "GC RICE SOLUTION",
+    "fare": "0",
+    "surveyNameTH": "จีซี ไรซ์ โซลูชั่นส์",
+    "companyTaxID": { "0": { "companyTax": "0107547000311", "fare": "600" } }
+  },
+  "-N3HfeaC8PXJAJUPfF1V": {
+    "amphoes": "บางไทร",
+    "changwat": "พระนครศรีอยุธยา",
+    "surveyNameEN": "KCB EXPORT",
+    "fare": "0",
+    "surveyNameTH": "เคซีบี เอ็กซ์ปอร์ต",
+    "companyTaxID": { "0": { "companyTax": "0105549002271", "fare": "600" } }
+  },
+  "-N9-kW07KUBlMoeJXCdb": {
+    "amphoes": "ลาดหลุมแก้ว",
+    "changwat": "ปทุมธานี",
+    "surveyNameEN": "PRG GLOBAL - PATHUMTHANI",
+    "fare": "0",
+    "surveyNameTH": "พี อาร์ จี โกลบอล - ปทุมธานี",
+    "companyTaxID": { "0": { "companyTax": "0135551002267", "fare": "500" } }
+  },
+  "-M_-twFJzJYRZREQd1dh": {
+    "amphoes": "ป่าโมก",
+    "changwat": "อ่างทอง",
+    "surveyNameEN": "SANGFAH PRODUCTS",
+    "surveyNameTH": "แสงฟ้าโปรดักส์",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105554013341", "fare": "800" } }
+  },
+  "-Me3D8G89MIRK0QB0MxI": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "THAI CONNECTIVITY TERMINAL",
+    "surveyNameTH": "ท่า TCT",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105543082672", "fare": "300" } }
+  },
+  "-MhCc6ExEF0zMoq7FAX3": {
+    "amphoes": "ศรีประจันต์",
+    "changwat": "สุพรรณบุรี",
+    "surveyNameEN": "RUAMSAPTHAVORN  RICE  MILL",
+    "surveyNameTH": "รวมทรัพย์ถาวร",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0105540091247", "fare": "900" } }
+  },
+  "-MiQCnWaILaWvyKTfCYx": {
+    "amphoes": "บางพลี",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "KOMACK (THAILAND)",
+    "surveyNameTH": "โคแมค (ประเทศไทย)",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0655541000127", "fare": "500" } }
+  },
+  "-NncEI0fohMjKEm1EChZ": {
+    "amphoes": "บางไทร",
+    "changwat": "พระนครศรีอยุธยา",
+    "surveyNameEN": "GENERAL MILLS CORPORATION",
+    "surveyNameTH": "เยนเนอรัล มิลล์ คอร์ปอร์เรชั่น"
+  },
+  "-Nq1NsufQIu2_TsruwFZ": {
+    "amphoes": "ท่าตะโก",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "S.PONGTHEP KASETYUNGYUEN",
+    "surveyNameTH": "ส.พงศ์เทพเกษตรยั่งยืน"
+  },
+  "-NsgJOpWp8I0dkbZgxZ1": {
+    "amphoes": "บางกะปิ",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "TRADER CORPORATION",
+    "surveyNameTH": "เทรดเดอร์ คอร์ปอเรชั่น"
+  },
+  "-Nt_C_XaC1x4uM26PTyF": {
+    "amphoes": "ปากท่อ",
+    "changwat": "ราชบุรี",
+    "surveyNameEN": "HUA HUAD COMMERCE AND RICE",
+    "surveyNameTH": "โรงสีฮั่วฮวดพานิชแอนด์ไรซ์"
+  },
+  "-NuY4evpNuwMFdEjSUEf": {
+    "amphoes": "บางซื่อ",
+    "changwat": "กรุงเทพมหานคร",
+    "surveyNameEN": "BSCM FOODS",
+    "surveyNameTH": "บีเอสซีเอ็ม ฟูดส์ "
+  },
+  "-Nv4y2GTii8ruwzmzxTN": {
+    "amphoes": "ศรีราชา",
+    "changwat": "ชลบุรี",
+    "surveyNameEN": "SEINO SAHA LOGISTICS",
+    "surveyNameTH": "เส-นอร์สห โลจิสติกส์"
+  },
+  "-NxL0we06PlZEqlaH8DA": {
+    "amphoes": "สามร้อยยอด",
+    "changwat": "ประจวบคีรีขันธ์",
+    "surveyNameEN": "SATHORN ORGANIC RICE",
+    "surveyNameTH": "สาธร ออแกนิค ไรซ์ จำกัด"
+  },
+  "-NBu8-P5KkQbMaD6MYeJ": {
+    "amphoes": "บรรพตพิสัย",
+    "changwat": "นครสวรรค์",
+    "surveyNameEN": "CHAOBAAN ORGANIC RICE MILL",
+    "fare": "0",
+    "surveyNameTH": "ชาวบ้าน ออร์แกนิค ไรซ์ มิลล์",
+    "companyTaxID": { "0": { "companyTax": "0105549002271", "fare": "2000" } }
+  },
+  "-NCIiQeSBMmtU9w0NYm_": {
+    "amphoes": "พระประแดง",
+    "changwat": "สมุทรปราการ",
+    "surveyNameEN": "UNITED GRAINS",
+    "fare": "0",
+    "surveyNameTH": "ท่ายูไนเต็ดเกรนส์",
+    "companyTaxID": { "0": { "companyTax": "0105554013341", "fare": "300" } }
+  },
+  "-NdharMUFur2jIeSrEtj": {
+    "amphoes": "สีคิ้ว",
+    "changwat": "นครราชสีมา",
+    "surveyNameEN": "PRG GLOBAL - NAKHON RATCHASIMA",
+    "surveyNameTH": "พี อาร์ จี โกลบอล - สีคิ้ว",
+    "companyTaxID": { "0": { "fare": "1400" } }
+  },
+  "-NA8KTP_pF0IiAlgRFEi": {
+    "amphoes": "วิหารแดง",
+    "changwat": "สระบุรี",
+    "surveyNameEN": "KRACHUBMITR RICE (2002 )",
+    "surveyNameTH": "โรงสีกระชับมิตร",
+    "fare": "0",
+    "companyTaxID": { "0": { "companyTax": "0305546001264", "fare": "800" } }
+  }
+}

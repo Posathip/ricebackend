@@ -63,14 +63,14 @@ export class RecordnotificationService {
         await this.prisma.validate_Check_Weight.findUnique({
           where: { checkWeightID: checkWeightID },
         });
-        checkweightdata?.jobID
+    
 
      const dataToUpdate = { ...checkweightdata, ...dto };
      
 
-if (dto.shippingDate) {
-  dataToUpdate.shippingDate = new Date(dto.shippingDate);
-}
+// if (dto.shippingDate) {
+//   dataToUpdate.shippingDate = new Date(dto.shippingDate);
+// }
 
 const updatedData = await this.prisma.validate_Check_Weight.update({
   where: { checkWeightID },
@@ -80,7 +80,7 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
       if (updatedData) {
         const addcertificatesheet = await this.prisma.certificatesheet.create({
           data: {
-            jobID: checkweightdata?.jobID || '11796',
+            jobID: checkweightdata?.jobID || 0,
           },
         });
       }
@@ -166,5 +166,37 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
         error: error.message || error,
       });
     }
+  }
+
+  async getCheckWeightDataFilterjobNoandid(jobNo: number,licenseId: string,  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,){
+
+      try {
+        const query = await this.prisma.validate_Check_Weight.findMany({
+          where: {
+            OR: [
+              { jobID: jobNo },
+              { request: { licenseNumber: licenseId } },
+            ],
+          },
+          include: {
+            request: true,
+          },
+        });
+        if (!query || query.length === 0) {
+          return response.status(404).send({
+            message: 'No check weight data found for the given jobNo and licenseId',
+          });
+        }
+        return response.status(200).send({
+          message: 'Check weight data retrieved successfully by jobNo and licenseId',
+          data: query,
+        });
+      } catch (error) {
+        return response.status(500).send({
+          message: 'Failed to retrieve check weight data by jobNo and licenseId',
+          error: error.message || error,
+        });
+      }
   }
 }

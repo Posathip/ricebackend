@@ -10,6 +10,7 @@ import * as https from 'https'; // สำหรับ HTTPS request
 import * as http from 'http'; // สำหรับ fallback HTTP
 import { parseStringPromise } from 'xml2js';
 import { parse } from 'path';
+import { CreateSurveyDto } from 'src/dto/user.dto';
 
 @Injectable()
 export class TradeService {
@@ -280,27 +281,47 @@ async getRequestbydate(date: string,  @Req() request: any,
         message: 'Invalid date format',     
       });
     }
+    // Get requests for the given date
     const request = await this.prisma.request.findMany({
       where: {
-        requestDate: {
-          gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
-          lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
-        },
+      requestDate: {
+        gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
+        lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
+      },
       },
       include: {
-        descriptions: true, // Include related descriptions
+      descriptions: true, // Include related descriptions
+      },
+    });
+
+    // Get requests for the previous day (date - 1)
+    const prevDate = new Date(parsedDate);
+    prevDate.setDate(parsedDate.getDate() - 1);
+
+    const prevRequest = await this.prisma.validate_Check_Weight.findFirst({
+      where: {
+      createdAt: {
+        gte: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate()),
+        lt: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate() + 1),
+      },
+      },
+      
+      orderBy: {
+      jobID: 'desc',
       },
     });
     if (!request || request.length === 0) {
       return response.status(404).send({
         success: false,
         message: 'No requests found for the given date',
+        finalNo: prevRequest?.jobID || "0000",
       });
     }
-    return {
+    return response.status(200).send( {
       success: true,
       data: request,
-    };
+      finalNo: prevRequest?.jobID || "0000",
+    });
   } catch (error) {
     console.error('Error fetching request by date:', error);
     return response.status(500).send({
@@ -520,11 +541,132 @@ async updateOrder(id, body: any,  @Req() request: any,
   }
 }
 
+async postSurvey(dto: CreateSurveyDto[],  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
+  try {
+    const surveyData = await this.prisma.surveyName.createMany({
+       data: dto.map((dto) => ({
+           amphoes: dto.amphoes || "-",
+            changwat: dto. changwat || "-",
+           surveyNameEN: dto.surveyNameEN ||"-",
+            surveyNameTH: dto.surveyNameTH|| "-",
+           
+      })),
+    });
 
+    return response.status(200).send({
+      success: true,
+      message: 'Survey posted successfully',
+   
+    });
+  } catch (error) {
+    console.error('Error posting survey:', error);
+    return response.status(500).send({
+      success: false,
+      message: 'Failed to post survey',
+      error: error.message || error,
+    });
+  }
+}
+
+async getInspectPlace( @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
+    try {
+      const getInspectPlace = await this.prisma.surveyName.findMany({
+        select: {
+          surveyNameTH: true,
+          surveyNameEN: true,
+          changwat: true,
+          amphoes: true,
+        },
+        distinct: ['surveyNameTH', 'surveyNameEN'],
+        orderBy: {  
+          surveyNameTH: 'asc',
+        },
+      });
+      return response.status(200).send({
+        success: true,
+        data: getInspectPlace,
+      });
+    } catch (error) {
+      console.error('Error fetching inspect places:', error);
+      return response.status(500).send({
+        success: false,
+        message: 'Failed to fetch inspect places',
+        error: error.message || error,
+      });
+
+    }
 
 }
-  
-  
+
+async getlicensebyDate(startdate: string, enddate: string, @Req() request: any,
+
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
+    const ORGANCODE = 'e4d88b73-c523-440a-b60f-b243bfdfc540';
+  const xml = `<?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+          <GetPaperlessData xmlns="http://tempuri.org/">
+            <DataRequest>
+              <OrganizeCode>${ORGANCODE}</OrganizeCode>
+              <StartDate>${startdate}</StartDate>
+              <EndDate>${enddate}</EndDate>
+            </DataRequest>
+          </GetPaperlessData>
+        </soap:Body>
+      </soap:Envelope>`;
+
+    const options = {
+      hostname: 'smart-1.dft.go.th',
+      path: '/WebServices/DFTLicenseData.asmx',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml; charset=utf-8',
+        'Content-Length': Buffer.byteLength(xml),
+        'SOAPAction': '"http://tempuri.org/GetPaperlessData"',
+      },
+    };
+
+    const soapRequest = (): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const req = https.request(options, (soapRes) => {
+          let data = '';
+          soapRes.on('data', (chunk) => (data += chunk));
+          soapRes.on('end', () => resolve(data));
+        });
+
+        req.on('error', (err) => reject(err));
+        req.write(xml);
+        req.end();
+      });
+
+    try {
+      const rawXML = await soapRequest();
+      const parsed = await parseStringPromise(rawXML, { explicitArray: false });
+
+      const responseData =
+        parsed['soap:Envelope']?.['soap:Body']?.['GetPaperlessDataResponse']?.['GetPaperlessDataResult']?.['LicenseHeader'] ?? null;
+
+      return response.status(200).send({
+        message: '✅ Data fetched from SOAP service',
+        data: responseData,
+      });
+    } catch (err: any) {
+      console.error('SOAP Error:', err);
+      return response.status(500).send({
+        message: '❌ Failed to fetch SOAP data',
+        error: err.message || err,
+      });
+    }
+  }
+}
+
 function convertToAD(dateStr: string): Date {
   if (!dateStr || typeof dateStr !== 'string') {
     throw new Error(`Invalid date string: ${dateStr}`);
@@ -545,3 +687,6 @@ function convertToAD(dateStr: string): Date {
 
   return date;
 }
+
+
+

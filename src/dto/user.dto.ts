@@ -59,7 +59,35 @@ export class CreateAccountUser {
 
   
 }
+export class CreateStaffDto {
+  @ApiProperty({ example: '98576881-7323-49fc-aff1-78d35d1599bd' })
+  @IsString()
+  staffID: string;
+ 
+  @ApiProperty({ example: '1' })
+  @IsString()
+  staffNo: string;
+  @ApiProperty({ example: 'John Doe', required: false })
+  @IsOptional()
+  @IsString()
+  staffName?: string;
 
+  @ApiProperty({ example: 'staff@example.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: '0812345678', required: false })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({ example: 'Manager', required: false })
+  @IsOptional()
+  @IsString()
+  position?: string;
+
+  
+}
 export class LoginDTO {
     @ApiProperty({ example: 'dpim@dpim.com' })
     @IsEmail()
@@ -95,4 +123,22 @@ export class LoginDTO {
   @IsString()
   @IsOptional()
   endDate: Date
+  }
+
+  export class CreateSurveyDto {
+    @ApiProperty({ example: 'Amphoe' })
+    @IsString()
+    amphoes: string;
+
+    @ApiProperty({ example: 'Changwat' })
+    @IsString()
+    changwat: string;
+
+    @ApiProperty({ example: 'สถานที่ตรวจสอบ EN' })
+    @IsString()
+    surveyNameEN: string;
+
+    @ApiProperty({ example: 'สถานที่ตรวจสอบ TH' })
+    @IsString()
+    surveyNameTH: string;
   }

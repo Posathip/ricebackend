@@ -114,7 +114,7 @@ model Description {
 
 model validate_Check_Weight {
   checkWeightID     String  @id @default(uuid())
-  jobID             String? //ชื่อ job id
+  jobID             Int? //ชื่อ job id
   staffID           String?
   staffName         String?
   status            Boolean
@@ -122,34 +122,31 @@ model validate_Check_Weight {
   time              String?
   vesselName        String?
   noOfBags          Float?
-  totalgrossWeight  Float?
-  totalTareWeight   Float?
+  grossWeight      Float?
   nettWeight        Float?
-  remainingWeight   Float?
+  totalGrossWeight  Float?
+  totalNetWeight    Float?
+  totalTareWeight   Float?
+  remainWeight      Float?
+  weightPerTon     Float?
+
   loadingDetails    String?
-  packingType       String?
-  packingDetailKgs  Float?
-  packingDetailBags Float?
-  remark1           String?
-  remark2           String?
-  remark3           String?
-  remark4           String?
+
+
+  
   note             String?
-  totalnetWeight Float?
-  quantity       Float?
+ 
+  
 
-  riceTypeID   String?
-  shippingDate DateTime?
+  // riceTypeID   String?
+  // shippingDate DateTime?
 
-  statusContinue String?
+  // statusContinue String?
 
-  companyName   String?
+  // companyName   String?
   descriptionID String
   requestID     String
-  wage        Float?
-  wageVehicle Float?
-  wegeOverTime Float?
-  allWage    Float?
+
   createdAt     DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt     DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
@@ -160,7 +157,7 @@ model validate_Check_Weight {
 
 model certificatesheet {
   certificateSheetID String   @id @default(uuid())
-  jobID              String
+  jobID              Int
   license            String?
   No                 Int?
   NoOld              Int?
@@ -251,6 +248,25 @@ model extraInvoice {
   updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
 
+model surveyName {
+surveyNameID String   @id @default(uuid())
+amphoes      String
+changwat     String
+surveyNameEN String
+surveyNameTH String
+createdAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
+model staff {
+  staffID    String   @id @default(uuid())
+  staffNo   String?  @unique
+  staffName  String?
+  email      String   @unique
+  phone      String?
+  position   String?
+  createdAt  DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt  DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
 model sellingLiquids {
   sellingLiquidsID String   @id @default(uuid())
   orderBillID      String
@@ -270,3 +286,5 @@ model sellingLiquids {
   createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
+
+
