@@ -139,7 +139,7 @@ export class TradeService {
           netWeightTON: parseFloat(detail.NetWeightTON),
         },
       });
-
+        const netWeightW = parseFloat(detail.NetWeightKGM) / parseFloat(detail.Quantity) ;
         if(!existsDetail ){
         licenseDetailList.push({
           permitId: dataID,
@@ -156,7 +156,8 @@ export class TradeService {
           fob: parseFloat(detail.FOB),
           price: parseFloat(detail.Price),
           incoterms: detail.Incoterms,
-          productDescription: detail.ProductDescription,
+          productDescription: cleanRiceType(detail.ProductDescription),
+          netWeightW :  netWeightW,
         });
     }
       }
@@ -201,7 +202,7 @@ try {
     throw new NotFoundException('No License Data')
    }
    return {
-        message: 'Logged in sucessfully',
+        message: 'Get data  sucessfully',
         querydata
       };
 } catch (error) {
@@ -214,9 +215,17 @@ async createOrder(body: any,  @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
 ) {
   try {
+
+    const getdata = await this.prisma.dataFromGoverment.findUnique({
+      where: { licenseNumber: body.licenseNumber },
+      include: {
+        licenseDetails: true, // Assuming relation name is LicenseDetail
+      },
+    });
+
     const adddata = await this.prisma.request.create({
       data: {
-        companyName: body.companyName,
+        companyName: cleanCompanyName(body.companyName),
         requestBy: body.requestBy,
         requestDate: new Date(body.requestDate),
         shippingDateTime: new Date(body.shippingDateTime),
@@ -229,29 +238,28 @@ async createOrder(body: any,  @Req() request: any,
         telDebtor: body.telDebtor,
         licenseNumber: body.licenseNumber,
         status: "incomplete",
-        
-       
+        portName: getdata?.portName,
         descriptions: {
           create: body.description.map((desc: any) => ({
             descriptionID: desc.descriptionID,
             destination: desc.destination,
-            riceType: desc.riceType,
+            riceType: cleanRiceType(desc.riceType), 
             vehicleName: desc.vehicleName,
             marker: desc.marker,
             licenseNumber: body.licenseNumber,
-            quantity: desc.quantity,
+            quantity: desc.quantity,  
             quantityUnit: desc.quantityUnit,
             grossWeight: desc.grossWeight,
-             netWeight: desc.netWeight,
-         
-      
-           
-            
+             netWeightW: desc.netWeightW,
+             netWeightKGM: desc.netWeightKGM,
+            netWeightTON: desc.netWeightTON,
+              portName: desc.portName,
           })),
         },
       },
     });
 
+ 
     // ส่ง response กลับ client ว่าสร้างสำเร็จ
     return response.status(200).send({
       success: true,
@@ -297,7 +305,7 @@ async getRequestbydate(date: string,  @Req() request: any,
     // Get requests for the previous day (date - 1)
     const prevDate = new Date(parsedDate);
     prevDate.setDate(parsedDate.getDate() - 1);
-
+    console.log(prevDate);
     const prevRequest = await this.prisma.validate_Check_Weight.findFirst({
       where: {
       createdAt: {
@@ -473,7 +481,7 @@ async updateOrder(id, body: any,  @Req() request: any,
 ) {
   try {
     const updateRequestData = {
-      companyName: body.companyName,
+      companyName:  body.companyName,
       requestBy: body.requestBy,
       requestDate: body.requestDate ? new Date(body.requestDate) : undefined,
       shippingDateTime: body.shippingDateTime ? new Date(body.shippingDateTime) : undefined,
@@ -667,6 +675,26 @@ async getlicensebyDate(startdate: string, enddate: string, @Req() request: any,
   }
 }
 
+function cleanRiceType(riceType: string): string {
+  if (!riceType) return riceType;
+
+  // ถ้ามี %
+  const percentIndex = riceType.indexOf("%");
+  if (percentIndex !== -1) {
+    return riceType.substring(0, percentIndex + 1).trim(); 
+  }
+
+  // ถ้าไม่มี % แต่มีคำว่า "บรรจุ"
+  const packIndex = riceType.indexOf("บรรจุ");
+  if (packIndex !== -1) {
+    return riceType.substring(0, packIndex).trim();
+  }
+
+  // ถ้าไม่มีทั้งสองอย่าง
+  return riceType.trim();
+}
+
+
 function convertToAD(dateStr: string): Date {
   if (!dateStr || typeof dateStr !== 'string') {
     throw new Error(`Invalid date string: ${dateStr}`);
@@ -689,4 +717,16 @@ function convertToAD(dateStr: string): Date {
 }
 
 
+
+function cleanCompanyName(companyName: string): string {
+  if (!companyName) return companyName;
+
+  const index = companyName.indexOf("จำกัด");
+  if (index !== -1) {
+    // เก็บแค่ "จำกัด" ไม่เอาข้างหลัง
+    return companyName.substring(0, index + "จำกัด".length).trim();
+  }
+
+  return companyName.trim();
+}
 

@@ -44,7 +44,7 @@ model LicenseDetail {
   permitId        String
   permit          DataFromGoverment @relation(fields: [permitId], references: [dataID])
   licenseNumber   String?
- 
+  netWeightW    Float?
   tariffType         String?
   netWeightTON       Float?
   netWeightUnit      String?
@@ -86,6 +86,7 @@ model Request {
   telDebtor            String //เบอร์ติดต่อเรียกเก็บเงิน
   licenseNumber        String // เลขที่ใบอนุญาต
   status              String? // สถานะการตรวจสอบ
+  portName             String? // ท่าเรือ
   createdAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
@@ -105,7 +106,10 @@ model Description {
   quantity      Float
   quantityUnit  String //ชนิดกระสอบ
   grossWeight   Float
-  netWeight     Float
+  netWeightKGM  Float?
+  netWeightW    Float?
+  netWeightTON  Float?
+
 
   createdAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
@@ -119,31 +123,27 @@ model validate_Check_Weight {
   staffName         String?
   status            Boolean
   supplierName      String?
-  time              String?
+  time               DateTime?
   vesselName        String?
   noOfBags          Float?
-  grossWeight      Float?
-  nettWeight        Float?
+  grossWeight       Float?
+  netWeightW        Float?
+  netWeightTon      Float?
   totalGrossWeight  Float?
   totalNetWeight    Float?
   totalTareWeight   Float?
   remainWeight      Float?
   weightPerTon     Float?
-
+  goDown            String?
   loadingDetails    String?
-
-
+  specialJob   String? // งานพิเศษ
+  statusContinue           String?
   
   note             String?
- 
+  vehicleName     String?
+  riceName        String?
+  quantity       Float?
   
-
-  // riceTypeID   String?
-  // shippingDate DateTime?
-
-  // statusContinue String?
-
-  // companyName   String?
   descriptionID String
   requestID     String
 

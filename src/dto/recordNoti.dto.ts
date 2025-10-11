@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 
 export class ValidateCheckWeightDto {
+
   @ApiProperty({ example: 'desc123' })
   @IsString()
   descriptionID: string;
@@ -23,7 +24,7 @@ export class ValidateCheckWeightDto {
   @IsOptional()
   status?: boolean = false; // default value false
 
-  @ApiProperty({ example: 'staff123', required: false })
+  @ApiProperty({ example: 'staff123 ', required: false })
   @IsString()
   @IsOptional()
   staffID?: string;
@@ -32,64 +33,83 @@ export class ValidateCheckWeightDto {
   @IsInt()
   @IsOptional()
   jobID?: number;
+
+  @ApiProperty({ example: 'note' })
+  @IsString()
+  @IsOptional()
+  note?: string;
+
+  @ApiProperty({ example: 'ต่อ', required: false })
+  @IsString()
+  @IsOptional()
+  statusContinue?: string;
+
+  @ApiProperty({ example: 'พสธิป สถาพร', required: false })
+  @IsString()
+  @IsOptional()
+  staffName?: string;
+
+   @ApiProperty({ example: "A", required: false })
+  @IsString()
+  @IsOptional()
+  specialJob?: string;
 }
 
 export class UpdateCheckWeightData {
   @ApiProperty({ example: 'คำสั่งจ่ายงาน', required: false })
-  
   @IsOptional()
-  jobID?: number; // ชื่อ job id
+  jobID?: number; // รหัสคำสั่งงาน
 
   @ApiProperty({ example: 'หมายเลขไอดีพนักงาน', required: false })
   @IsString()
   @IsOptional()
   staffID?: string;
 
-  @ApiProperty({ example: 'ชื่อพนักงาน', required: false })
-  @IsString()
-  @IsOptional()
-  staffName?: string;
 
-  @ApiProperty({ example: true })
+
+  @ApiProperty({ example: false, description: 'สถานะข้อมูลน้ำหนัก (default: false)' })
   @IsBoolean()
-  status: boolean;
-
-  @ApiProperty({ example: 'Supplier', required: false })
-  @IsString()
   @IsOptional()
-  supplierName?: string;
+  status?: boolean = false;
 
-  @ApiProperty({ example: 'เวลา', required: false })
+  
+
+  @ApiProperty({ example: '10:30 AM', required: false })
   @IsString()
   @IsOptional()
   time?: string;
 
-  @ApiProperty({ example: 'Vessel', required: false })
+  @ApiProperty({ example: 'MV Ocean Star', required: false })
   @IsString()
   @IsOptional()
   vesselName?: string;
 
-  @ApiProperty({ example: 100, required: false })
+  @ApiProperty({ example: 500, required: false })
   @IsNumber()
   @IsOptional()
-  noOfBags?: number;
+ quantity?: number;
 
-  @ApiProperty({ example: 1000.5, required: false })
+  @ApiProperty({ example: 1500.75, required: false })
   @IsNumber()
   @IsOptional()
   grossWeight?: number;
 
-  @ApiProperty({ example: 950.0, required: false })
+  @ApiProperty({ example: 1450.5, required: false })
   @IsNumber()
   @IsOptional()
-  nettWeight?: number;
+  netWeightW?: number;
 
-  @ApiProperty({ example: 2000.0, required: false })
+  @ApiProperty({ example: 1.45, required: false })
+  @IsNumber()
+  @IsOptional()
+  netWeightTon?: number;
+
+  @ApiProperty({ example: 3000.0, required: false })
   @IsNumber()
   @IsOptional()
   totalGrossWeight?: number;
 
-  @ApiProperty({ example: 1900.0, required: false })
+  @ApiProperty({ example: 2900.0, required: false })
   @IsNumber()
   @IsOptional()
   totalNetWeight?: number;
@@ -99,7 +119,7 @@ export class UpdateCheckWeightData {
   @IsOptional()
   totalTareWeight?: number;
 
-  @ApiProperty({ example: 50.0, required: false })
+  @ApiProperty({ example: 50.25, required: false })
   @IsNumber()
   @IsOptional()
   remainWeight?: number;
@@ -109,16 +129,18 @@ export class UpdateCheckWeightData {
   @IsOptional()
   weightPerTon?: number;
 
-  @ApiProperty({ example: 'รายละเอียดการโหลด', required: false })
+  @ApiProperty({ example: 'Shipment A - Warehouse 3', required: false })
   @IsString()
   @IsOptional()
   loadingDetails?: string;
+
+  // @ApiProperty({ example: 'Jasmine Rice 100%', required: false })
+  // @IsString()
+  // @IsOptional()
+  // riceName?: string;
 
   @ApiProperty({ example: 'หมายเหตุ', required: false })
   @IsString()
   @IsOptional()
   note?: string;
-
-
-
 }

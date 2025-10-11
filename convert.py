@@ -6,18 +6,22 @@ import matplotlib
 # Set Times New Roman font with fallback
 matplotlib.rcParams.update({
     'font.size': 12,
-    'font.family': ['Times New Roman', 'Times', 'serif'],
+    'font.family': ['Palatino Linotype', 'serif'],
     'axes.labelsize': 13,
     'axes.titlesize': 14,
     'xtick.labelsize': 11,
     'ytick.labelsize': 11,
     'figure.dpi': 120
 })
-
+ tp = 32149
+tn = 69351
+fp = 34084- tp
+fn = 69836 - tn
 # Example confusion matrix
 cm = np.array([
-    [69406,  430],
-    [ 1937, 32150]
+    
+    [ tp, fn],
+    [fp,  tn],
 ])
 
 # Normalize to percentages
@@ -25,7 +29,7 @@ cm_sum = cm.sum()
 cm_percent = cm / cm_sum * 100
 
 # Labels for axes
-classes = ["Benign", "Attack"]
+classes = [ "Attack","Benign"]
 
 # Create heatmap
 plt.figure(figsize=(6, 5.5))
@@ -37,7 +41,7 @@ ax = sns.heatmap(cm, annot=False, fmt="d", cmap="Blues",
 for i in range(cm.shape[0]):
     for j in range(cm.shape[1]):
         # If this cell is the one with 69363 → white text
-        if cm[i, j] == 69406:
+        if cm[i, j] == tn:
             text_color = "white"
         else:
             text_color = "black"
@@ -45,12 +49,12 @@ for i in range(cm.shape[0]):
         ax.text(j+0.5, i+0.5,
                 f"{cm[i, j]}\n({cm_percent[i, j]:.2f}%)",
                 ha="center", va="center",
-                color=text_color, fontsize=11)
+                color=text_color, fontsize=14)
 
 # Labels and title
-plt.xlabel("Predicted", fontsize=13)
-plt.ylabel("Actual", fontsize=13)
-plt.title("Confusion Matrix of CNN and LSTM with Multi-Head Attention", fontsize=14, pad=12)
+plt.xlabel("Predicted", fontsize=16)
+plt.ylabel("Actual", fontsize=16)
+plt.title("Confusion matrix of CNN and BiLSTM", fontsize=16, pad=12)
 
 plt.tight_layout()
 plt.show()
@@ -88,7 +92,7 @@ plt.pie(
     textprops={'fontsize': 20, 'family': 'Times New Roman'}
 )
 
-plt.title("Pie Chart of Traffic Classes", fontsize=20, pad=14, fontfamily="Times New Roman")
+plt.title("Pie Chart of Traffic Classes", fontsize=16, pad=14, fontfamily="Times New Roman")
 plt.tight_layout()
 plt.show()
 
