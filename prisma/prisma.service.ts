@@ -7,13 +7,7 @@ extends PrismaClient
 implements OnModuleInit,OnModuleDestroy {
   constructor(){
     super(
-      // {
-      //   datasources:{
-      //     db:{
-      //       url: "postgresql://postgresdpim:postgresdpim@dpimdatabase.ctqgko0ywbbc.us-east-1.rds.amazonaws.com:5432/Authentication?schema=public",
-      //     }
-      //   }
-      // }
+  
     );
   }
  async onModuleDestroy() {

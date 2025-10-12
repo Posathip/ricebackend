@@ -29,9 +29,22 @@ export class RecordnotificationService {
       }
     }
   },
-  // include: {
-  //   request: true,
-  // },
+   include: {
+  request: {
+      select: {
+       licenseNumber: true,
+surveyLocateNameThai: true,
+surveyLocateNameEng: true,
+
+      },
+     
+    },
+     description: {
+        select: {
+          destination: true,
+        }
+        }
+  },
   orderBy: [
     { jobID: 'asc' },  
     { specialJob: 'asc' },    
@@ -116,139 +129,117 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
     @Res({ passthrough: true }) response: FastifyReply,
 ) {
   try {
+  const requestIds = dtoArray.map((dto) => dto.requestID);
+  const descriptionIds = dtoArray.map((dto) => dto.descriptionID);
 
-    const requestIds = dtoArray.map((dto) => dto.requestID)
-     const descriptionIds = dtoArray.map((dto) => dto.descriptionID);
-    
-     const request = await this.prisma.request.findMany({
-      where: {
-        requestID: { in: requestIds },
-      },
-      
-      });
-        
-   
-    const  descriptions = await this.prisma.description.findMany({
-      where: {
-        descriptionID: { in: descriptionIds },
-      },
-     
-    });
-        console.log(descriptions);
+  // 1️⃣ Check existing records
+  const existingRecords = await this.prisma.validate_Check_Weight.findMany({
+    where: {
+      descriptionID: { in: descriptionIds },
+    },
+    select: { descriptionID: true },
+  });
 
-    // Map requestID to its data for quick lookup
-    const descriptionMap = new Map(
-      descriptions.map((desc) => [desc.descriptionID, desc])
-    );
-    const requestMap = new Map(
-      request.map((req) => [req.requestID, req])
-    );
+  const existingDescriptionIds = new Set(
+    existingRecords.map((r) => r.descriptionID)
+  );
 
-    const postdata = await this.prisma.validate_Check_Weight.createMany({
-      data: dtoArray.map((dto) => ({
-      descriptionID: dto.descriptionID,
-      requestID: dto.requestID,
-      status: false,
-      staffID: dto.staffID,
-      jobID: dto.jobID,
-      note: dto.note,
-      statusContinue: dto.statusContinue, 
-      staffName: dto.staffName,
-      specialJob: dto.specialJob || null, 
-      })),
-    });
+  // 2️⃣ Fetch related data (for insert logic)
+  const requests = await this.prisma.request.findMany({
+    where: { requestID: { in: requestIds } },
+  });
 
-   
-    for (const dto of dtoArray) {
+  const descriptions = await this.prisma.description.findMany({
+    where: { descriptionID: { in: descriptionIds } },
+  });
+
+  const descriptionMap = new Map(descriptions.map((d) => [d.descriptionID, d]));
+  const requestMap = new Map(requests.map((r) => [r.requestID, r]));
+
+  // 3️⃣ Loop through DTOs
+  for (const dto of dtoArray) {
+    if (existingDescriptionIds.has(dto.descriptionID)) {
+      // === UPDATE existing record ===
       const desc = descriptionMap.get(dto.descriptionID);
+      const req = requestMap.get(dto.requestID);
+
+      const updatePayload: any = {
+        status: false,
+        staffID: dto.staffID,
+        jobID: dto.jobID,
+        note: dto.note,
+        statusContinue: dto.statusContinue,
+        staffName: dto.staffName,
+        specialJob: dto.specialJob || null,
+      };
+
       if (desc) {
+        updatePayload.vehicleName = desc.vehicleName;
+        updatePayload.riceName = desc.riceType;
+        updatePayload.noOfBags = desc.quantity;
+        updatePayload.grossWeight = desc.grossWeight;
+        updatePayload.netWeightW = desc.netWeightW;
+        updatePayload.netWeightTon = desc.netWeightTON;
+      }
+
+      if (req) {
+        updatePayload.goDown = req.portName;
+        updatePayload.time = req.shippingDateTime;
+        updatePayload.supplierName = req.companyName;
+      }
+
       await this.prisma.validate_Check_Weight.updateMany({
         where: { descriptionID: dto.descriptionID },
+        data: updatePayload,
+      });
+    } else {
+      // === CREATE new record (original logic) ===
+      const desc = descriptionMap.get(dto.descriptionID);
+      const req = requestMap.get(dto.requestID);
+
+      await this.prisma.validate_Check_Weight.create({
         data: {
-        vehicleName: desc.vehicleName,
-        riceName: desc.riceType,
-        noOfBags: desc.quantity,
-        grossWeight: desc.grossWeight,
-        netWeightW: desc.netWeightW,
-        netWeightTon: desc.netWeightTON,
-          
+          descriptionID: dto.descriptionID,
+          requestID: dto.requestID,
+          status: false,
+          staffID: dto.staffID,
+          jobID: dto.jobID,
+          note: dto.note,
+          statusContinue: dto.statusContinue,
+          staffName: dto.staffName,
+          specialJob: dto.specialJob || null,
+          vehicleName: desc?.vehicleName || null,
+          riceName: desc?.riceType || null,
+          noOfBags: desc?.quantity || null,
+          grossWeight: desc?.grossWeight || null,
+          netWeightW: desc?.netWeightW || null,
+          netWeightTon: desc?.netWeightTON || null,
+          goDown: req?.portName || null,
+          time: req?.shippingDateTime || null,
+          supplierName: req?.companyName || null,
         },
       });
-      }
     }
-
-     for (const dto of dtoArray) {
-      const desc = requestMap.get(dto.requestID);
-      if (desc) {
-      await this.prisma.validate_Check_Weight.updateMany({
-        where: { requestID: dto.requestID },
-        data: {
-      goDown: desc.portName,
-               time : desc.shippingDateTime,
-               supplierName : desc.companyName,
-           
-        },
-      });
-      }
-    }
-
-  const updateStatus = await this.prisma.request.updateMany({
-  where: {
-    requestID: {
-      in: dtoArray.map((item) => item.requestID), 
-    },
-  },
-  data: {
-    status: 'completed', 
-  },
-});
-    return {
-      message: 'Posted check weight data successfully',
-      data: postdata,
-    };
-  } catch (error) {
-    return response.status(500).send({
-      message: 'Failed to post data',
-      error: error.message || error,
-    });
   }
+
+  // 4️⃣ Update request status
+  await this.prisma.request.updateMany({
+    where: { requestID: { in: requestIds } },
+    data: { status: 'completed' },
+  });
+
+  return {
+    message: 'Successfully processed check weight data',
+    updated: Array.from(existingDescriptionIds).length,
+    created: dtoArray.length - existingDescriptionIds.size,
+  };
+} catch (error) {
+  return response.status(500).send({
+    message: 'Failed to post or update data',
+    error: error.message || error,
+  });
 }
-
-
-  async getCheckWeightData(checkWeightID: string,  @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,
-) {
-    try {
-      const checkWeightData = await this.prisma.validate_Check_Weight.findMany({
-        where: {
-          checkWeightID: checkWeightID,
-        },
-        // include: {
-        //   description: true, // Fetch related Description
-        //   request: true, // Fetch related Request
-        // },
-      });
-
-      if (!checkWeightData || checkWeightData.length === 0) {
-        return response
-          .status(404)
-          .send({ message: 'No data found for the given check weight ID' });
-      }
-
-      return response
-        .status(200)
-        .send({
-          message: 'Check weight data retrieved successfully',
-          data: checkWeightData,
-        });
-    } catch (error) {
-      return response.status(500).send({
-        message: 'Failed to retrieve check weight data',
-        error: error.message || error,
-      });
-    }
-  }
-
+}
   async getCheckWeightDataFilterjobNoandid(jobNo: number,licenseId: string,  @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,){
 

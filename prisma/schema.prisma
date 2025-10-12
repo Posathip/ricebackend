@@ -8,6 +8,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -85,7 +86,7 @@ model Request {
   telInspector         String // เบอร์ติดต่อผู้ตรวจสอบ
   telDebtor            String //เบอร์ติดต่อเรียกเก็บเงิน
   licenseNumber        String // เลขที่ใบอนุญาต
-  status              String? // สถานะการตรวจสอบ
+  status               String? // สถานะการตรวจสอบ
   portName             String? // ท่าเรือ
   createdAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
