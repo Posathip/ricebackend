@@ -15,6 +15,51 @@ export class RecordnotificationService {
     private jwt: JwtService,
   ) {}
 
+  async getCheckWeightData(checkWeightID: string,  @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+) {
+    try {
+      const checkWeightData = await this.prisma.validate_Check_Weight.findMany({
+        where: {
+          checkWeightID: checkWeightID,
+        },
+        include: {
+          description: {
+            select:{destination : true,
+            vehicleName: true,}
+            
+          },
+          
+          request:{
+            select:{
+              licenseNumber: true,
+              shippingDateTime: true,
+              requestBy : true,
+            }
+          }
+        },
+      });
+
+      if (!checkWeightData || checkWeightData.length === 0) {
+        return response
+          .status(404)
+          .send({ message: 'No data found for the given check weight ID' });
+      }
+
+      return response
+        .status(200)
+        .send({
+          message: 'Check weight data retrieved successfully',
+          data: checkWeightData,
+        });
+    } catch (error) {
+      return response.status(500).send({
+        message: 'Failed to retrieve check weight data',
+        error: error.message || error,
+      });
+    }
+  }
+
   async getCheckWeightDataFilterDate(date,@Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,){
       try {
