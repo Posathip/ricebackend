@@ -37,7 +37,7 @@ async createAccountUser(
     if (checkEmail){
         throw new BadRequestException('Email already exist');
     }
-       const password =  "9kaifarmsas";
+       const password =  "Demoadmin";
            
        const hashpassword = await this.hashPassword(password);
        console.log(hashpassword)

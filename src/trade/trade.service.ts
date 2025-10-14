@@ -298,25 +298,45 @@ async getRequestbydate(date: string,  @Req() request: any,
       },
       },
       include: {
-      descriptions: true, // Include related descriptions
+      descriptions: true, 
       },
     });
+    const result = await Promise.all(
+  request.map(async (req) => {
+    const latestJob = await this.prisma.validate_Check_Weight.findFirst({
+      where: { requestID: req.requestID },
+      orderBy: { jobID: 'desc' },
+      select: { jobID: true },
+    });
+
+    return {
+      ...req,
+      jobID: latestJob?.jobID ?? null, 
+    };
+  })
+);
+
+  
 
     // Get requests for the previous day (date - 1)
-    const prevDate = new Date(parsedDate);
-    prevDate.setDate(parsedDate.getDate() - 1);
-    console.log(prevDate);
+    // const prevDate = new Date(parsedDate);
+    // prevDate.setDate(parsedDate.getDate() - 1);
+    // console.log(prevDate);
     const prevRequest = await this.prisma.validate_Check_Weight.findFirst({
-      where: {
-      createdAt: {
-        gte: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate()),
-        lt: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate() + 1),
-      },
-      },
+      // where: {
+      // createdAt: {
+      //   gte: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate()),
+      //   lt: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate() + 1),
+      // },
+      // },
       
       orderBy: {
-      jobID: 'desc',
-      },
+    jobID: 'desc',
+  },
+  select: {
+    jobID: true, // only return jobID
+  },
+  take: 1, // ensure only one record
     });
     if (!request || request.length === 0) {
       return response.status(404).send({
@@ -327,7 +347,7 @@ async getRequestbydate(date: string,  @Req() request: any,
     }
     return response.status(200).send( {
       success: true,
-      data: request,
+      data: result,
       finalNo: prevRequest?.jobID || "0000",
     });
   } catch (error) {
