@@ -161,7 +161,8 @@ return {
               "quantity": 100,
               "quantityUnit": "kg",
               "grossWeight": 120,
-              "netWeight": 115
+              "netWeight": 115,
+              "index": 1
           },
           {
               "destination": "BRU",
@@ -172,7 +173,8 @@ return {
               "quantity": 100,
               "quantityUnit": "kg",
               "grossWeight": 120,
-              "netWeight": 115
+              "netWeight": 115,
+              "index": 2
           }
       ]
     }

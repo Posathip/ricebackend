@@ -23,6 +23,7 @@ model DataFromGoverment {
   buyer              String?
   exportAgent        String
   companyTax         String
+  telephone         String?
   product            String
   issueDate          DateTime
   expiredDate        DateTime
@@ -110,6 +111,7 @@ model Description {
   netWeightKGM  Float?
   netWeightW    Float?
   netWeightTON  Float?
+  index         Int?
 
 
   createdAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))

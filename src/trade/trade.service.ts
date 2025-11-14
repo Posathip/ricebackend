@@ -28,21 +28,36 @@ export class TradeService {
     @Res({ passthrough: true }) response: FastifyReply,
 ) {
   const ORGANCODE = 'e4d88b73-c523-440a-b60f-b243bfdfc540';
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-  const nextMonth = String(now.getMonth() + 2).padStart(2, '0');
 
-  let StartDate = `${currentYear}-${currentMonth}-01`;
-  let EndDate = `${currentYear}-${currentMonth}-31`;
-  
-  
-  if (parseInt(nextMonth) > 12) {
-    EndDate = `${currentYear + 1}-01-05`;
-  }
+// วันที่ปัจจุบัน
+const now = new Date();
+const currentYear = now.getFullYear();
+const currentMonth = now.getMonth() + 1; // (1–12)
 
-  const STARTDATE = StartDate;
-  const ENDDATE = EndDate;
+// ฟังก์ชันหาวันสุดท้ายของเดือน
+const getLastDayOfMonth = (year, month) => new Date(year, month, 0).getDate();
+
+// กำหนดวันเริ่มต้นของเดือนนี้
+const StartDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+
+// กำหนดวันสุดท้ายของเดือนนี้ (ครอบคลุมทุกเดือน)
+const lastDay = getLastDayOfMonth(currentYear, currentMonth);
+
+// ถ้าเป็นธันวาคม → เดือนถัดไปคือมกราคมปีใหม่
+let EndDate;
+if (currentMonth === 12) {
+  EndDate = `${currentYear + 1}-01-05`;
+} else {
+  EndDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+}
+
+// เพิ่มเวลาแบบมาตรฐาน ISO (บาง SOAP ต้องใช้)
+const STARTDATE = `${StartDate}T00:00:00`;
+const ENDDATE = `${EndDate}T00:00:00`;
+
+console.log('StartDate:', STARTDATE);
+console.log('EndDate:', ENDDATE);
+
 
   const xml = `<?xml version="1.0" encoding="utf-8"?>
     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -86,7 +101,8 @@ export class TradeService {
   try {
     const rawXML = await soapRequest();
     const result = await parseStringPromise(rawXML, { explicitArray: false });
-
+    
+    console.log(rawXML);
     const parsedList = result['soap:Envelope']['soap:Body']['GetPaperlessDataResponse']['GetPaperlessDataResult']['LicenseHeader'];
 
     const dataGovList: any[] = [];
@@ -108,10 +124,11 @@ export class TradeService {
         dataID,
         fullLicenseNumber: item.LicenseNumber, // Remove non-numeric characters
         licenseNumber: item.LicenseNumber.replace(/\D/g, ''),
-        exporter: item.Exporter,
+        exporter: cleanCompanyName(item.Exporter),
         recipient: item.Recipient,
+        telephone : extractTelephone(item.Exporter),
         buyer: item.Buyer || null,
-        exportAgent: item.Export_Agent,
+        exportAgent: extractFirstName(item.Export_Agent),
         companyTax: item.CompanyTax,
         product: item.Product,
         issueDate: convertToAD(item.IssueDate),
@@ -246,7 +263,7 @@ async createOrder(body: any,  @Req() request: any,
             riceType: cleanRiceType(desc.riceType), 
             vehicleName: desc.vehicleName,
             marker: desc.marker,
-            licenseNumber: body.licenseNumber,
+            licenseNumber: desc.licenseNumber,
             quantity: desc.quantity,  
             quantityUnit: desc.quantityUnit,
             grossWeight: desc.grossWeight,
@@ -254,6 +271,7 @@ async createOrder(body: any,  @Req() request: any,
              netWeightKGM: desc.netWeightKGM,
             netWeightTON: desc.netWeightTON,
               portName: desc.portName,
+              index: desc.index,
           })),
         },
       },
@@ -296,13 +314,48 @@ async getRequestbydate(date: string,  @Req() request: any,
         gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
         lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
       },
+      
       },
-      include: {
-      descriptions: true, 
-      },
+      
+      select: {
+    requestID: true,
+    companyName: true,
+    descriptions:{
+      select: {
+        descriptionID: true,
+        licenseNumber: true,
+        riceType: true,
+        quantity: true,
+        destination: true,
+        vehicleName: true,
+    },
+     orderBy: [
+        { licenseNumber: 'asc' },
+        { riceType: 'asc' },
+        { quantity: 'asc' },
+        { vehicleName: 'asc' },
+        { destination: 'asc' },
+      ],
+  },
+    surveyLocateNameEng: true,
+    surveyLocateNameThai: true,
+    surveyProvince: true,
+    shippingDateTime: true,  // ✅ include เฉพาะ descriptions ด้วย
+  },
+     
+      orderBy: {
+    surveyLocateNameThai: 'asc', // ✅ เรียงจาก ก → ฮ
+  },
     });
+
+
+    const  requestMap = request.map(r => ({
+  ...r,
+  surveyLocateNameThai: `${r.surveyLocateNameThai ?? ''}-${r.surveyProvince ?? ''}`.trim(),
+}));
+console.log(requestMap);
     const result = await Promise.all(
-  request.map(async (req) => {
+  requestMap.map(async (req) => {
     const latestJob = await this.prisma.validate_Check_Weight.findFirst({
       where: { requestID: req.requestID },
       orderBy: { jobID: 'desc' },
@@ -741,12 +794,30 @@ function convertToAD(dateStr: string): Date {
 function cleanCompanyName(companyName: string): string {
   if (!companyName) return companyName;
 
+  // ตัดคำว่า "บริษัท" (พร้อมช่องว่างหลัง ถ้ามี)
+  companyName = companyName.replace(/^บริษัท\s*/, "");
+
   const index = companyName.indexOf("จำกัด");
   if (index !== -1) {
-    // เก็บแค่ "จำกัด" ไม่เอาข้างหลัง
+    // เก็บไว้จนถึงคำว่า "จำกัด"
     return companyName.substring(0, index + "จำกัด".length).trim();
   }
 
   return companyName.trim();
 }
 
+
+function extractTelephone(text: string): string {
+  const match = text.match(/Tel\.?\s*([0-9]+)/);
+  return match ? match[1].trim() : '';
+}
+
+function extractFirstName(text: string): string {
+  // ลิสต์คำนำหน้าที่ต้องการรองรับ
+  const prefixes = ['นาย', 'นาง', 'นางสาว', 'ว่าที่ร้อยตรี'];
+  // สร้าง regex ที่ match ได้ทั้ง 4 แบบ โดยไม่แคร์ช่องว่าง
+  const regex = new RegExp(`^(?:${prefixes.join('|')})\\s*([\\u0E00-\\u0E7Fa-zA-Z]+)`, 'u');
+
+  const match = text.match(regex);
+  return match ? match[1].trim() : '';
+}

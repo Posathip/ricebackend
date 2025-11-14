@@ -12,17 +12,32 @@ export class UserService {[x: string]: any;
     
   ) {}
   async getUserData(request: any, response: any) {
-    // Assuming user ID is stored in the request object
-    const user = await this.prisma.staff.findMany({
-     
-    });
-
-    if (!user) {
-      return response.status(404).send({ message: 'Staff not found' });
+  const users = await this.prisma.staff.findMany(
+    {
+      select: {
+      staffID: true,
+      staffNo: true,
+      staffName: true,
+      email: true,
+      phone: true,
+      position: true,
+    },
     }
+  );
 
-    return response.status(200).send(user);
+  if (!users || users.length === 0) {
+    return response.status(404).send({ message: 'Staff not found' });
   }
+
+  // ตัดเอาเฉพาะชื่อก่อนช่องว่างแรก
+  const result = users.map(u => ({
+    ...u,
+     staffName: u.staffName ? u.staffName.split(' ')[0] : '',
+
+  }));
+
+  return response.status(200).send(result);
+}
     async postData(dto: CreateStaffDto[], request: any, response: any) {
        
         const newStaff = await this.prisma.staff.createMany({
