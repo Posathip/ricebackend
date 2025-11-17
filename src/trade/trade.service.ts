@@ -320,6 +320,9 @@ async getRequestbydate(date: string,  @Req() request: any,
       select: {
     requestID: true,
     companyName: true,
+    status: true,
+    surveySubDistrict: true,
+   
     descriptions:{
       select: {
         index: true,
@@ -330,6 +333,7 @@ async getRequestbydate(date: string,  @Req() request: any,
         destination: true,
         vehicleName: true,
         netWeightTON: true,
+        
         
     },
      orderBy: [
