@@ -322,12 +322,15 @@ async getRequestbydate(date: string,  @Req() request: any,
     companyName: true,
     descriptions:{
       select: {
+        index: true,
         descriptionID: true,
         licenseNumber: true,
         riceType: true,
         quantity: true,
         destination: true,
         vehicleName: true,
+        netWeightTON: true,
+        
     },
      orderBy: [
         { licenseNumber: 'asc' },
