@@ -333,6 +333,7 @@ async getRequestbydate(date: string,  @Req() request: any,
         
     },
      orderBy: [
+      {index: 'asc'},
         { licenseNumber: 'asc' },
         { riceType: 'asc' },
         { quantity: 'asc' },
