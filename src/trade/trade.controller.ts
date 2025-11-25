@@ -193,7 +193,7 @@ return {
   @ApiResponse({ status: 200, description: 'ทำการลบ ข้อมูลการแจ้งขอตรวจสอบ Complete' })
     @ApiQuery({ name: 'id', required: true, type: String, description: 'id' })
   @HttpCode(200)
-  @Delete('deleterequest')
+  @Delete('deleteorder')
   deleteOrder(
   @Query('id') orderID: string,@Req() request: any,
   @Res({ passthrough: true }) response: FastifyReply,) {

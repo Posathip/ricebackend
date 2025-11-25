@@ -822,7 +822,7 @@ function extractTelephone(text: string): string {
 
 function extractFirstName(text: string): string {
   // ลิสต์คำนำหน้าที่ต้องการรองรับ
-  const prefixes = ['นาย', 'นาง', 'นางสาว', 'ว่าที่ร้อยตรี'];
+   const prefixes = ['ว่าที่ร้อยตรี', 'นางสาว', 'นาง', 'นาย'];
   // สร้าง regex ที่ match ได้ทั้ง 4 แบบ โดยไม่แคร์ช่องว่าง
   const regex = new RegExp(`^(?:${prefixes.join('|')})\\s*([\\u0E00-\\u0E7Fa-zA-Z]+)`, 'u');
 
