@@ -11,11 +11,13 @@ import { RecordnotificationModule } from './recordnotification/recordnotificatio
 import { OrderbillModule } from './orderbill/orderbill.module';
 import { UserModule } from './user/user.module';
 
+import { CompanyModule } from './company/company.module';
+
 
 @Module({
   imports: [    ConfigModule.forRoot({
       isGlobal: true, // ให้ config ใช้ได้ทั่วแอป
-    }), TradeModule, AuthModule, RecordnotificationModule, OrderbillModule, UserModule, 
+    }), TradeModule, AuthModule, RecordnotificationModule, OrderbillModule, UserModule, CompanyModule, 
 ],
   controllers: [AppController],
   providers: [AppService,PrismaService],

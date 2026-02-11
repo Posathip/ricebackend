@@ -16,38 +16,39 @@ import {
 export class CreateAccountAdmin {
   @ApiProperty({ example: 'dpim@gmail.com' })
   @IsString()
-  email: string;
+  @IsEmail()
+  email!: string;
 
   @IsString()
   @ApiProperty({ example: 'adminagt' })
-  password: string;
+  password!: string;
 
   @IsString()
   @ApiProperty({ example: 'Admin' })
-  roleUserLevel: string;
+  roleUserLevel!: string;
   @IsString()
   @ApiProperty({ example: 'bob' })
-  firstname: string;
+  firstname!: string;
   @IsString()
   @ApiProperty({ example: 'kane' })
-  lastname: string;
+  lastname!: string;
   @IsString()
   @ApiProperty({ example: 'KMITL' })
-  company: string;
+  company!: string;
 
   @ApiProperty({ example: '0978654423' })
   @IsString()
-  tel: string;
+  tel!: string;
 }
 
 export class CreateAccountUser {
   @ApiProperty({ example: 'dpim@gmail.com' })
   @IsString()
-  email: string;
+  email!: string;
 
   @IsString()
   @ApiProperty({ example: 'admin' })
-  roleUserLevel: string;
+  roleUserLevel!: string;
 
   // @IsString()
   // @ApiProperty({ example: 'CPF' })
@@ -62,11 +63,11 @@ export class CreateAccountUser {
 export class CreateStaffDto {
   @ApiProperty({ example: '98576881-7323-49fc-aff1-78d35d1599bd' })
   @IsString()
-  staffID: string;
+  staffID!: string;
  
   @ApiProperty({ example: '1' })
   @IsString()
-  staffNo: string;
+  staffNo!: string;
   @ApiProperty({ example: 'John Doe', required: false })
   @IsOptional()
   @IsString()
@@ -74,7 +75,7 @@ export class CreateStaffDto {
 
   @ApiProperty({ example: 'staff@example.com' })
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ example: '0812345678', required: false })
   @IsOptional()
@@ -91,54 +92,54 @@ export class CreateStaffDto {
 export class LoginDTO {
     @ApiProperty({ example: 'dpim@dpim.com' })
     @IsEmail()
-    public email: string;
+    public email!: string;
   
     @ApiProperty({ example: 'dekeodmp' })
     @IsNotEmpty()
     @IsString()
     @Length(6, 10, { message: 'Password has to be between 6 and 10 character' })
-    public password: string;
+    public password!: string;
   }
 
-  export class updateAccountUserDTO{
-    @ApiProperty({ example: ["98576881-7323-49fc-aff1-78d35d1599bd","98576881-7323-49fc-aff1-78d35d1599bd"] })
-    @IsArray()
-    machine_Ref_ID: string[]
+  // export class updateAccountUserDTO{
+  //   @ApiProperty({ example: ["98576881-7323-49fc-aff1-78d35d1599bd","98576881-7323-49fc-aff1-78d35d1599bd"] })
+  //   @IsArray()
+  //   machine_Ref_ID: string[]
     
 
 
-  }
+  // }
 
-  export class extractimageDTO{
-    @ApiProperty({ example: '2023-08-27T09:00:00.000Z' })
-  @IsOptional()
-  @IsString()
-  machine_Ref_ID : string
-    @ApiProperty({ example: '2023-08-27T09:00:00.000Z' })
-  @IsOptional()
-  @IsString()
-  startDate: Date
-  @ApiProperty({ example: '2023-08-30T09:00:00.000Z' })
+  // export class extractimageDTO{
+  //   @ApiProperty({ example: '2023-08-27T09:00:00.000Z' })
+  // @IsOptional()
+  // @IsString()
+  // machine_Ref_ID : string
+  //   @ApiProperty({ example: '2023-08-27T09:00:00.000Z' })
+  // @IsOptional()
+  // @IsString()
+  // startDate: Date
+  // @ApiProperty({ example: '2023-08-30T09:00:00.000Z' })
 
-  @IsString()
-  @IsOptional()
-  endDate: Date
-  }
+  // @IsString()
+  // @IsOptional()
+  // endDate: Date
+  // }
 
   export class CreateSurveyDto {
     @ApiProperty({ example: 'Amphoe' })
     @IsString()
-    amphoes: string;
+    amphoes!: string;
 
     @ApiProperty({ example: 'Changwat' })
     @IsString()
-    changwat: string;
+    changwat!: string;
 
     @ApiProperty({ example: 'สถานที่ตรวจสอบ EN' })
     @IsString()
-    surveyNameEN: string;
+    surveyNameEN!: string;
 
     @ApiProperty({ example: 'สถานที่ตรวจสอบ TH' })
     @IsString()
-    surveyNameTH: string;
+    surveyNameTH!: string;
   }

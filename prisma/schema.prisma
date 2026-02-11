@@ -76,6 +76,7 @@ model Company {
 model Request {
   requestID            String   @id @default(uuid())
   companyName          String //ชื่อผู้ส่งออก
+  companyNameEng        String?
   requestBy            String //ผู้ขอตรวจสอบ
   requestDate          DateTime //วันที่ส่งคำขอ
   shippingDateTime     DateTime //วันเวลาที่จะบรรลุ
@@ -89,6 +90,7 @@ model Request {
   licenseNumber        String // เลขที่ใบอนุญาต
   status               String? // สถานะการตรวจสอบ
   portName             String? // ท่าเรือ
+  payer                 String? // เรียกเก็บเงิน
   createdAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 

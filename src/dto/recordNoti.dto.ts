@@ -13,11 +13,11 @@ export class ValidateCheckWeightDto {
 
   @ApiProperty({ example: 'desc123' })
   @IsString()
-  descriptionID: string;
+  descriptionID!: string;
 
   @ApiProperty({ example: 'req123', required: false })
   @IsString()
-  requestID: string;
+  requestID!: string;
 
   @ApiProperty({ example: false, required: false, default: false })
   @IsBoolean()

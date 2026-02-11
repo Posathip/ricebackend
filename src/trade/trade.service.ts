@@ -104,7 +104,7 @@ console.log('EndDate:', ENDDATE);
     
     console.log(rawXML);
     const parsedList = result['soap:Envelope']['soap:Body']['GetPaperlessDataResponse']['GetPaperlessDataResult']['LicenseHeader'];
-
+    console.log(parsedList)
     const dataGovList: any[] = [];
     const licenseDetailList: any[] = [];
 
@@ -243,6 +243,7 @@ async createOrder(body: any,  @Req() request: any,
     const adddata = await this.prisma.request.create({
       data: {
         companyName: cleanCompanyName(body.companyName),
+        // companyNameEng: getdata.
         requestBy: body.requestBy,
         requestDate: new Date(body.requestDate),
         shippingDateTime: new Date(body.shippingDateTime),
@@ -255,6 +256,7 @@ async createOrder(body: any,  @Req() request: any,
         telDebtor: body.telDebtor,
         licenseNumber: body.licenseNumber,
         status: "incomplete",
+        payer: body.payer,
         portName: getdata?.portName,
         descriptions: {
           create: body.description.map((desc: any) => ({
@@ -291,136 +293,249 @@ async createOrder(body: any,  @Req() request: any,
     return response.status(500).send({
       success: false,
       message: 'Failed to create order',
-      error: error.message || error,
+      error:  error,
     });
   }
 }
 
-async getRequestbydate(date: string,  @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,
-) {
+// async getRequestbydate(date: string,  @Req() request: any,
+//     @Res({ passthrough: true }) response: FastifyReply,
+// ) {
+//   try {
+//     const parsedDate = new Date(date);
+//     if (isNaN(parsedDate.getTime())) {
+//       return response.status(400).send({
+//         success: false,
+//         message: 'Invalid date format',     
+//       });
+//     }
+//     // Get requests for the given date
+//     const request = await this.prisma.request.findMany({
+//       where: {
+//       requestDate: {
+//         gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
+//         lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
+//       },
+      
+//       },
+      
+//       select: {
+//     requestID: true,
+//     companyName: true,
+//     status: true,
+//     surveySubDistrict: true,
+   
+//     descriptions:{
+//       select: {
+//         index: true,
+//         descriptionID: true,
+//         licenseNumber: true,
+//         riceType: true,
+//         quantity: true,
+//         destination: true,
+//         vehicleName: true,
+//         netWeightTON: true,
+        
+        
+//     },
+//      orderBy: [
+//         { licenseNumber: 'asc' },
+//         { riceType: 'asc' },
+//         { quantity: 'asc' },
+//         { vehicleName: 'asc' },
+//         { destination: 'asc' },
+//       ],
+//   },
+//     surveyLocateNameEng: true,
+//     surveyLocateNameThai: true,
+//     surveyProvince: true,
+//     shippingDateTime: true,  
+//   },
+     
+//       orderBy: {
+//     createdAt: 'asc'
+//   },
+//     });
+
+
+//     const  requestMap = request.map(r => ({
+//   ...r,
+//   surveyLocateNameThai: `${r.surveyLocateNameThai ?? ''}-${r.surveyProvince ?? ''}`.trim(), companyNameEng: '',
+// }));
+// console.log(requestMap);
+//     const result = await Promise.all(
+//   requestMap.map(async (req) => {
+//     const latestJob = await this.prisma.validate_Check_Weight.findFirst({
+//       where: { requestID: req.requestID },
+//       orderBy: { jobID: 'desc' },
+//       select: { jobID: true },
+//     });
+
+//     return {
+//       ...req,
+//       jobID: latestJob?.jobID ?? null, 
+//     };
+//   })
+// );
+
+  
+
+//     // Get requests for the previous day (date - 1)
+//     // const prevDate = new Date(parsedDate);
+//     // prevDate.setDate(parsedDate.getDate() - 1);
+//     // console.log(prevDate);
+//     const prevRequest = await this.prisma.validate_Check_Weight.findFirst({
+//       // where: {
+//       // createdAt: {
+//       //   gte: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate()),
+//       //   lt: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate() + 1),
+//       // },
+//       // },
+      
+//       orderBy: {
+//     jobID: 'desc',
+//   },
+//   select: {
+//     jobID: true, // only return jobID
+//   },
+//   take: 1, // ensure only one record
+//     });
+//     if (!request || request.length === 0) {
+//       return response.status(404).send({
+//         success: false,
+//         message: 'No requests found for the given date',
+//         finalNo: prevRequest?.jobID || "0000",
+//       });
+//     }
+//     return response.status(200).send( {
+//       success: true,
+//       data: result,
+//       finalNo: prevRequest?.jobID || "0000",
+//     });
+//   } catch (error) {
+//     console.error('Error fetching request by date:', error);
+//     return response.status(500).send({
+//       success: false,
+//       message: 'Failed to fetch request by date',
+//       error: error,
+//     });
+//   }
+// }
+
+async getRequestbydate(date: string, @Req() req: any, @Res({ passthrough: true }) response: FastifyReply) {
   try {
     const parsedDate = new Date(date);
     if (isNaN(parsedDate.getTime())) {
       return response.status(400).send({
         success: false,
-        message: 'Invalid date format',     
+        message: 'Invalid date format',
       });
     }
-    // Get requests for the given date
-    const request = await this.prisma.request.findMany({
+
+    // 1. ดึงข้อมูลจากตาราง Request
+    const requests = await this.prisma.request.findMany({
       where: {
-      requestDate: {
-        gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
-        lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
+        requestDate: {
+          gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
+          lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
+        },
       },
-      
+      select: {
+        requestID: true,
+        companyName: true, // ใช้ตัวนี้ไปค้นหาในตาราง Company
+        status: true,
+        surveySubDistrict: true,
+        descriptions: {
+          select: {
+            index: true,
+            descriptionID: true,
+            licenseNumber: true,
+            riceType: true,
+            quantity: true,
+            destination: true,
+            vehicleName: true,
+            netWeightTON: true,
+          },
+          orderBy: [
+            {index: 'asc'},
+            { licenseNumber: 'asc' },
+            { riceType: 'asc' },
+            { quantity: 'asc' },
+            { vehicleName: 'asc' },
+            { destination: 'asc' },
+          ],
+        },
+        surveyLocateNameEng: true,
+        surveyLocateNameThai: true,
+        surveyProvince: true,
+        shippingDateTime: true,
       },
-      
-      select: {
-    requestID: true,
-    companyName: true,
-    status: true,
-    surveySubDistrict: true,
-   
-    descriptions:{
-      select: {
-        index: true,
-        descriptionID: true,
-        licenseNumber: true,
-        riceType: true,
-        quantity: true,
-        destination: true,
-        vehicleName: true,
-        netWeightTON: true,
-        
-        
-    },
-     orderBy: [
-      {index: 'asc'},
-        { licenseNumber: 'asc' },
-        { riceType: 'asc' },
-        { quantity: 'asc' },
-        { vehicleName: 'asc' },
-        { destination: 'asc' },
-      ],
-  },
-    surveyLocateNameEng: true,
-    surveyLocateNameThai: true,
-    surveyProvince: true,
-    shippingDateTime: true,  // ✅ include เฉพาะ descriptions ด้วย
-  },
-     
-      orderBy: {
-    surveyLocateNameThai: 'asc', // ✅ เรียงจาก ก → ฮ
-  },
+      orderBy: { createdAt: 'asc' },
     });
 
+    // 2. [ดึงข้อมูล Company] รวบรวมชื่อบริษัททั้งหมดแล้ว Query ทีเดียว
+    const companyNames = [...new Set(requests.map((r) => r.companyName))].filter(Boolean);
+    const companies = await this.prisma.company.findMany({
+      where: {
+        companyNameTH: { in: companyNames },
+      },
+      select: {
+        companyNameTH: true,
+        companyNameEN: true,
+      },
+    });
 
-    const  requestMap = request.map(r => ({
-  ...r,
-  surveyLocateNameThai: `${r.surveyLocateNameThai ?? ''}-${r.surveyProvince ?? ''}`.trim(),
-}));
-console.log(requestMap);
+    // 3. [ดึงข้อมูล JobID] และประกอบร่างข้อมูล
     const result = await Promise.all(
-  requestMap.map(async (req) => {
-    const latestJob = await this.prisma.validate_Check_Weight.findFirst({
-      where: { requestID: req.requestID },
+      requests.map(async (r) => {
+        // หาค่า companyNameEN จาก Array ที่เราดึงมารอไว้แล้ว
+        const foundCompany = companies.find((c) => c.companyNameTH === r.companyName);
+
+        // หา jobID ล่าสุด
+        const latestJob = await this.prisma.validate_Check_Weight.findFirst({
+          where: { requestID: r.requestID },
+          orderBy: { jobID: 'desc' },
+          select: { jobID: true },
+        });
+
+        return {
+          ...r,
+          surveyLocateNameThai: `${r.surveyLocateNameThai ?? ''}-${r.surveyProvince ?? ''}`.trim(),
+          companyNameEng: foundCompany?.companyNameEN ?? '', // ใส่ค่า EN ที่หาเจอ
+          jobID: latestJob?.jobID ?? null,
+        };
+      })
+    );
+
+    // 4. หาเลขรันล่าสุดตัวสุดท้าย
+    const prevRequest = await this.prisma.validate_Check_Weight.findFirst({
       orderBy: { jobID: 'desc' },
       select: { jobID: true },
     });
 
-    return {
-      ...req,
-      jobID: latestJob?.jobID ?? null, 
-    };
-  })
-);
-
-  
-
-    // Get requests for the previous day (date - 1)
-    // const prevDate = new Date(parsedDate);
-    // prevDate.setDate(parsedDate.getDate() - 1);
-    // console.log(prevDate);
-    const prevRequest = await this.prisma.validate_Check_Weight.findFirst({
-      // where: {
-      // createdAt: {
-      //   gte: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate()),
-      //   lt: new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate() + 1),
-      // },
-      // },
-      
-      orderBy: {
-    jobID: 'desc',
-  },
-  select: {
-    jobID: true, // only return jobID
-  },
-  take: 1, // ensure only one record
-    });
-    if (!request || request.length === 0) {
+    if (!requests || requests.length === 0) {
       return response.status(404).send({
         success: false,
         message: 'No requests found for the given date',
         finalNo: prevRequest?.jobID || "0000",
       });
     }
-    return response.status(200).send( {
+
+    return response.status(200).send({
       success: true,
       data: result,
       finalNo: prevRequest?.jobID || "0000",
     });
+
   } catch (error) {
     console.error('Error fetching request by date:', error);
     return response.status(500).send({
       success: false,
       message: 'Failed to fetch request by date',
-      error: error.message || error,
+      error: error,
     });
   }
 }
-
   async getRequest(requestID, @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
 ){
@@ -446,7 +561,7 @@ console.log(requestMap);
       return response.status(500).send({
         success: false,
         message: 'Failed to fetch request',
-        error: error.message || error,
+        error:  error,
       });
       
     }
@@ -499,7 +614,7 @@ await this.prisma.request.delete({
     return response.status(500).send({
       success: false,
       message: 'Failed to delete order',
-      error: error.message || error,
+      error:  error,
     });
   }
 
@@ -552,7 +667,7 @@ await this.prisma.description.delete({
     return response.status(500).send({
       success: false,
       message: 'Failed to delete order',
-      error: error.message || error,
+      error:  error,
     });
   }
 
@@ -574,6 +689,7 @@ async updateOrder(id, body: any,  @Req() request: any,
       telInspector: body.telInspector,
       telDebtor: body.telDebtor,
       license: body.license,
+      payer: body.payer
     };
     console.log(updateRequestData);
     console.log(id);
@@ -625,7 +741,7 @@ async updateOrder(id, body: any,  @Req() request: any,
     return response.status(500).send({
       success: false,
       message: 'Failed to update order',
-      error: error.message || error,
+      error:  error,
     });
   }
 }
@@ -654,7 +770,7 @@ async postSurvey(dto: CreateSurveyDto[],  @Req() request: any,
     return response.status(500).send({
       success: false,
       message: 'Failed to post survey',
-      error: error.message || error,
+      error:  error,
     });
   }
 }
@@ -684,7 +800,7 @@ async getInspectPlace( @Req() request: any,
       return response.status(500).send({
         success: false,
         message: 'Failed to fetch inspect places',
-        error: error.message || error,
+        error:  error,
       });
 
     }

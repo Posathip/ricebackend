@@ -60,68 +60,92 @@ export class RecordnotificationService {
     }
   }
 
-  async getCheckWeightDataFilterDate(date,@Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,){
-      try {
-        const parsedDate = new Date(date);
-        console.log('Parsed Date:', parsedDate);
-        const checkWeightDatafilterbydate = await this.prisma.validate_Check_Weight.findMany({
-  where: {
-    request: {
-      requestDate: {
-        gte:  new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
-        lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
-      }
+  async getCheckWeightDataFilterDate(date: string, @Req() req: any, @Res({ passthrough: true }) response: FastifyReply) {
+  try {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return response.status(400).send({ message: 'Invalid date format' });
     }
-  },
-   include: {
-  request: {
-      select: {
-       licenseNumber: true,
-surveyLocateNameThai: true,
-surveyLocateNameEng: true,
 
+    // 1. ดึงข้อมูล Validate_Check_Weight โดยกรองจากวันที่ในตาราง Request
+    const checkWeightData = await this.prisma.validate_Check_Weight.findMany({
+      where: {
+        request: {
+          requestDate: {
+            gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
+            lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
+          }
+        }
       },
-     
-    },
-     description: {
-        select: {
-          destination: true,
+      include: {
+        request: {
+          select: {
+            licenseNumber: true,
+            surveyLocateNameThai: true,
+            surveyLocateNameEng: true,
+            companyName: true, // ต้องดึงมาเพื่อใช้หาชื่อภาษาอังกฤษ
+          },
+        },
+        description: {
+          select: {
+            destination: true,
+          }
         }
-        }
-  },
-  orderBy: [
-    { jobID: 'asc' },  
-    { specialJob: 'asc' },    
-  ],
-});
+      },
+      orderBy: [
+        { jobID: 'asc' },
+        { specialJob: 'asc' },
+      ],
+    });
 
-    // const modifiedData = checkWeightDatafilterbydate.map(item => ({
-    //   ...item,
-    //   request: {
-    //     ...item.request,
-    //     companyName: item.request.companyName?.replace(/จำกัด/g, '').trim(),
-    //   },
-    // }));
-
-    
-      if(!checkWeightDatafilterbydate || checkWeightDatafilterbydate.length === 0) {
-        return response.status(404).send({
-          message: 'No check weight data found for the given date',
-        });
-      } 
-      return response.status(200).send({
-        message: 'Check weight data retrieved successfully by date',
-        data: checkWeightDatafilterbydate,
+    if (!checkWeightData || checkWeightData.length === 0) {
+      return response.status(404).send({
+        message: 'No check weight data found for the given date',
       });
-      } catch (error) {
-        return response.status(500).send({
-          message: 'Failed to retrieve check weight data by date',
-          error: error.message || error,
-        });
-        
+    }
+
+    // 2. [Gather] รวบรวมชื่อบริษัททั้งหมดที่มีในผลลัพธ์
+    const companyNames = [...new Set(checkWeightData.map(cw => cw.request?.companyName))].filter(Boolean);
+
+    // 3. [Fetch] ดึงข้อมูลจากตาราง Company มาทีเดียว
+    const companies = await this.prisma.company.findMany({
+      where: {
+        companyNameTH: { in: companyNames },
+      },
+      select: {
+        companyNameTH: true,
+        companyNameEN: true,
       }
+    });
+
+    // 4. [Map] ประกอบร่างข้อมูล (เหมือเดิมคือเพิ่ม companyNameEn และ Clean ชื่อบริษัทถ้าต้องการ)
+    const result = checkWeightData.map(item => {
+      const foundCompany = companies.find(c => c.companyNameTH === item.request?.companyName);
+      
+      return {
+        ...item,
+        request: {
+          ...item.request,
+          // แถม: ลบคำว่า "จำกัด" ออกตาม Logic ที่คุณเคย Comment ไว้
+          companyName: item.request?.companyName?.replace(/จำกัด/g, '').trim() || '',
+          companyNameEn: foundCompany?.companyNameEN ?? '',
+        },
+      };
+    });
+
+    return response.status(200).send({
+      message: 'Check weight data retrieved successfully by date',
+      data: result,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return response.status(500).send({
+      message: 'Failed to retrieve check weight data by date',
+      error:  error.message || error,
+    });
   }
+}
 
   async updateCheckWeightData(
     checkWeightID: string,

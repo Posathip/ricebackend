@@ -147,6 +147,7 @@ return {
       "surveyLocateNameEng": "Ban Pa Bong Aromatic Rice Farm",
       "surveyPaidBy": "บริษัท รุ่งเรืองค้าข้าว จำกัด",
       "surveyProvince": "เชียงใหม่",
+      "payer": "ชื่อฟิล RequestBy",
       "surveySubDistrict": "สันทราย",
       "telInspector": "0891234567",
       "telDebtor": "0887654321",
