@@ -726,4 +726,26 @@ async searchSurveyName(changwat?: string, amphoe?: string, tambon?: string, requ
   }
 }
 
+async  deletePacking(id: string, request: any, response: any) {
+  try {
+    const existingPacking = await this.prisma.packing.findUnique({
+      where: { packingID: id },
+    });
+    
+    if (!existingPacking) {
+      return response.status(404).send({ message: 'Packing not found' });
+    }
+    await this.prisma.packing.delete({
+      where: { packingID: id },
+    });
+    return response.status(200).send({ message: 'Packing deleted successfully' });
+  }
+  
+  catch (error) {
+    console.error('Error deleting packing:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+
+
+}
 }

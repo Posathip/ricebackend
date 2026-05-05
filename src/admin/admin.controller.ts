@@ -344,7 +344,7 @@ export class AdminController {
     @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply
   ) {
-    return this.adminService.deleteStaff(id, request, response);
+    return this.adminService.deletePacking(id, request, response);
   }
 
 
@@ -520,7 +520,7 @@ export class AdminController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Delete SurveyName data' })
   @ApiQuery({ name: 'id', required: true, type: String })
-  @Delete('deletesurveyname')
+  @Delete('deletesurveydata')
   deleteSurveyName(
     @Query('id') id: string,
     @Req() request: any,
