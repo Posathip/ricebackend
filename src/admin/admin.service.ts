@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'prisma/prisma.service';
-import { CreatePackingDto } from 'src/dto/packing.dto';
+import { CreateCompanyDto, UpdateCompanyDto } from 'src/dto/company.dto';
+import { CreatePackingDto, UpdatePackingDto } from 'src/dto/packing.dto';
 import { CreateRiceManageDto, UpdateRiceManageDto } from 'src/dto/rice.dto';
-import { CreateStaffDto, UpdateStaffDto } from 'src/dto/user.dto';
+import { CreateStaffDto, CreateSurveyDto, UpdateStaffDto,UpdateSurveyNameDto } from 'src/dto/user.dto';
 
 @Injectable()
 export class AdminService {
@@ -371,12 +372,33 @@ async addpacking(dto: CreatePackingDto, request: any, response: any) {
   }
 }
 
+async geteachpacking(id: string, request: any, response: any) {
+  try {
+    const packing = await this.prisma.packing.findUnique({
+      where: { packingID: id },
+    });
+
+    if (!packing) {
+      return response.status(404).send({ message: 'Packing not found' });
+    } 
+    return response.status(200).send({ message: 'Get packing data complete', data: packing });
+  } catch (error) {
+    console.error('Error fetching packing by ID:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
 async getallpackingdata(request: any, response: any) {
   try {
     const packingList = await this.prisma.packing.findMany({
       orderBy: {
         createdAt: 'desc',
       },
+      select:{
+        packingID: true,
+        packingName: true,
+        unit: true,
+      }
     });
     return response.status(200).send({ message: 'Get all packing data complete', data: packingList });
   } catch (error) {
@@ -386,7 +408,7 @@ async getallpackingdata(request: any, response: any) {
 
 }
 
-async updatepacking(id: string, dto: CreatePackingDto, request: any, response: any) {
+async updatepacking(id: string, dto: UpdatePackingDto, request: any, response: any) {
   try {
     const existingPacking = await this.prisma.packing.findUnique({
       where: { packingID: id },
@@ -407,4 +429,301 @@ async updatepacking(id: string, dto: CreatePackingDto, request: any, response: a
     return response.status(500).send({ message: 'Internal server error' });
   }
 }
+
+async getcompany(request: any, response: any) {
+  try {
+    const companyData = await this.prisma.company.findFirst();
+    return response.status(200).send({ message: 'Get company data complete', data: companyData });
+  } catch (error) {
+    console.error('Error fetching company data:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+async getEachPacking(id: string, request: any, response: any) {
+  try {
+    const packing = await this.prisma.packing.findUnique({
+      where: { packingID: id },
+    });
+    if (!packing) {
+      return response.status(404).send({ message: 'Packing not found' });
+    }
+    return response.status(200).send({ message: 'Get packing data complete', data: packing });
+  }
+
+  catch (error) {
+    console.error('Error fetching packing by ID:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+async getCompany(request: any, response: any) {
+  try {
+    const companyData = await this.prisma.company.findMany(
+      { orderBy: {
+        createdAt: 'desc',
+      },
+    select: {
+      companyID: true,
+      companyNameEN: true,
+      companyNameTH: true,
+      companyDescription: true,
+
+    }
+      
+  }
+    );
+    return response.status(200).send({ message: 'Get company data complete', data: companyData });
+  } catch (error) {
+    console.error('Error fetching company data:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+async postCompany(dto: CreateCompanyDto, request: any, response: any) {
+  try {
+    const newCompany = await this.prisma.company.create({
+      data: dto,
+    });
+    return response.status(201).send({ message: 'Created company data complete', data: newCompany });
+  } catch (error) {
+    console.error('Error creating company:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+async deleteCompany(id: string, request: any, response: any) {
+  try {
+    const existingCompany = await this.prisma.company.findUnique({
+      where: { companyID: id },
+    });
+    
+    if (!existingCompany) {
+      return response.status(404).send({ message: 'Company not found' });
+    }
+    await this.prisma.company.delete({
+      where: { companyID: id },
+    });
+    return response.status(200).send({ message: 'Company deleted successfully' });
+  }
+
+  catch (error) {
+    console.error('Error deleting company:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+
+async updateCompany(id: string, dto: UpdateCompanyDto, request: any, response: any) {
+  try {
+    const existingCompany = await this.prisma.company.findUnique({
+      where: { companyID: id },
+    });
+    
+    if (!existingCompany) {
+      return response.status(404).send({ message: 'Company not found' });
+    }
+    const updatedCompany = await this.prisma.company.update({
+      where: { companyID: id },
+      data: dto,
+    });
+    return response.status(200).send({ message: 'Updated company data complete', data: updatedCompany });
+  }
+  
+  catch (error) {
+    console.error('Error updating company:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+async searchCompany(companyName: string, request: any, response: any) {
+  try {
+    const whereConditions: any = {};
+
+    if (companyName) {
+      whereConditions.OR = [
+        { companyNameEN: { contains: companyName, mode: 'insensitive' } },
+        { companyNameTH: { contains: companyName } } // TH ไม่ต้อง insensitive ก็ได้
+      ];
+    }
+
+    const companyList = await this.prisma.company.findMany({
+      where: whereConditions,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return response.status(200).send({
+      message: 'Search company success',
+      data: companyList
+    });
+  } catch (error) {
+    console.error('Error searching company:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+async getEachCompany(id: string, request: any, response: any) {
+  try {
+    const company = await this.prisma.company.findUnique({
+      where: { companyID: id },
+    });
+    if (!company) {
+      return response.status(404).send({ message: 'Company not found' });
+    }
+    return response.status(200).send({ message: 'Get company data complete', data: company });
+  }
+  
+  catch (error) {
+    console.error('Error fetching company by ID:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+
+async getAllSurveyName(page: number, limit: number, request: any, response: any) {
+  try {
+    const skip = (page - 1) * limit;
+
+    const [surveyNameList, total] = await Promise.all([
+      this.prisma.surveyName.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          changwat: 'asc',
+        },
+      }),
+      this.prisma.surveyName.count(),
+    ]);
+
+    return response.status(200).send({
+      message: 'Get all survey name data complete',
+      data: surveyNameList,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching survey name list:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+async getEachSurveyName(id: string, request: any, response: any) {
+  try {
+    const surveyName = await this.prisma.surveyName.findUnique({
+      where: { surveyNameID: id },
+    });
+    if (!surveyName) {
+      return response.status(404).send({ message: 'Survey name not found' });
+    }
+    return response.status(200).send({ message: 'Get survey name data complete', data: surveyName });
+  }
+  
+  catch (error) {
+    console.error('Error fetching survey name by ID:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+async addSurveyName(dto: CreateSurveyDto, request: any, response: any) {
+  try {
+    const newSurveyName = await this.prisma.surveyName.create({
+      data: dto,
+    });
+    return response.status(201).send({ message: 'Created survey name data complete', data: newSurveyName });
+  } catch (error) {
+    console.error('Error creating survey name:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+
+}
+
+async deleteSurveyName(id: string, request: any, response: any) {
+  try {
+    const existingSurveyName = await this.prisma.surveyName.findUnique({
+      where: { surveyNameID: id },
+    });
+    
+    if (!existingSurveyName) {
+      return response.status(404).send({ message: 'Survey name not found' });
+    }
+    await this.prisma.surveyName.delete({
+      where: { surveyNameID: id },
+    });
+    return response.status(200).send({ message: 'Survey name deleted successfully' });
+  }
+  
+  catch (error) {
+    console.error('Error deleting survey name:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+
+async updateSurveyName(id: string, dto: UpdateSurveyNameDto, request: any, response: any) {
+  try {
+    const existingSurveyName = await this.prisma.surveyName.findUnique({
+      where: { surveyNameID: id },
+    });
+    
+    if (!existingSurveyName) {
+      return response.status(404).send({ message: 'Survey name not found' });
+    }
+    const updatedSurveyName = await this.prisma.surveyName.update({
+      where: { surveyNameID: id },
+      data: dto,
+    });
+    return response.status(200).send({ message: 'Updated survey name data complete', data: updatedSurveyName });
+  }
+
+  catch (error) {
+    console.error('Error updating survey name:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
+
+async searchSurveyName(changwat?: string, amphoe?: string, tambon?: string, request?: any, response?: any) {
+  try {
+    const whereConditions: any = {};
+    const filters: any[] = [];
+    
+    if (changwat) {
+      filters.push({ changwat: { contains: changwat, mode: 'insensitive' } });
+    }
+    if (amphoe) {
+      filters.push({ amphoe: { contains: amphoe, mode: 'insensitive' } });
+    }
+    if (tambon) {
+      filters.push({ tambon: { contains: tambon, mode: 'insensitive' } });
+    }
+    
+    if (filters.length > 0) {
+      whereConditions.AND = filters;
+    }
+    
+    const surveyNameList = await this.prisma.surveyName.findMany({
+      where: whereConditions,
+      orderBy: {
+        changwat  : 'asc',
+      },
+      select:{
+        surveyNameID: true,
+        changwat: true,
+        surveyNameEN  : true,
+        surveyNameTH  : true,
+      }
+    });
+    
+    return response.status(200).send({ message: 'Search survey name success', data: surveyNameList });
+  }
+  
+  catch (error) {
+    console.error('Error searching survey name:', error);
+    return response.status(500).send({ message: 'Internal server error' });
+  }
+}
+
 }

@@ -26,3 +26,18 @@ export class CreateCompanyDto {
   @IsNotEmpty()
   companyDescription!: string;
 }
+
+
+export class UpdateCompanyDto {
+  @IsString()
+  @IsOptional()
+  companyNameEN?: string;
+
+  @IsString()
+  @IsOptional()
+  companyNameTH?: string;
+
+  @IsString()
+  @IsOptional()
+  companyDescription?: string;
+}

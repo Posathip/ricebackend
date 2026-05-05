@@ -1,5 +1,5 @@
 
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsString,
@@ -171,3 +171,25 @@ export class LoginDTO {
     @IsString()
     surveyNameTH!: string;
   }
+
+  export class UpdateSurveyNameDto {
+  @ApiPropertyOptional({ example: 'Amphoe' })
+  @IsString()
+  @IsOptional()
+  amphoes?: string;
+
+  @ApiPropertyOptional({ example: 'Changwat' })
+  @IsString()
+  @IsOptional()
+  changwat?: string;
+
+  @ApiPropertyOptional({ example: 'สถานที่ตรวจสอบ EN' })
+  @IsString()
+  @IsOptional()
+  surveyNameEN?: string;
+
+  @ApiPropertyOptional({ example: 'สถานที่ตรวจสอบ TH' })
+  @IsString()
+  @IsOptional()
+  surveyNameTH?: string;
+}
