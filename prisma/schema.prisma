@@ -162,34 +162,46 @@ model validate_Check_Weight {
 
 model certificatesheet {
   certificateSheetID String   @id @default(uuid())
+  certNo    String? @unique
+  paperNoOriginal  String? @unique
+  paperNoCopy String? @unique
+  licenseNumber      String? 
   jobID              Int
-  license            String?
+ 
+  index             Int?
+  specialJob         String?
   No                 Int?
-  NoOld              Int?
-  PackingType1       String?
-  PackingType11      String?
-  PackingType12      String?
-  PackingType2       String?
-  quality1           String?  @map("Quality1string")
-  quality2           String?  @map("Quality2string")
-  shipperBehalf      String?
-  totalGross         String?
-  totalNett          Float?
-  totalTare          String?
-  weight             String?  @map("Weightstring")
-  bagQuantity        String?
-  companyEN          String?
-  currentDate        String?
-  destinationCity    String?
-  godown             String?
-  // logo                String?
-  shippingDate       String?
-  shippingPort       String?
-  carryVessel        String?
-  destination        String?
-  exportLicenseNo    String?
-  title1             String?  @map("title1string")
-  vehicleName        String?
+  title              String?
+  companyName        String?
+  surveyLocateNameThai String?
+  portName             String? // ท่าเรือ
+  destination   String? // ประเทศปลายทาง
+  netWeightTON  Float?
+ riceType      String?
+ note          String?
+ dateCertificate        DateTime?
+ quantity       Float?
+ unit            String?
+ descriptionOfGoodsLine1 String?
+descriptionOfGoodsLine2 String?
+descriptionOfGoodsLine3 String?
+packing String?
+unitKGS_Nett Float?
+marks String?
+shipper String?
+goDown String? //Place of Loading
+dateOfLoading DateTime?
+dateCheckWeight DateTime?
+shippingPort String?
+carryingVessel String?
+qualityLine1 String?
+qualityLine2 String?
+weight String?
+totalGrossWeight Float?
+totalTareWeight Float?
+totalNettWeight Float?
+status            Boolean
+
   createdAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 
@@ -264,7 +276,7 @@ updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"
 }
 model staff {
   staffID    String   @id @default(uuid())
-  staffNo   String?  @unique
+  staffNo   Int?  @unique
   staffName  String?
   email      String   @unique
   phone      String?
@@ -293,3 +305,29 @@ model sellingLiquids {
 }
 
 
+model riceManage{
+  riceManageID String   @id @default(uuid())
+  riceNameEng String?
+  riceNameThai String?
+  riceCodeT String?
+  riceCode1 String?
+  riceCode2 String? 
+  riceType String?
+  createdAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
+model cerfificateDetail {
+  certificateDetailID String   @id @default(uuid())
+  DescriptionOfGoods String?
+  Packing            String?
+  createdAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
+
+model packing {
+  packingID String   @id @default(uuid())
+  packingName String?
+  unit String?
+  createdAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}

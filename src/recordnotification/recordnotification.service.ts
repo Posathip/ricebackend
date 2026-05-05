@@ -55,7 +55,7 @@ export class RecordnotificationService {
     } catch (error) {
       return response.status(500).send({
         message: 'Failed to retrieve check weight data',
-        error: error.message || error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -142,7 +142,7 @@ export class RecordnotificationService {
     console.error(error);
     return response.status(500).send({
       message: 'Failed to retrieve check weight data by date',
-      error:  error.message || error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 }
@@ -161,6 +161,14 @@ export class RecordnotificationService {
         });
      console.log(checkweightdata);
 
+     const getlicense =
+  await this.prisma.validate_Check_Weight.findUnique({
+    where: { checkWeightID: checkWeightID },
+    include: {
+      request: true,
+      description: true,
+    },
+  });
      const dataToUpdate = { ...checkweightdata, ...dto };
      
 
@@ -177,6 +185,22 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
         const addcertificatesheet = await this.prisma.certificatesheet.create({
           data: {
             jobID: checkweightdata?.jobID || 0,
+            licenseNumber: getlicense?.request.licenseNumber || '',
+            index: getlicense?.description.index || 0,
+            specialJob: getlicense?.specialJob || '',
+            companyName: getlicense?.request.companyName || '',
+            surveyLocateNameThai : getlicense?.request.surveyLocateNameThai || '',
+             portName  : getlicense?.request.portName || '',
+             destination : getlicense?.description.destination || '',
+             riceType : getlicense?.description.riceType || '',
+              quantity : getlicense?.description.quantity || 0,
+             totalGrossWeight : getlicense?.totalGrossWeight|| 0,
+             totalTareWeight : getlicense?.totalTareWeight || 0,
+              totalNettWeight : getlicense?.totalNetWeight || 0,
+             shipper : getlicense?.request.requestBy || '',
+             dateCheckWeight : getlicense?.request.requestDate || new Date(),
+             marks: 'xxxxxxx',
+            status : false,
           },
         });
       }
@@ -189,7 +213,7 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
     } catch (error) {
       return response.status(500).send({
         message: 'Failed to update check weight data',
-        error: error.message || error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -305,7 +329,7 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
 } catch (error) {
   return response.status(500).send({
     message: 'Failed to post or update data',
-    error: error.message || error,
+    error: error instanceof Error ? error.message : String(error),
   });
 }
 }
@@ -336,7 +360,7 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
       } catch (error) {
         return response.status(500).send({
           message: 'Failed to retrieve check weight data by jobNo and licenseId',
-          error: error.message || error,
+          error: error instanceof Error ? error.message : String(error),
         });
       }
   }

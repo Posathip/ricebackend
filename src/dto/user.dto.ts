@@ -10,6 +10,7 @@ import {
   IsOptional,
   IsBoolean,
   IsArray,
+  IsNumber,
 } from 'class-validator';
 
 
@@ -63,11 +64,12 @@ export class CreateAccountUser {
 export class CreateStaffDto {
   @ApiProperty({ example: '98576881-7323-49fc-aff1-78d35d1599bd' })
   @IsString()
+  @IsOptional()
   staffID!: string;
  
   @ApiProperty({ example: '1' })
-  @IsString()
-  staffNo!: string;
+  @IsNumber()
+  staffNo!: number;
   @ApiProperty({ example: 'John Doe', required: false })
   @IsOptional()
   @IsString()
@@ -88,6 +90,32 @@ export class CreateStaffDto {
   position?: string;
 
   
+}
+export class UpdateStaffDto {
+  @ApiProperty({ example: '1', required: false })
+  @IsOptional()
+@IsNumber()
+  staffNo?: number;
+
+  @ApiProperty({ example: 'John Doe', required: false })
+  @IsOptional()
+  @IsString()
+  staffName?: string;
+
+  @ApiProperty({ example: 'staff@example.com', required: false })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty({ example: '0812345678', required: false })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({ example: 'Manager', required: false })
+  @IsOptional()
+  @IsString()
+  position?: string;
 }
 export class LoginDTO {
     @ApiProperty({ example: 'dpim@dpim.com' })

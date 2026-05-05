@@ -35,7 +35,7 @@ export class TradeController {
  @ApiOperation({ summary: 'ดึงข้อมูลสถานที่ตรวจสอบ' })
  
   @ApiResponse({ status: 200, description: 'Query สถานที่ตรวจสอบ Complete' })
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('inspectplace')
   getInspectPlace(@Req() request: any,
        @Res({ passthrough: true }) response: FastifyReply,) {

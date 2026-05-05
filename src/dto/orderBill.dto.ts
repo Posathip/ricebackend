@@ -8,28 +8,28 @@ export class  UpdateDataAnalysisDto{
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
     @IsOptional()
-    orderNo: string;
+    orderNo?: string;
 
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
         @IsOptional()
-    date: Date;
+    date?: Date;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
     @IsOptional()
-    companyName: string;
+    companyName?: string;
 
     @ApiProperty({ example: true })
     @IsBoolean()
         @IsOptional()
-    physicalAnalysis: boolean;
+    physicalAnalysis?: boolean;
 
     @ApiProperty({ example: ['Moisture', 'Protein'], type: [String] })
     @IsArray()
     @IsString({ each: true })
     @IsOptional()
-    physicalChemical: string[];
+    physicalChemical?: string[];
 
     @ApiProperty({ example: 1500, required: false })
     @IsOptional()
@@ -49,18 +49,18 @@ export class UpdateExtraInvoiceDto {
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
      @IsOptional()
-    orderNo: string;
+    orderNo?: string;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
         @IsOptional()
-    companyName: string;
+    companyName?: string;
 
     @ApiProperty({ example: 10, required: false })
     @IsOptional()
     @IsNumber()
     @Type(() => Number)
-    numberSample: number;
+    numberSample?: number;
 
     @ApiProperty({ example: 100, required: false })
     @IsOptional()
@@ -82,7 +82,7 @@ export class UpdateExtraInvoiceDto {
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
     @IsOptional()
-    date: Date;
+    date?: Date;
 }
 
 export class UpdateSellingLiquidsDto {
@@ -90,21 +90,21 @@ export class UpdateSellingLiquidsDto {
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
         @IsOptional()
-    orderNo: string;
+    orderNo?: string;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
         @IsOptional()
-    companyName: string;
+    companyName?: string;
 
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
         @IsOptional()
-    date: Date;
+    date?: Date;
 
     @ApiProperty({ example: true })
     @IsBoolean()
-    liquidsBoolean: boolean;
+    liquidsBoolean?: boolean;
 
     @ApiProperty({ example: 5, required: false })
     @IsOptional()
@@ -146,28 +146,28 @@ export class UpdateSellingLiquidsDto {
 export class CreatePhysicalAnalysisDto {
     @ApiProperty({ example: 'completed' })
     @IsString()
-    status: string;
+    status?: string;
 
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
-    orderNo: string;
+    orderNo?: string;
 
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
-    date: Date;
+    date?: Date;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
-    companyName: string;
+    companyName?: string;
 
     @ApiProperty({ example: true })
     @IsBoolean()
-    physicalAnalysis: boolean;
+    physicalAnalysis?: boolean;
 
     @ApiProperty({ example: ['Moisture', 'Protein'], type: [String] })
     @IsArray()
     @IsString({ each: true })
-    physicalChemical: string[];
+    physicalChemical?: string[];
 
     @ApiProperty({ example: 1500, required: false })
     @IsOptional()
@@ -184,21 +184,21 @@ export class CreatePhysicalAnalysisDto {
 export class CreateExtraInvoiceDto {
     @ApiProperty({ example: 'pending' })
     @IsString()
-    status: string;
+    status?: string;
 
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
-    orderNo: string;
+    orderNo?: string;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
-    companyName: string;
+    companyName?: string;
 
     @ApiProperty({ example: 10, required: false })
     @IsOptional()
     @IsNumber()
     @Type(() => Number)
-    numberSample: string;
+    numberSample?: number;
 
     @ApiProperty({ example: 100, required: false })
     @IsOptional()
@@ -219,29 +219,29 @@ export class CreateExtraInvoiceDto {
 
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
-    date: Date;
+    date?: Date;
 }
 
 export class CreateSellingLiquidsDto {
     @ApiProperty({ example: 'completed' })
     @IsString()
-    status: string;
+    status?: string;
 
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
-    orderNo: string;
+    orderNo?: string;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
-    companyName: string;
+    companyName?: string;
 
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
-    date: Date;
+    date?: Date;
 
     @ApiProperty({ example: true })
     @IsBoolean()
-    liquidsBoolean: boolean;
+    liquidsBoolean?: boolean;
 
     @ApiProperty({ example: 5, required: false })
     @IsOptional()
@@ -283,17 +283,17 @@ export class CreateSellingLiquidsDto {
 class OrderItemDto {
     @ApiProperty({ example: 'a3e1b2c4-5678-1234-9abc-def012345678' })
     @IsUUID()
-    orderbillID: string;
+    orderbillID?: string;
 }
 
 export class UpdateOrderStatusDto {
     @ApiProperty({ example: 'completed' })
     @IsString()
-    status: string;
+    status?: string;
 
     @ApiProperty({ type: [OrderItemDto] })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => OrderItemDto)
-    order: OrderItemDto[];
+    order?: OrderItemDto[];
 }

@@ -5,7 +5,7 @@ import { PrismaService } from 'prisma/prisma.service';
 
 import { FastifyReply } from 'fastify';
 import { FastifyRequest } from 'fastify';
-
+import { stripPrefix } from 'xml2js/lib/processors'
 import * as https from 'https'; // สำหรับ HTTPS request
 import * as http from 'http'; // สำหรับ fallback HTTP
 import { parseStringPromise } from 'xml2js';
@@ -52,8 +52,10 @@ if (currentMonth === 12) {
 }
 
 // เพิ่มเวลาแบบมาตรฐาน ISO (บาง SOAP ต้องใช้)
-const STARTDATE = `${StartDate}T00:00:00`;
-const ENDDATE = `${EndDate}T00:00:00`;
+// const STARTDATE = `${StartDate}T00:00:00`;
+// const ENDDATE = `${EndDate}T00:00:00`;
+const STARTDATE = `2026-03-19T00:00:00`;
+const ENDDATE = `2026-03-20T00:00:00`;
 
 console.log('StartDate:', STARTDATE);
 console.log('EndDate:', ENDDATE);
@@ -84,6 +86,7 @@ console.log('EndDate:', ENDDATE);
       'SOAPAction': '"http://tempuri.org/GetPaperlessData"',
     },
   };
+  console.log(xml);
 
   const soapRequest = (): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -99,15 +102,42 @@ console.log('EndDate:', ENDDATE);
     });
 
   try {
-    const rawXML = await soapRequest();
-    const result = await parseStringPromise(rawXML, { explicitArray: false });
-    
-    console.log(rawXML);
-    const parsedList = result['soap:Envelope']['soap:Body']['GetPaperlessDataResponse']['GetPaperlessDataResult']['LicenseHeader'];
-    console.log(parsedList)
+  const rawXML = await soapRequest();
+   const parserConfig = { 
+    explicitArray: false, 
+    tagNameProcessors: [stripPrefix] // ต้อง import { stripPrefix } from 'xml2js/lib/processors'
+};
+
+const result = await parseStringPromise(rawXML, parserConfig);
+
+// 1. เข้าถึงชั้น Result แบบ "ตัด Prefix" (ไม่ต้องใส่ soap: แล้ว)
+// ใช้ ?. เพื่อกันเหนียวทุกชั้น
+const resultData = result?.Envelope?.Body?.GetPaperlessDataResponse?.GetPaperlessDataResult;
+console.log(result); 
+if (!resultData) {
+    console.log("ไม่มีข้อมูล GetPaperlessDataResult");
+    // ลองเช็คดูว่าข้อมูลไปค้างที่ชั้นไหน
+     console.log(result); 
+    return;
+}
+
+// 2. จัดการ LicenseHeader (บังคับให้เป็น Array เสมอ)
+const rawHeaders = resultData.LicenseHeader;
+const parsedList = Array.isArray(rawHeaders) ? rawHeaders : (rawHeaders ? [rawHeaders] : []);
+
+console.log(`เจอข้อมูลทั้งหมด: ${parsedList.length} รายการ`);
     const dataGovList: any[] = [];
     const licenseDetailList: any[] = [];
-
+parsedList.forEach(header => {
+    dataGovList.push(header);
+    
+    // ตรงนี้สำคัญ: ในไฟล์ที่คุณส่งมา บาง LicenseHeader มี LicenseDetail อันเดียว บางอันมีหลายอัน
+    // ต้องทำเป็น Array เสมอเหมือนกัน
+    let rawDetail = header?.PaperlessDetail?.LicenseDetail;
+    let details = Array.isArray(rawDetail) ? rawDetail : (rawDetail ? [rawDetail] : []);
+    
+    licenseDetailList.push(...details);
+});
     for (const item of parsedList) {
     
         const exists = await this.prisma.dataFromGoverment.findUnique({

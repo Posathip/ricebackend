@@ -45,7 +45,7 @@ export class OrderbillService {
         } catch (error) {
           return response.status(500).send({
             message: 'Failed to create order bill data',
-            error: error.message || error,
+            error:  error,
           });
         }
       }
@@ -79,7 +79,7 @@ export class OrderbillService {
             } catch (error) {
                 return response.status(500).send({
                     message: 'Failed to create extra invoice data',
-                    error: error.message || error,
+                    error:  error,
                   });
                 
             }
@@ -121,7 +121,7 @@ export class OrderbillService {
         } catch (error) {
             return response.status(500).send({
                 message: 'Failed to create selling liquids data',
-                error: error.message || error,
+                error:  error,
               });
         }
       }
@@ -152,7 +152,7 @@ try {
 } catch (error) {
         return response.status(500).send({
           message: 'Failed to retrieve order bill data by date',
-          error: error.message || error,
+          error:  error,
         });
       }
 }
@@ -178,7 +178,7 @@ async deleteOrderBillData(orderBillID,@Req() request: any,
     } catch (error) {
         return response.status(500).send({
             message: 'Failed to delete order bill data',
-            error: error.message || error,
+            error:  error,
           });
         
     }
@@ -208,7 +208,7 @@ async getOrderBillDataDetail(orderBillID, @Req() request: any,
     } catch (error) {
         return response.status(500).send({
             message: 'Failed to retrieve order bill data detail',
-            error: error.message || error,
+            error:  error,
           }); 
     }
 }
@@ -220,7 +220,7 @@ async updateStatus(dto: UpdateOrderStatusDto,@Req() request: any,
 ){
 
     try {
-       if(dto.order.length === 0) {
+       if(dto.order?.length === 0) {
     return response.status(400).send({
       message: 'No order bills provided for status update',
     });
@@ -229,7 +229,7 @@ async updateStatus(dto: UpdateOrderStatusDto,@Req() request: any,
   const updatestatus = await this.prisma.orderBill.updateMany({
     where: {
       orderBillID: {
-        in: dto.order.map((bill) => bill.orderbillID),  // ใช้ orderbillID ตาม DTO
+        in: dto.order?.map((bill) => bill.orderbillID).filter((id) => id !== undefined),  // ใช้ orderbillID ตาม DTO
       },
     },
     data: {
@@ -244,7 +244,7 @@ async updateStatus(dto: UpdateOrderStatusDto,@Req() request: any,
     } catch (error) {
         return response.status(500).send({
             message: 'Failed to update status',
-            error: error.message || error,
+            error:  error,
           });
     }
 }
@@ -268,7 +268,7 @@ async updatedataanalysis( physicalAnalysisID, dto: UpdateDataAnalysisDto, @Req()
   } catch (error) {
     return response.status(500).send({
       message: 'Failed to update physical analysis data',
-      error: error.message || error,
+      error:  error,
     });
     
   }
@@ -298,7 +298,7 @@ async updatedataextrainvoice(extrainvoiceID,dto: UpdateExtraInvoiceDto, @Req() r
   } catch (error) {
     return response.status(500).send({
       message: 'Failed to update extra invoice data',
-      error: error.message || error,
+      error:  error,
     });
     
   }
@@ -328,7 +328,7 @@ async updatedatasellingliquids(sellingLiquidsID,dto: UpdateSellingLiquidsDto, @R
   } catch (error) {
     return response.status(500).send({
       message: 'Failed to update selling liquids data',
-      error: error.message || error,
+      error:  error,
     });
     
   }
