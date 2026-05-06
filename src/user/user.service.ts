@@ -40,9 +40,14 @@ export class UserService {[x: string]: any;
 }
     async postData(dto: CreateStaffDto[], request: any, response: any) {
        
+      const last = await this.prisma.staff.findFirst({
+  orderBy: { staffNo: 'desc' }
+})
+
+const nextStaffNo = (last?.staffNo ?? 0) + 1
         const newStaff = await this.prisma.staff.createMany({
        data: dto.map((dto) => ({
-            staffNo: dto.staffNo,
+            staffNo: nextStaffNo,
             staffName: dto.staffName,
             email: dto.email,
             phone: dto.phone,

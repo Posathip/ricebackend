@@ -67,10 +67,10 @@ export class CreateStaffDto {
   // @IsOptional()
   // staffID!: string;
  
-  @ApiProperty({ example: '1' })
-  @IsNumber()
-  @IsOptional()
-  staffNo!: number;
+  // @ApiProperty({ example: '1' })
+  // @IsNumber()
+  // @IsOptional()
+  // staffNo!: number;
   @ApiProperty({ example: 'John Doe', required: false })
   @IsOptional()
   @IsString()
