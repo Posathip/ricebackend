@@ -42,7 +42,7 @@ export class UserService {[x: string]: any;
        
         const newStaff = await this.prisma.staff.createMany({
        data: dto.map((dto) => ({
-            staffNo: dto.staffNo,
+            // staffNo: dto.staffNo,
             staffName: dto.staffName,
             email: dto.email,
             phone: dto.phone,
