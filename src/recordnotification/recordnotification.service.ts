@@ -184,19 +184,21 @@ const updatedData = await this.prisma.validate_Check_Weight.update({
       if (updatedData) {
         const addcertificatesheet = await this.prisma.certificatesheet.create({
           data: {
+            checkWeightID : updatedData.checkWeightID,
             jobID: checkweightdata?.jobID || 0,
             licenseNumber: getlicense?.request.licenseNumber || '',
             index: getlicense?.description.index || 0,
             specialJob: getlicense?.specialJob || '',
             companyName: getlicense?.request.companyName || '',
             surveyLocateNameThai : getlicense?.request.surveyLocateNameThai || '',
+           
              portName  : getlicense?.request.portName || '',
              destination : getlicense?.description.destination || '',
              riceType : getlicense?.description.riceType || '',
               quantity : getlicense?.description.quantity || 0,
-             totalGrossWeight : getlicense?.totalGrossWeight|| 0,
-             totalTareWeight : getlicense?.totalTareWeight || 0,
-              totalNettWeight : getlicense?.totalNetWeight || 0,
+             totalGrossWeight : updatedData?.totalGrossWeight|| 0,
+             totalTareWeight :updatedData?.totalTareWeight || 0,
+              totalNettWeight : updatedData?.totalNetWeight || 0,
              shipper : getlicense?.request.requestBy || '',
              dateCheckWeight : getlicense?.request.requestDate || new Date(),
              marks: 'xxxxxxx',

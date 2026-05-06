@@ -123,6 +123,8 @@ model Description {
 
 model validate_Check_Weight {
   checkWeightID     String  @id @default(uuid())
+  
+
   jobID             Int? //ชื่อ job id
   staffID           String?
   staffName         String?
@@ -158,10 +160,13 @@ model validate_Check_Weight {
   request     Request     @relation(fields: [requestID], references: [requestID])
   description Description @relation(fields: [descriptionID], references: [descriptionID])
   // licenseID           String
+    certificate certificatesheet?
 }
 
 model certificatesheet {
   certificateSheetID String   @id @default(uuid())
+   checkWeightID String? @unique
+  checkWeight   validate_Check_Weight? @relation(fields: [checkWeightID], references: [checkWeightID])
   certNo    String? @unique
   paperNoOriginal  String? @unique
   paperNoCopy String? @unique
