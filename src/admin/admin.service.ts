@@ -172,6 +172,15 @@ export class AdminService {
     orderBy: {
         staffNo: 'asc', // Sort by staffNo in ascending order
     },
+    select:{
+
+        staffID: true,
+        staffNo: true,
+        staffName: true,
+        email: true,
+        phone: true,
+        position: true,
+    }
     });
             return response.status(200).send(staffList);
         } catch (error) {
@@ -220,7 +229,7 @@ export class AdminService {
         }
     }       
         async searchStaff(
-  staffNo?: string,
+  staffNo?: number,
   staffName?: string,
   staffSurname?: string,
   request?: any,
@@ -232,12 +241,9 @@ export class AdminService {
 
     // 🔍 staffNo
     if (staffNo) {
-      filters.push({
-        staffNo: {
-          contains: staffNo,
-          mode: 'insensitive',
-        },
-      });
+     filters.push({
+    staffNo: staffNo,
+  });
     }
 
    

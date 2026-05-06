@@ -1,0 +1,90 @@
+/*
+  Warnings:
+
+  - The `certNo` column on the `certificatesheet` table would be dropped and recreated. This will lead to data loss if there is data in the column.
+  - The `paperNoCopy` column on the `certificatesheet` table would be dropped and recreated. This will lead to data loss if there is data in the column.
+  - The `paperNoOriginal` column on the `certificatesheet` table would be dropped and recreated. This will lead to data loss if there is data in the column.
+
+*/
+-- AlterTable
+ALTER TABLE "Company" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "DataFromGoverment" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "Description" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "LicenseDetail" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "Request" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "cerfificateDetail" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "certificatesheet" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+DROP COLUMN "certNo",
+ADD COLUMN     "certNo" INTEGER,
+DROP COLUMN "paperNoCopy",
+ADD COLUMN     "paperNoCopy" INTEGER,
+DROP COLUMN "paperNoOriginal",
+ADD COLUMN     "paperNoOriginal" INTEGER;
+
+-- AlterTable
+ALTER TABLE "extraInvoice" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "orderBill" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "packing" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "physicalAnalysis" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "riceManage" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "sellingLiquids" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "staff" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "surveyName" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- AlterTable
+ALTER TABLE "validate_Check_Weight" ALTER COLUMN "createdAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now()),
+ALTER COLUMN "updatedAt" SET DEFAULT timezone('Asia/Ho_Chi_Minh', now());
+
+-- CreateIndex
+CREATE UNIQUE INDEX "certificatesheet_certNo_key" ON "certificatesheet"("certNo");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "certificatesheet_paperNoOriginal_key" ON "certificatesheet"("paperNoOriginal");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "certificatesheet_paperNoCopy_key" ON "certificatesheet"("paperNoCopy");

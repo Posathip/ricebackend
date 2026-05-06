@@ -3,20 +3,20 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 
 
 export class UpdateCertificateDto {
-  @ApiPropertyOptional({ example: 'CERT-001' })
+  @ApiPropertyOptional({ example: 1 })
   @IsOptional()
-  @IsString()
-  certNo?: string;
+  @IsNumber()
+  certNo?: number;
 
-  @ApiPropertyOptional({ example: 'PO-ORIG-123' })
+  @ApiPropertyOptional({ example: 1 })
   @IsOptional()
-  @IsString()
-  paperNoOriginal?: string;
+  @IsNumber()
+  paperNoOriginal?: number;
 
-  @ApiPropertyOptional({ example: 'PO-COPY-123' })
+  @ApiPropertyOptional({ example: 1 })
   @IsOptional()
-  @IsString()
-  paperNoCopy?: string;
+  @IsNumber()
+  paperNoCopy?: number;
 
   @ApiPropertyOptional({ example: 'LN-998877' })
   @IsOptional()

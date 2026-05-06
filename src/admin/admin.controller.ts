@@ -230,18 +230,21 @@ export class AdminController {
     return this.adminService.deleteStaff(id, request, response);
   }
 
+
+ 
+
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  @ApiOperation({ summary: 'Search Rice Manage data' })
-  @ApiResponse({ status: 200, description: 'Search Rice Manage data complete' })
-  @ApiQuery({ name: 'staffNo', required: false, type: String, description: 'Rice Name English' })
-  @ApiQuery({ name: 'staffName', required: false, type: String, description: 'Rice Name Thai' })
-  @ApiQuery({ name: 'staffSurname', required: false, type: String, description: 'Rice Type' })
+  @ApiOperation({ summary: 'Search Staff data' })
+  @ApiResponse({ status: 200, description: 'Search Staff data complete' })
+  @ApiQuery({ name: 'staffNo', required: false, type: Number, description: 'Staff Number' })
+  @ApiQuery({ name: 'staffName', required: false, type: String, description: 'Staff Name' })
+  @ApiQuery({ name: 'staffSurname', required: false, type: String, description: 'Staff Surname' })
   @Get('searchstaff')
   searchStaff(
     @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
-    @Query('staffNo') staffNo?: string,
+    @Query('staffNo') staffNo?: number,
     @Query('staffName') staffName?: string,
     @Query('staffSurname') staffSurname?: string,
 

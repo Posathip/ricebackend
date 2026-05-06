@@ -103,12 +103,11 @@ export class CertificateController {
   examples: {
     fullExample: {
       value: {
-        certNo: 'CERT-001',
-        paperNoOriginal: 'Paper No Original',
-        paperNoCopy: 'PO-COPY-123',
+        certNo: 1,
+        paperNoOriginal: 3,
+        paperNoCopy: 2,
         licenseNumber: '13 หลัก',
         jobID: 10,
-     
         index: 1,
         specialJob: 'Special export case',
         No: 5,
@@ -172,7 +171,7 @@ export class CertificateController {
 searchCertificates(
   @Req() request: any,
   @Res({ passthrough: true }) response: FastifyReply,
-  @Query('certNo') certNo?: string,
+  @Query('certNo') certNo?: number,
   @Query('jobID') jobID?: string,
   @Query('licenseNumber') licenseNumber?: string,
  

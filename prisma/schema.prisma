@@ -167,9 +167,9 @@ model certificatesheet {
   certificateSheetID String   @id @default(uuid())
    checkWeightID String? @unique
   checkWeight   validate_Check_Weight? @relation(fields: [checkWeightID], references: [checkWeightID])
-  certNo    String? @unique
-  paperNoOriginal  String? @unique
-  paperNoCopy String? @unique
+  certNo    Int? @unique
+  paperNoOriginal  Int? @unique
+  paperNoCopy Int? @unique
   licenseNumber      String? 
   jobID              Int
  
@@ -281,7 +281,7 @@ updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"
 }
 model staff {
   staffID    String   @id @default(uuid())
-  staffNo   Int?  @unique
+  staffNo   Int    @unique @default(autoincrement())
   staffName  String?
   email      String   @unique
   phone      String?

@@ -45,19 +45,19 @@ startOfDay.setHours(0, 0, 0, 0);
 
 const latestDateBefore = await this.prisma.certificatesheet.findFirst({
   where: {
-    dateCertificate: {
+    dateCheckWeight: {
       lt: startOfDay, // ก่อนวันนั้น
     },
   },
   orderBy: {
-    dateCertificate: 'desc', // เอาวันล่าสุด
+    dateCheckWeight: 'desc', // เอาวันล่าสุด
   },
   select: {
-    dateCertificate: true,
+    dateCheckWeight: true,
   },
 });
-console.log('Latest date before:', latestDateBefore?.dateCertificate);
-        const prevDate = new Date(latestDateBefore?.dateCertificate || startOfDay);
+console.log('Latest date before:', latestDateBefore?.dateCheckWeight);
+        const prevDate = new Date(latestDateBefore?.dateCheckWeight || startOfDay);
     // prevDate.setDate(prevDate.getDate() - 1);
     
 
@@ -68,13 +68,13 @@ console.log('Latest date before:', latestDateBefore?.dateCertificate);
     // ✅ Query: หา certNo ล่าสุดของ "วันก่อนหน้า"
     const latestPrevCert = await this.prisma.certificatesheet.findFirst({
       where: {
-        dateCertificate: {
+        dateCheckWeight: {
           gte: startPrev,
           lt: endPrev,
         },
       },
       orderBy: {
-        dateCertificate: 'desc',
+        dateCheckWeight: 'desc',
       },
       select: {
         certNo: true,
@@ -87,9 +87,9 @@ console.log('Latest date before:', latestDateBefore?.dateCertificate);
 
        return response.status(200).send({
       data: getallcheckweightdata,
-      previousDayLatestCertNo: latestPrevCert?.certNo || '000000',
+      previousDayLatestCertNo: latestPrevCert?.certNo || 0,
       previousDayDate: latestPrevCert?.dateCheckWeight || null,
-      previousDayPaperNoOriginal: latestPrevCert?.paperNoOriginal || null,
+      previousDayPaperNoOriginal: latestPrevCert?.paperNoOriginal || 0,
        });
     } catch (error) {
         return response.status(500).send({ error: 'Failed to retrieve check weight data' });
@@ -223,18 +223,15 @@ const certificateWithEnNames = {
 }
 
 async searchCertificates(
-  filters: { certNo?: string; jobID?: string; licenseNumber?: string },
+  filters: { certNo?: number; jobID?: string; licenseNumber?: string },
   request: any,
   response: any
 ) {
   try {
   const where = {
-  ...(filters.certNo && {
-    certNo: {
-      contains: filters.certNo,
-      mode: 'insensitive' as const,
-    },
-  }),
+ ...(filters.certNo && {
+  certNo: filters.certNo,
+}),
 
   ...(filters.jobID && !isNaN(Number(filters.jobID)) && {
     jobID: Number(filters.jobID),
