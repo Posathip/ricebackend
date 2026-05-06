@@ -281,7 +281,7 @@ updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"
 }
 model staff {
   staffID    String   @id @default(uuid())
-  staffNo   Int    @unique @default(autoincrement())
+  staffNo   Int    @unique 
   staffName  String?
   email      String   @unique
   phone      String?

@@ -153,8 +153,19 @@ export class AdminService {
 
         async createStaff(dto: CreateStaffDto, request: any, response: any) {
         try {
+          const last = await this.prisma.staff.findFirst({
+  orderBy: { staffNo: 'desc' }
+})
+
+const nextStaffNo = (last?.staffNo ?? 0) + 1
           const newStaff = await this.prisma.staff.create({
-            data:dto,
+            data: {
+              staffNo: nextStaffNo,
+              staffName: dto.staffName,
+              email: dto.email,
+              phone: dto.phone,
+              position: dto.position,
+            },
           });
           return response.status(201).send(newStaff);
         }
