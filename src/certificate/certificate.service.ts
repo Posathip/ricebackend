@@ -99,6 +99,61 @@ console.log('Latest date before:', latestDateBefore?.dateCheckWeight);
 
 async updateCertificate(certificateId: string, updateData: UpdateCertificateDto, request: any, response: any) {
     try {
+ // check certNo
+    if (updateData.certNo !== undefined) {
+      const existingCertNo = await this.prisma.certificatesheet.findFirst({
+        where: {
+          certNo: updateData.certNo,
+          NOT: {
+            certificateSheetID: certificateId,
+          },
+        },
+      });
+
+      if (existingCertNo) {
+        return response.status(400).send({
+          error: 'certNo already exists',
+        });
+      }
+    }
+
+    // check paperNoOriginal
+    if (updateData.paperNoOriginal !== undefined) {
+      const existingPaperOriginal =
+        await this.prisma.certificatesheet.findFirst({
+          where: {
+            paperNoOriginal: updateData.paperNoOriginal,
+            NOT: {
+              certificateSheetID: certificateId,
+            },
+          },
+        });
+
+      if (existingPaperOriginal) {
+        return response.status(400).send({
+          error: 'paperNoOriginal already exists',
+        });
+      }
+    }
+
+    // check paperNoCopy
+    if (updateData.paperNoCopy !== undefined) {
+      const existingPaperCopy =
+        await this.prisma.certificatesheet.findFirst({
+          where: {
+            paperNoCopy: updateData.paperNoCopy,
+            NOT: {
+              certificateSheetID: certificateId,
+            },
+          },
+        });
+
+      if (existingPaperCopy) {
+        return response.status(400).send({
+          error: 'paperNoCopy already exists',
+        });
+      }
+    }
         const updated = await this.prisma.certificatesheet.update({
             where: {
                 certificateSheetID: certificateId,
@@ -107,7 +162,7 @@ async updateCertificate(certificateId: string, updateData: UpdateCertificateDto,
         });
         return response.status(200).send(updated);
     } catch (error) {
-        return response.status(500).send({ error: 'Failed to update certificate' });
+        return response.status(500).send({ error: 'Failed to update certificate' ,message : error });
     }
 }
 

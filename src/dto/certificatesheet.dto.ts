@@ -85,7 +85,7 @@ export class UpdateCertificateDto {
   @IsString()
   note?: string;
 
-  @ApiPropertyOptional({ example: '2026-04-21' })
+  @ApiPropertyOptional({ example: '2026-04-21T09:58:46.560Z' })
   @IsOptional()
   @IsDateString()
   dateCertificate?: string;
@@ -140,12 +140,12 @@ export class UpdateCertificateDto {
   @IsString()
   goDown?: string;
 
-  @ApiPropertyOptional({ example: '2026-04-20' })
+  @ApiPropertyOptional({ example: '2026-04-20T09:58:46.560Z' })
   @IsOptional()
   @IsDateString()
   dateOfLoading?: string;
 
-  @ApiPropertyOptional({ example: '2026-04-19' })
+  @ApiPropertyOptional({ example: '2026-04-19T09:58:46.560Z' })
   @IsOptional()
   @IsDateString()
   dateCheckWeight?: string;
