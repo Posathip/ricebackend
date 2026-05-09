@@ -1,15 +1,16 @@
-import { Body, Controller, Get, Param, Put, Query, Req, Res } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, Param, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { CertificateService } from './certificate.service';
 import { UpdateCertificateDto } from 'src/dto/certificatesheet.dto';
-
+import { JwtAuthGuard,  } from 'src/guards/jwt.guard';
 
 
 @Controller('certificate')
 export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
-
+@UseGuards(JwtAuthGuard)
+  @HttpCode(200)
 @Get('getcertificatebyid')
  @ApiOperation({ summary: 'Get Certificate by ID' })
 @ApiResponse({
@@ -182,5 +183,170 @@ searchCertificates(
     request,
     response,
   );
+}
+@UseGuards(JwtAuthGuard)
+@HttpCode(200)
+
+@Get('certificatehistorybydate')
+@ApiOperation({ summary: 'Filter All Certificates by Date Range' })
+@ApiResponse({
+  status: 200,
+  description: 'Certificates filtered by month successfully.',
+  schema: {
+    type: 'array',
+    example: [
+      {
+        วันที่: '07/04/2569',
+        ผู้ได้รับอนุญาต: 'ตงฮั้ว ไร้ซ์ จำกัด',
+        ผู้ส่งมอบ: 'Bangkok Warehouse',
+        เลขที่ใบอนุญาต: 'LIC-998877',
+        คำสั่งจ่ายงานเลขที่: 12345,
+        เรือใหญ่: 'Bangkok',
+        เมืองตราส่ง: 'UNITED STATES OF AMERICA',
+        ชนิดข้าว: 'ข้าวกล้องเจ้าสีแดง ชั้นดีพิเศษ',
+        'ปริมาณ/เมตริกตัน': 1000,
+        'CER NO.': 1,
+        'PAPER NO': 1,
+        'PAPER NO ': 1,
+      },
+      {
+        วันที่: '07/04/2569',
+        ผู้ได้รับอนุญาต: 'เคเจ เวิลด์ฟู้ดส์ จำกัด',
+        ผู้ส่งมอบ: '',
+        เลขที่ใบอนุญาต: '0308116909682',
+        คำสั่งจ่ายงานเลขที่: 17,
+        เรือใหญ่: '',
+        เมืองตราส่ง: 'UNITED STATES OF AMERICA',
+        ชนิดข้าว: 'ข้าวเจ้าขาวหอมไทย 100%',
+        'ปริมาณ/เมตริกตัน': 1000,
+        'CER NO.': 3,
+        'PAPER NO': 3,
+        'PAPER NO ': 3,
+      },
+      {
+        วันที่: '07/04/2569',
+        ผู้ได้รับอนุญาต: 'ตงฮั้ว ไร้ซ์ จำกัด',
+        ผู้ส่งมอบ: '',
+        เลขที่ใบอนุญาต: '0308116910484',
+        คำสั่งจ่ายงานเลขที่: 19,
+        เรือใหญ่: '',
+        เมืองตราส่ง: 'UNITED STATES OF AMERICA',
+        ชนิดข้าว:
+          'ข้าวกล้องเจ้าสีดำ สีม่วงดำ และสีม่วง ชั้นดีพิเศษ',
+        'ปริมาณ/เมตริกตัน': 108,
+        'CER NO.': 4,
+        'PAPER NO': 4,
+        'PAPER NO ': 4,
+      },
+      {
+        วันที่: '07/04/2569',
+        ผู้ได้รับอนุญาต: 'AEON TOPVALU (THAILAND) CO., LTD.',
+        ผู้ส่งมอบ: 'Bangkok Warehouse',
+        เลขที่ใบอนุญาต: 'LIC-998877',
+        คำสั่งจ่ายงานเลขที่: 12345,
+        เรือใหญ่: 'Bangkok',
+        เมืองตราส่ง: 'UNITED STATES OF AMERICA',
+        ชนิดข้าว: 'WHITE RICE 15%',
+        'ปริมาณ/เมตริกตัน': 1000,
+        'CER NO.': 9,
+        'PAPER NO': 8,
+        'PAPER NO ': 20,
+      },
+    ],
+  },
+})
+@ApiQuery({ name: 'startdate', required: true, example: '2026-04-01' })
+@ApiQuery({ name: 'enddate', required: true, example: '2026-04-30' })
+getcertificatehistorybydate(
+  @Req() request: any,
+  @Query('startdate') startdate: string,
+  @Query('enddate') enddate: string,
+  @Res({ passthrough: true }) response: FastifyReply,
+) {
+  return this.certificateService.filterAllCertificatebyDate(startdate, enddate, request, response);
+}
+
+@Get('certificatehistorybymonth')  
+@ApiOperation({ summary: 'Filter All Certificates by Month' })
+@ApiResponse({
+  status: 200,
+  description: 'Certificates filtered by month successfully.',
+  schema: {
+    type: 'array',
+    example: [
+      {
+        วันที่: '07/04/2569',
+        ผู้ได้รับอนุญาต: 'ตงฮั้ว ไร้ซ์ จำกัด',
+        ผู้ส่งมอบ: 'Bangkok Warehouse',
+        เลขที่ใบอนุญาต: 'LIC-998877',
+        คำสั่งจ่ายงานเลขที่: 12345,
+        เรือใหญ่: 'Bangkok',
+        เมืองตราส่ง: 'UNITED STATES OF AMERICA',
+        ชนิดข้าว: 'ข้าวกล้องเจ้าสีแดง ชั้นดีพิเศษ',
+        'ปริมาณ/เมตริกตัน': 1000,
+        'CER NO.': 1,
+        'PAPER NO': 1,
+        'PAPER NO ': 1,
+      },
+      {
+        วันที่: '07/04/2569',
+        ผู้ได้รับอนุญาต: 'เคเจ เวิลด์ฟู้ดส์ จำกัด',
+        ผู้ส่งมอบ: '',
+        เลขที่ใบอนุญาต: '0308116909682',
+        คำสั่งจ่ายงานเลขที่: 17,
+        เรือใหญ่: '',
+        เมืองตราส่ง: 'UNITED STATES OF AMERICA',
+        ชนิดข้าว: 'ข้าวเจ้าขาวหอมไทย 100%',
+        'ปริมาณ/เมตริกตัน': 1000,
+        'CER NO.': 3,
+        'PAPER NO': 3,
+        'PAPER NO ': 3,
+      },
+      {
+        วันที่: '07/04/2569',
+        ผู้ได้รับอนุญาต: 'ตงฮั้ว ไร้ซ์ จำกัด',
+        ผู้ส่งมอบ: '',
+        เลขที่ใบอนุญาต: '0308116910484',
+        คำสั่งจ่ายงานเลขที่: 19,
+        เรือใหญ่: '',
+        เมืองตราส่ง: 'UNITED STATES OF AMERICA',
+        ชนิดข้าว:
+          'ข้าวกล้องเจ้าสีดำ สีม่วงดำ และสีม่วง ชั้นดีพิเศษ',
+        'ปริมาณ/เมตริกตัน': 108,
+        'CER NO.': 4,
+        'PAPER NO': 4,
+        'PAPER NO ': 4,
+      },
+      {
+        วันที่: '07/04/2569',
+        ผู้ได้รับอนุญาต: 'AEON TOPVALU (THAILAND) CO., LTD.',
+        ผู้ส่งมอบ: 'Bangkok Warehouse',
+        เลขที่ใบอนุญาต: 'LIC-998877',
+        คำสั่งจ่ายงานเลขที่: 12345,
+        เรือใหญ่: 'Bangkok',
+        เมืองตราส่ง: 'UNITED STATES OF AMERICA',
+        ชนิดข้าว: 'WHITE RICE 15%',
+        'ปริมาณ/เมตริกตัน': 1000,
+        'CER NO.': 9,
+        'PAPER NO': 8,
+        'PAPER NO ': 20,
+      },
+    ],
+  },
+})
+@ApiQuery({ name: 'month', required: true, example: '04' })
+@ApiQuery({ name: 'year', required: true, example: '2026' })
+getcertificatehistorybymonth(
+  @Req() request: any,
+  @Query('month') month: string,
+  @Query('year') year: string,
+  @Res({ passthrough: true }) response: FastifyReply,
+) {
+  const startdate = `${year}-${month}-01`;
+  const enddate = `${year}-${month}-31`;
+  console.log('Start Date:', startdate);
+  console.log('End Date:', enddate);
+  return this.certificateService.filterAllCertificatebyMonth(startdate, enddate, request, response);
+
 }
 }
