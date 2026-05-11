@@ -101,6 +101,20 @@ console.log('Latest date before:', latestDateBefore?.dateCheckWeight);
         paperNoCopy: true,
       },
     });
+    const findlatestCertOriginal = await this.prisma.certificatesheet.findFirst({
+      orderBy:{
+        paperNoOriginal: 'desc',
+      },
+      where: {
+        paperNoOriginal: {
+          not: null,
+        },  
+      },
+      select: {
+        paperNoOriginal: true,
+        paperNoCopy: true,
+      },
+    });
     // console.log('Latest certNo:', findlatestCertNo?.certNo);
 
 
@@ -108,8 +122,8 @@ console.log('Latest date before:', latestDateBefore?.dateCheckWeight);
       data: getallcheckweightdata,
       previousDayLatestCertNo: findlatestCertNo?.certNo || 0,
       previousDayDate: latestPrevCert?.dateCheckWeight || null,
-      previousDayPaperNoOriginal: findlatestCertNo?.paperNoOriginal || 0,
-      previousDayPaperNoCopy: findlatestCertNo?.paperNoCopy || 0,
+      previousDayPaperNoOriginal: findlatestCertOriginal?.paperNoOriginal || 0,
+      previousDayPaperNoCopy: findlatestCertOriginal?.paperNoCopy || 0,
        });
     } catch (error) {
         return response.status(500).send({ error: 'Failed to retrieve check weight data' });
