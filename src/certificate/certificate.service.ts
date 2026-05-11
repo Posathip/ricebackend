@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { previousDay } from 'date-fns';
 import { PrismaService } from 'prisma/prisma.service';
 import { UpdateCertificateDto } from 'src/dto/certificatesheet.dto';
 
@@ -66,7 +67,7 @@ console.log('Latest date before:', latestDateBefore?.dateCheckWeight);
     const startPrev = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
     const endPrev = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate() + 1);
 
-    // ✅ Query: หา certNo ล่าสุดของ "วันก่อนหน้า"
+   
     const latestPrevCert = await this.prisma.certificatesheet.findFirst({
       where: {
         dateCheckWeight: {
@@ -85,12 +86,30 @@ console.log('Latest date before:', latestDateBefore?.dateCheckWeight);
       },
     });
 
+    const findlatestCertNo = await this.prisma.certificatesheet.findFirst({
+      orderBy:{
+        certNo: 'desc',
+      },
+      where: {
+        certNo: {
+          not: null,
+        },  
+      },
+      select: {
+        certNo: true,
+        paperNoOriginal: true,
+        paperNoCopy: true,
+      },
+    });
+    // console.log('Latest certNo:', findlatestCertNo?.certNo);
+
 
        return response.status(200).send({
       data: getallcheckweightdata,
-      previousDayLatestCertNo: latestPrevCert?.certNo || 0,
+      previousDayLatestCertNo: findlatestCertNo?.certNo || 0,
       previousDayDate: latestPrevCert?.dateCheckWeight || null,
-      previousDayPaperNoOriginal: latestPrevCert?.paperNoOriginal || 0,
+      previousDayPaperNoOriginal: findlatestCertNo?.paperNoOriginal || 0,
+      previousDayPaperNoCopy: findlatestCertNo?.paperNoCopy || 0,
        });
     } catch (error) {
         return response.status(500).send({ error: 'Failed to retrieve check weight data' });
