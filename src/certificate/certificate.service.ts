@@ -38,6 +38,9 @@ export class CertificateService {[x: string]: any;
                     totalNettWeight : true,
                     status : true,
                 },
+                orderBy:{
+                  dateCheckWeight: 'asc',
+                }
             }
         );
 
@@ -605,4 +608,129 @@ async filterAllCertificatebyMonth(
     });
   }
 }
+
+async gethistoryCertificate(
+  licenseNumber: string,
+  request: any,
+  response: any
+) {
+ try {
+  const certificatedetail = await this.prisma.dataFromGoverment.findMany({
+  where: {
+  licenseNumber: licenseNumber,
+},
+select: {
+  exporter  : true,
+  destinationCountry: true,
+}});
+
+const certificateHistory = await this.prisma.certificatesheet.findMany({
+  where: {
+    licenseNumber: licenseNumber,
+ 
+  
+      status: true,
+  },
+
+  select: {
+    
+  
+
+    checkWeight: {
+      select: {
+        jobID: true,
+        specialJob: true,
+        goDown: true,
+        grossWeight: true,
+        netWeightTon: true,
+        quantity: true,
+        // noOfBags: true,
+        // netWeightW: true,
+        loadingDetails: true,
+        riceName: true,
+        vehicleName: true,
+        request: {
+          select: {
+            shippingDateTime: true,
+            // requestID: true,
+            // companyName: true,
+            // licenseNumber: true,
+            // requestDate: true,
+          },
+        },
+
+        // description: {
+        //   select: {
+        //     descriptionID: true,
+
+        //   },
+        // },
+      },
+    },
+  },
+});
+const goDownList = [
+  ...new Set(
+    certificateHistory
+      .map((item) => item.checkWeight?.goDown)
+      .filter((value): value is string => Boolean(value))
+  ),
+];
+const surveyNames = await this.prisma.surveyName.findMany({
+  where: {
+    surveyNameTH: {
+      in: goDownList,
+    },
+  },
+
+  select: {
+    surveyNameTH: true,
+    surveyNameEN: true,
+    changwat    : true,
+  },
+});
+
+const surveyMap = new Map(
+  surveyNames.map((item) => [
+    item.surveyNameTH,
+    {
+      surveyNameEN: item.surveyNameEN,
+      changwat: item.changwat,
+    },
+  ])
+);
+const result = certificateHistory.map((item, index) => {
+  const surveyData = surveyMap.get(
+    item.checkWeight?.goDown || ""
+  );
+
+  return {
+    index: (index + 1).toString(),
+    ...item,
+
+    checkWeight: {
+      ...item.checkWeight,
+
+      surveyName:
+        surveyData?.surveyNameEN ||
+        item.checkWeight?.goDown ||
+        null,
+
+      changwat: surveyData?.changwat || null,
+    },
+  };
+});
+return response.status(200).send({
+  certificatedetail,
+  result,
+});
+ }
+ catch (error) {
+  console.error(error);
+  return response.status(500).send({
+    message: 'Failed to retrieve certificate history',
+  });
+ }
+}
+
 }

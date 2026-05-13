@@ -167,7 +167,7 @@ model certificatesheet {
   certificateSheetID String   @id @default(uuid())
    checkWeightID String? @unique
   checkWeight   validate_Check_Weight? @relation(fields: [checkWeightID], references: [checkWeightID])
-  certNo    Int? @unique
+  certNo    Int? 
   paperNoOriginal  Int? @unique
   paperNoCopy Int? @unique
   licenseNumber      String? 

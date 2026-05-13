@@ -19,7 +19,7 @@ export class RecordnotificationService {
     @Res({ passthrough: true }) response: FastifyReply,
 ) {
     try {
-      const checkWeightData = await this.prisma.validate_Check_Weight.findMany({
+      const checkWeightData = await this.prisma.validate_Check_Weight.findUnique({
         where: {
           checkWeightID: checkWeightID,
         },
@@ -40,17 +40,35 @@ export class RecordnotificationService {
         },
       });
 
-      if (!checkWeightData || checkWeightData.length === 0) {
+      if (!checkWeightData ) {
         return response
           .status(404)
           .send({ message: 'No data found for the given check weight ID' });
       }
+      const companyData = await this.prisma.company.findFirst({
+  where: {
+    companyNameTH:  checkWeightData.supplierName !== null
+    ? checkWeightData.supplierName
+    : undefined
+  },
+  select: {
+    companyNameEN: true,
+  },
+});
+
+// เพิ่ม supplierName
+const result = {
+  ...checkWeightData,
+  supplierName: companyData?.companyNameEN || checkWeightData.supplierName,
+};
+
+
 
       return response
         .status(200)
         .send({
           message: 'Check weight data retrieved successfully',
-          data: checkWeightData,
+          data: result,
         });
     } catch (error) {
       return response.status(500).send({

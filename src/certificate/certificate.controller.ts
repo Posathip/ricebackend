@@ -334,6 +334,7 @@ getcertificatehistorybydate(
     ],
   },
 })
+
 @ApiQuery({ name: 'month', required: true, example: '04' })
 @ApiQuery({ name: 'year', required: true, example: '2026' })
 getcertificatehistorybymonth(
@@ -348,5 +349,20 @@ getcertificatehistorybymonth(
   console.log('End Date:', enddate);
   return this.certificateService.filterAllCertificatebyMonth(startdate, enddate, request, response);
 
+}
+
+@Get('gethistorycertificate') 
+@ApiOperation({ summary: 'Get Certificate History by licenseNumber' })
+@ApiResponse({
+  status: 200,
+  description: 'Get certificate history by licenseNumber successfully.',
+})
+@ApiQuery({ name: 'licensenumber', required: true, example: '01342424294299' })
+gethistoryCertificate(
+  @Req() request: any,
+  @Query('licensenumber') licenseNumber: string,
+   @Res({ passthrough: true }) response: FastifyReply,
+){
+  return this.certificateService.gethistoryCertificate(licenseNumber, request, response);
 }
 }
