@@ -453,7 +453,7 @@ async filterAllCertificatebyDate(
           ผู้ส่งมอบ: item.goDown || '',
 
           // 4
-          เลขที่ใบอนุญาต: item.licenseNumber || '',
+          เลขที่ใบอนุญาต: item.licenseNumber?.slice(6) || '',
 
           // 5
           คำสั่งจ่ายงานเลขที่: item.jobID || '',
@@ -468,7 +468,10 @@ async filterAllCertificatebyDate(
           ชนิดข้าว: rice?.riceNameEng || item.riceType || '',
 
           // 9
-          'ปริมาณ/เมตริกตัน': item.quantity || 0,
+          'ปริมาณ/เมตริกตัน': Number(item.quantity || 0).toLocaleString('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}),
 
           // 10
           'CER NO.': item.certNo || '',
@@ -481,8 +484,15 @@ async filterAllCertificatebyDate(
         };
       })
     );
+    const summarize = certificates.reduce(
+  (sum, item) => sum + Number(item.quantity || 0),
+  0
+);
 
-    return response.status(200).send(result);
+    return response.status(200).send({ result,  'รวมปริมาณตัน': Number(summarize).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }), });
   } catch (error) {
     console.error(error);
 
@@ -577,7 +587,7 @@ async filterAllCertificatebyMonth(
 
           ผู้ส่งมอบ: item.goDown || '',
 
-          เลขที่ใบอนุญาต: item.licenseNumber || '',
+          เลขที่ใบอนุญาต: item.licenseNumber?.slice(6) || '',
 
           คำสั่งจ่ายงานเลขที่: item.jobID || '',
 
@@ -587,7 +597,10 @@ async filterAllCertificatebyMonth(
 
           ชนิดข้าว: rice?.riceNameEng || item.riceType || '',
 
-          'ปริมาณ/เมตริกตัน': item.quantity || 0,
+        'ปริมาณ/เมตริกตัน': Number(item.quantity || 0).toLocaleString('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}),
 
           'CER NO.': item.certNo || '',
 
@@ -597,8 +610,14 @@ async filterAllCertificatebyMonth(
         };
       })
     );
-
-    return response.status(200).send(result);
+     const summarize = certificates.reduce(
+  (sum, item) => sum + Number(item.quantity || 0),
+  0
+);
+   return response.status(200).send({ result,  'รวมปริมาณตัน': Number(summarize).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }), });
 
   } catch (error) {
     console.error(error);
