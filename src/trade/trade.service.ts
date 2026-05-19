@@ -244,7 +244,7 @@ async createOrder(dto: CreateOrderDto, @Res({ passthrough: true }) response: Fas
       },
     });
     
-    const adddata = await this.prisma.request.create({
+    await this.prisma.request.create({
       data: {
         companyName: cleanCompanyName(dto.companyName),
         requestBy: dto.requestBy,
@@ -270,6 +270,7 @@ async createOrder(dto: CreateOrderDto, @Res({ passthrough: true }) response: Fas
             vehicleName: desc.vehicleName,
             marker: desc.marker,
             licenseNumber: desc.licenseNumber,
+            licenseDetailID: desc.licenseDetailID,
             quantity: desc.quantity,
             quantityUnit: desc.quantityUnit,
             grossWeight: desc.grossWeight,
@@ -278,13 +279,22 @@ async createOrder(dto: CreateOrderDto, @Res({ passthrough: true }) response: Fas
             netWeightTON: desc.netWeightTON,
             portName: desc.portName,
             index: desc.index,
-            remainNetWeightKGM: desc.netWeightKGM,
           })),
         },
       },
     });
 
- 
+    const bufferRemainList = dto.description
+      .filter((desc) => desc.licenseDetailID)
+      .map((desc) => ({
+        licenseDetailID: desc.licenseDetailID!,
+        remainNetWeightKGM: desc.netWeightKGM,
+      }));
+
+    if (bufferRemainList.length > 0) {
+      await this.prisma.bufferRemain.createMany({ data: bufferRemainList, skipDuplicates: true });
+    }
+
     // ส่ง response กลับ client ว่าสร้างสำเร็จ
     return response.status(200).send({
       success: true,

@@ -101,6 +101,15 @@ model Request {
   validate_Check_Weight validate_Check_Weight[]
 }
 
+model BufferRemain {
+  bufferRemainID String   @id @default(uuid())
+  licenseDetailID      String  @unique
+
+  remainNetWeightKGM Float?
+
+  createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
 model Description {
   descriptionID String  @id @default(uuid())
   requestId     String
@@ -109,7 +118,8 @@ model Description {
   riceType      String // ประเภทข้าว
   vehicleName   String // ชื่อรถ
   marker        String // เครื่องหมาย
-  licenseNumber String // เลขที่ใบอนุญาต
+  licenseNumber   String // เลขที่ใบอนุญาต
+  licenseDetailID String? // link ไป BufferRemain
   quantity      Float
   quantityUnit  String //ชนิดกระสอบ
   grossWeight   Float
@@ -117,7 +127,7 @@ model Description {
   netWeightW    Float?
   netWeightTON  Float?
   index         Int?
-  remainNetWeightKGM   Float?
+
 
   createdAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt

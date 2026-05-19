@@ -25,44 +25,47 @@ export class RecordnotificationService {
         },
         include: {
           description: {
-            select:{destination : true,
-            vehicleName: true,
-          remainNetWeightKGM: true,
-          }
-            
+            select: {
+              destination: true,
+              vehicleName: true,
+              licenseDetailID: true,
+            }
           },
-          
-          request:{
-            select:{
+          request: {
+            select: {
               licenseNumber: true,
               shippingDateTime: true,
-              requestBy : true,
+              requestBy: true,
             }
           }
         },
       });
 
-      if (!checkWeightData ) {
+      if (!checkWeightData) {
         return response
           .status(404)
           .send({ message: 'No data found for the given check weight ID' });
       }
-      const companyData = await this.prisma.company.findFirst({
-  where: {
-    companyNameTH:  checkWeightData.supplierName !== null
-    ? checkWeightData.supplierName
-    : undefined
-  },
-  select: {
-    companyNameEN: true,
-  },
-});
 
-// เพิ่ม supplierName
-const result = {
-  ...checkWeightData,
-  supplierName: companyData?.companyNameEN || checkWeightData.supplierName,
-};
+      const licenseDetailID = checkWeightData.description?.licenseDetailID;
+      const bufferRemain = licenseDetailID
+        ? await this.prisma.bufferRemain.findFirst({ where: { licenseDetailID } })
+        : null;
+
+      const companyData = await this.prisma.company.findFirst({
+        where: {
+          companyNameTH: checkWeightData.supplierName !== null
+            ? checkWeightData.supplierName
+            : undefined
+        },
+        select: { companyNameEN: true },
+      });
+
+      const result = {
+        ...checkWeightData,
+        supplierName: companyData?.companyNameEN || checkWeightData.supplierName,
+        remainNetWeightKGM: bufferRemain?.remainNetWeightKGM ?? null,
+      };
 
 
 
@@ -126,7 +129,7 @@ const result = {
 
     // 2. [Gather] รวบรวมชื่อบริษัททั้งหมดที่มีในผลลัพธ์
     const companyNames = [...new Set(checkWeightData.map(cw => cw.request?.companyName))].filter(Boolean);
-    
+
     // 3. [Fetch] ดึงข้อมูลจากตาราง Company มาทีเดียว
     const companies = await this.prisma.company.findMany({
       where: {
@@ -178,13 +181,25 @@ const result = {
         where: { checkWeightID },
         include: { request: true, description: true },
       });
-
+      console.log(getlicense)
       if (!getlicense) {
         return response.status(404).send({ message: 'Check weight data not found' });
       }
 
-      const currentRemain = getlicense.description?.remainNetWeightKGM ?? 0;
+      const licenseDetailID = (getlicense.description as any)?.licenseDetailID as string | undefined;
+      if (!licenseDetailID) {
+        return response.status(400).send({ message: 'Description has no licenseDetailID linked' });
+      }
 
+      const bufferRemain = await this.prisma.bufferRemain.findFirst({
+        where: { licenseDetailID },
+      });
+
+      if (!bufferRemain) {
+        return response.status(404).send({ message: 'BufferRemain not found for this license detail' });
+      }
+
+      const currentRemain = bufferRemain.remainNetWeightKGM ?? 0;
       if (currentRemain <= 0) {
         return response.status(400).send({
           message: 'Cannot update check weight data because remainNetWeightKGM is zero or negative',
@@ -203,8 +218,8 @@ const result = {
         data: dto,
       });
 
-      await this.prisma.description.update({
-        where: { descriptionID: getlicense.description?.descriptionID || '' },
+      await this.prisma.bufferRemain.update({
+        where: { bufferRemainID: bufferRemain.bufferRemainID },
         data: { remainNetWeightKGM: newRemain },
       });
 

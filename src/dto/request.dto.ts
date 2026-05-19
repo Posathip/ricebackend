@@ -8,6 +8,11 @@ import {
 } from 'class-validator';
 
 export class CreateOrderDescriptionDto {
+  
+    @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  licenseDetailID?: string;
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
