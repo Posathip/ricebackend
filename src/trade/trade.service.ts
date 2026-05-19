@@ -11,6 +11,7 @@ import * as http from 'http'; // สำหรับ fallback HTTP
 import { parseStringPromise } from 'xml2js';
 import { parse } from 'path';
 import { CreateSurveyDto } from 'src/dto/user.dto';
+import { CreateOrderDto } from 'src/dto/request.dto';
 
 @Injectable()
 export class TradeService {
@@ -123,12 +124,15 @@ console.log('EndDate:', ENDDATE);
         dataID,
         fullLicenseNumber: item.LicenseNumber, // Remove non-numeric characters
         licenseNumber: item.LicenseNumber.replace(/\D/g, ''),
+        
         exporter: cleanCompanyName(item.Exporter),
+        exporterNoCut: item.Exporter || null,
         recipient: item.Recipient,
         telephone : extractTelephone(item.Exporter),
         buyer: item.Buyer || null,
-        // exportAgent: extractFirstName(item.Export_Agent),
-        exportAgent: item.Export_Agent || null,
+         exportAgent: extractFirstName(item.Export_Agent),
+        // exportAgent: item.Export_Agent || null,
+        exportAgentNoCut: item.Export_Agent || null,
         companyTax: item.CompanyTax,
         product: item.Product,
         issueDate: convertToAD(item.IssueDate),
@@ -174,6 +178,7 @@ console.log('EndDate:', ENDDATE);
           price: parseFloat(detail.Price),
           incoterms: detail.Incoterms,
           productDescription: cleanRiceType(detail.ProductDescription),
+          productDescriptionNotCut: detail.ProductDescription,
           netWeightW :  netWeightW,
         });
     }
@@ -229,52 +234,51 @@ try {
 }
 
 
-async createOrder(body: any,  @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,
-) {
+async createOrder(dto: CreateOrderDto, @Res({ passthrough: true }) response: FastifyReply) {
   try {
 
     const getdata = await this.prisma.dataFromGoverment.findUnique({
-      where: { licenseNumber: body.licenseNumber },
+      where: { licenseNumber: dto.licenseNumber },
       include: {
-        licenseDetails: true, // Assuming relation name is LicenseDetail
+        licenseDetails: true,
       },
     });
-
+    
     const adddata = await this.prisma.request.create({
       data: {
-        companyName: cleanCompanyName(body.companyName),
-        // companyNameEng: getdata.
-        requestBy: body.requestBy,
-        requestDate: new Date(body.requestDate),
-        shippingDateTime: new Date(body.shippingDateTime),
-        surveyLocateNameThai: body.surveyLocateNameThai,
-        surveyLocateNameEng: body.surveyLocateNameEng,
-        surveyPaidBy: body.surveyPaidBy,
-        surveyProvince: body.surveyProvince,
-        surveySubDistrict: body.surveySubDistrict,
-        telInspector: body.telInspector,
-        telDebtor: body.telDebtor,
-        licenseNumber: body.licenseNumber,
+        companyName: cleanCompanyName(dto.companyName),
+        requestBy: dto.requestBy,
+        requestDate: new Date(dto.requestDate),
+        shippingDateTime: new Date(dto.shippingDateTime),
+        surveyLocateNameThai: dto.surveyLocateNameThai,
+        surveyLocateNameEng: dto.surveyLocateNameEng,
+        surveyPaidBy: dto.surveyPaidBy,
+        surveyProvince: dto.surveyProvince,
+        surveySubDistrict: dto.surveySubDistrict,
+        telInspector: dto.telInspector,
+        telDebtor: dto.telDebtor,
+        licenseNumber: dto.licenseNumber,
         status: "incomplete",
-        payer: body.payer,
+        payer: dto.payer,
         portName: getdata?.portName,
+
         descriptions: {
-          create: body.description.map((desc: any) => ({
+          create: dto.description.map((desc) => ({
             descriptionID: desc.descriptionID,
             destination: desc.destination,
-            riceType: cleanRiceType(desc.riceType), 
+            riceType: cleanRiceType(desc.riceType),
             vehicleName: desc.vehicleName,
             marker: desc.marker,
             licenseNumber: desc.licenseNumber,
-            quantity: desc.quantity,  
+            quantity: desc.quantity,
             quantityUnit: desc.quantityUnit,
             grossWeight: desc.grossWeight,
-             netWeightW: desc.netWeightW,
-             netWeightKGM: desc.netWeightKGM,
+            netWeightW: desc.netWeightW,
+            netWeightKGM: desc.netWeightKGM,
             netWeightTON: desc.netWeightTON,
-              portName: desc.portName,
-              index: desc.index,
+            portName: desc.portName,
+            index: desc.index,
+            remainNetWeightKGM: desc.netWeightKGM,
           })),
         },
       },

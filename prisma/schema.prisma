@@ -19,9 +19,11 @@ model DataFromGoverment {
   licenseNumber      String          @unique
   fullLicenseNumber  String          @unique
   exporter           String
+  exporterNoCut      String?
   recipient          String
   buyer              String?
   exportAgent        String
+  exportAgentNoCut   String?
   companyTax         String
   telephone         String?
   product            String
@@ -60,6 +62,7 @@ model LicenseDetail {
   price              Float?
   incoterms          String?
   productDescription String?
+  productDescriptionNotCut String?
   createdAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
@@ -93,7 +96,7 @@ model Request {
   payer                 String? // เรียกเก็บเงิน
   createdAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
-
+  
   descriptions          Description[]
   validate_Check_Weight validate_Check_Weight[]
 }
@@ -114,7 +117,7 @@ model Description {
   netWeightW    Float?
   netWeightTON  Float?
   index         Int?
-
+  remainNetWeightKGM   Float?
 
   createdAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt

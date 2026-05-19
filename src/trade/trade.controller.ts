@@ -5,6 +5,7 @@ import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import { FastifyReply } from 'fastify';
 import { request } from 'http';
 import { CreateSurveyDto } from 'src/dto/user.dto';
+import { CreateOrderDto } from 'src/dto/request.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 @Controller('trade')
@@ -184,9 +185,11 @@ return {
 @UseGuards(JwtAuthGuard)
 @HttpCode(200)
 @Post('createrequest')
-  createOrder(@Req() req: any,
-       @Res({ passthrough: true }) response: FastifyReply,) {
-     return this.tradeService.createOrder(req.body, req, response);
+  createOrder(
+    @Body() dto: CreateOrderDto,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
+    return this.tradeService.createOrder(dto, response);
   }
 
     @UseGuards(JwtAuthGuard)

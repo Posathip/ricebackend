@@ -26,7 +26,9 @@ export class RecordnotificationService {
         include: {
           description: {
             select:{destination : true,
-            vehicleName: true,}
+            vehicleName: true,
+          remainNetWeightKGM: true,
+          }
             
           },
           
@@ -124,7 +126,7 @@ const result = {
 
     // 2. [Gather] รวบรวมชื่อบริษัททั้งหมดที่มีในผลลัพธ์
     const companyNames = [...new Set(checkWeightData.map(cw => cw.request?.companyName))].filter(Boolean);
-
+    
     // 3. [Fetch] ดึงข้อมูลจากตาราง Company มาทีเดียว
     const companies = await this.prisma.company.findMany({
       where: {
@@ -167,67 +169,70 @@ const result = {
 
   async updateCheckWeightData(
     checkWeightID: string,
-     dto: UpdateCheckWeightData,
-     @Req() request: any,
+    dto: UpdateCheckWeightData,
+    @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
-
   ) {
     try {
-      const checkweightdata =
-        await this.prisma.validate_Check_Weight.findUnique({
-          where: { checkWeightID: checkWeightID },
-        });
-     console.log(checkweightdata);
+      const getlicense = await this.prisma.validate_Check_Weight.findUnique({
+        where: { checkWeightID },
+        include: { request: true, description: true },
+      });
 
-     const getlicense =
-  await this.prisma.validate_Check_Weight.findUnique({
-    where: { checkWeightID: checkWeightID },
-    include: {
-      request: true,
-      description: true,
-    },
-  });
-     const dataToUpdate = { ...checkweightdata, ...dto };
-     
+      if (!getlicense) {
+        return response.status(404).send({ message: 'Check weight data not found' });
+      }
 
-// if (dto.shippingDate) {
-//   dataToUpdate.shippingDate = new Date(dto.shippingDate);
-// }
+      const currentRemain = getlicense.description?.remainNetWeightKGM ?? 0;
 
-const updatedData = await this.prisma.validate_Check_Weight.update({
-  where: { checkWeightID },
-  data: dataToUpdate,
-});
-
-      if (updatedData) {
-        const addcertificatesheet = await this.prisma.certificatesheet.create({
-          data: {
-            checkWeightID : updatedData.checkWeightID,
-            jobID: checkweightdata?.jobID || 0,
-            licenseNumber: getlicense?.request.licenseNumber || '',
-            index: getlicense?.description.index || 0,
-            specialJob: getlicense?.specialJob || '',
-            companyName: getlicense?.request.companyName || '',
-            surveyLocateNameThai : getlicense?.request.surveyLocateNameThai || '',
-           
-             portName  : getlicense?.request.portName || '',
-             destination : getlicense?.description.destination || '',
-             riceType : getlicense?.description.riceType || '',
-              quantity : getlicense?.description.quantity || 0,
-             totalGrossWeight : updatedData?.totalGrossWeight|| 0,
-             totalTareWeight :updatedData?.totalTareWeight || 0,
-              totalNettWeight : updatedData?.totalNetWeight || 0,
-             shipper : getlicense?.request.requestBy || '',
-             dateCheckWeight : getlicense?.request.requestDate || new Date(),
-             marks: 'xxxxxxx',
-            status : false,
-          },
+      if (currentRemain <= 0) {
+        return response.status(400).send({
+          message: 'Cannot update check weight data because remainNetWeightKGM is zero or negative',
         });
       }
 
+      const newRemain = currentRemain - (dto.totalNetWeight || 0);
+      if (newRemain < 0) {
+        return response.status(400).send({
+          message: 'Cannot update: totalNetWeight exceeds remaining remainNetWeightKGM',
+        });
+      }
+
+      const updatedData = await this.prisma.validate_Check_Weight.update({
+        where: { checkWeightID },
+        data: dto,
+      });
+
+      await this.prisma.description.update({
+        where: { descriptionID: getlicense.description?.descriptionID || '' },
+        data: { remainNetWeightKGM: newRemain },
+      });
+
+      await this.prisma.certificatesheet.create({
+        data: {
+          checkWeightID: updatedData.checkWeightID,
+          jobID: getlicense.jobID || 0,
+          licenseNumber: getlicense.request.licenseNumber || '',
+          index: getlicense.description?.index || 0,
+          specialJob: getlicense.specialJob || '',
+          companyName: getlicense.request.companyName || '',
+          surveyLocateNameThai: getlicense.request.surveyLocateNameThai || '',
+          portName: getlicense.request.portName || '',
+          destination: getlicense.description?.destination || '',
+          riceType: getlicense.description?.riceType || '',
+          quantity: getlicense.description?.quantity || 0,
+          totalGrossWeight: updatedData.totalGrossWeight || 0,
+          totalTareWeight: updatedData.totalTareWeight || 0,
+          totalNettWeight: updatedData.totalNetWeight || 0,
+          shipper: getlicense.request.requestBy || '',
+          dateCheckWeight: getlicense.request.requestDate || new Date(),
+          marks: 'xxxxxxx',
+          status: false,
+        },
+      });
+
       return response.status(200).send({
-        message:
-          'Check weight data and addcertificatesheet already updated successfully',
+        message: 'Check weight data and addcertificatesheet already updated successfully',
         data: updatedData,
       });
     } catch (error) {
