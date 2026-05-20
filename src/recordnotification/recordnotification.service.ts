@@ -269,6 +269,8 @@ export class RecordnotificationService {
           jobID: true,
           quantity: true,
           totalNetWeight: true,
+          loadingDetails: true,
+          riceName: true,
           
           request: {
             select: {
@@ -280,7 +282,9 @@ export class RecordnotificationService {
             },
           },
           description: {
-            select: { licenseDetailID: true },
+            select: { licenseDetailID: true,
+              vehicleName: true
+             },
           },
         },
         orderBy: { jobID: 'asc' },
@@ -292,6 +296,14 @@ export class RecordnotificationService {
         where: { licenseDetailID: { in: uniqueLicenseDetailIDs } },
       });
       const bufferRemainMap = new Map(bufferRemains.map((b) => [b.licenseDetailID, b]));
+
+      // ดึง surveyNameEN จาก surveyName table โดยใช้ surveyLocateNameThai
+      const uniqueSurveyNames = [...new Set(data.map((i) => i.request?.surveyLocateNameThai).filter(Boolean))] as string[];
+      const surveyNames = await this.prisma.surveyName.findMany({
+        where: { surveyNameTH: { in: uniqueSurveyNames } },
+        select: { surveyNameTH: true, surveyNameEN: true },
+      });
+      const surveyNameMap = new Map(surveyNames.map((s) => [s.surveyNameTH, s.surveyNameEN]));
 
       // group by licenseDetailID
       const groupMap = new Map<string, { licenseIndex: number; licenseDetailID: string; remainNetWeightKGM: number | null; maximumWeight: number | null; records: any[] }>();
@@ -314,9 +326,12 @@ export class RecordnotificationService {
           jobID: item.jobID,
           quantity: item.quantity,
           totalNetWeight: item.totalNetWeight,
+          loadingDetails: item.loadingDetails,
+          riceName: item.riceName,
+          vehicleName: item.description?.vehicleName,
           shippingDateTime: item.request?.shippingDateTime,
           surveyProvince: item.request?.surveyProvince,
-          surveyLocateNameThai: item.request?.surveyLocateNameThai,
+          surveyName: surveyNameMap.get(item.request?.surveyLocateNameThai ?? '') || item.request?.surveyLocateNameThai,
           portName: item.request?.portName,
           surveyPaidBy: item.request?.surveyPaidBy,
         });
@@ -328,22 +343,17 @@ export class RecordnotificationService {
         where: { licenseNumber },
         select: {
           licenseNumber: true,
-          
-          
-        
-        
+          exporter: true,
           expiredDate: true,
-        
-        
           currency: true,
           exchangeRate: true,
-         
+         destinationCountry: true,
           licenseDetails: {
-            select: {
-              licenseDetailID: true,
-              pricePerUnit: true,
-              netWeightTON: true,
-            },
+            // select: {
+            //   licenseDetailID: true,
+            //   pricePerUnit: true,
+            //   netWeightTON: true,
+            // },
           },
         },
       });
