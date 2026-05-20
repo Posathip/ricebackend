@@ -9,6 +9,4 @@ services:
       - "4000:4000"
     env_file:
       - .env
-    volumes:
-      - ./:/var/source   # ถ้าต้องการแมปโค้ดในเครื่องเข้า container (option)
     restart: unless-stopped
