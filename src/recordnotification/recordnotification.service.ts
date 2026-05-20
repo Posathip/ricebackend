@@ -258,6 +258,109 @@ export class RecordnotificationService {
     }
   }
 
+  async getLicenseHistory(licenseNumber: string, @Req() request: any, @Res({ passthrough: true }) response: FastifyReply) {
+    try {
+      const data = await this.prisma.validate_Check_Weight.findMany({
+        where: {
+          status: true,
+          description: { licenseNumber },
+        },
+        select: {
+          jobID: true,
+          quantity: true,
+          totalNetWeight: true,
+          
+          request: {
+            select: {
+              shippingDateTime: true,
+              surveyProvince: true,
+              surveyLocateNameThai: true,
+              portName: true,
+              surveyPaidBy: true,
+            },
+          },
+          description: {
+            select: { licenseDetailID: true },
+          },
+        },
+        orderBy: { jobID: 'asc' },
+      });
+
+      // ดึง unique licenseDetailID และ bufferRemain ทีเดียว
+      const uniqueLicenseDetailIDs = [...new Set(data.map((i) => i.description?.licenseDetailID).filter(Boolean))] as string[];
+      const bufferRemains = await this.prisma.bufferRemain.findMany({
+        where: { licenseDetailID: { in: uniqueLicenseDetailIDs } },
+      });
+      const bufferRemainMap = new Map(bufferRemains.map((b) => [b.licenseDetailID, b]));
+
+      // group by licenseDetailID
+      const groupMap = new Map<string, { licenseIndex: number; licenseDetailID: string; remainNetWeightKGM: number | null; maximumWeight: number | null; records: any[] }>();
+      let indexCounter = 1;
+
+      for (const item of data) {
+        const licenseDetailID = item.description?.licenseDetailID ?? '__unknown__';
+
+        if (!groupMap.has(licenseDetailID)) {
+          groupMap.set(licenseDetailID, {
+            licenseIndex: indexCounter++,
+            licenseDetailID,
+            remainNetWeightKGM: bufferRemainMap.get(licenseDetailID)?.remainNetWeightKGM ?? null,
+            maximumWeight: bufferRemainMap.get(licenseDetailID)?.MaximumWeight ?? null,
+            records: [],
+          });
+        }
+
+        groupMap.get(licenseDetailID)!.records.push({
+          jobID: item.jobID,
+          quantity: item.quantity,
+          totalNetWeight: item.totalNetWeight,
+          shippingDateTime: item.request?.shippingDateTime,
+          surveyProvince: item.request?.surveyProvince,
+          surveyLocateNameThai: item.request?.surveyLocateNameThai,
+          portName: item.request?.portName,
+          surveyPaidBy: item.request?.surveyPaidBy,
+        });
+      }
+
+      const result = [...groupMap.values()];
+
+      const govData = await this.prisma.dataFromGoverment.findFirst({
+        where: { licenseNumber },
+        select: {
+          licenseNumber: true,
+          
+          
+        
+        
+          expiredDate: true,
+        
+        
+          currency: true,
+          exchangeRate: true,
+         
+          licenseDetails: {
+            select: {
+              licenseDetailID: true,
+              pricePerUnit: true,
+              netWeightTON: true,
+            },
+          },
+        },
+      });
+
+      return response.status(200).send({
+        message: 'License history retrieved successfully',
+        govData,
+        data: result,
+      });
+    } catch (error) {
+      return response.status(500).send({
+        message: 'Failed to retrieve license history',
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   async postData(dtoArray: ValidateCheckWeightDto[],  @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
 ) {

@@ -123,6 +123,72 @@ export class RecordnotificationController {
     );
   }
 
+  @ApiOperation({ summary: 'Get License History by License Number' })
+  @ApiResponse({
+    status: 200,
+    description: 'Get license history successfully.',
+    schema: {
+      example: {
+        message: 'License history retrieved successfully',
+        govData: {
+          licenseNumber: '0308116917947',
+          exporter: 'ซี.พี.อินเตอร์เทรด จำกัด',
+          exporterNoCut: 'ซี.พี.อินเตอร์เทรด จำกัด (มหาชน)',
+          recipient: 'CP INTERTRADE CO., LTD.',
+          buyer: null,
+          exportAgent: 'ธรรมรัตน์',
+          exportAgentNoCut: 'นายธรรมรัตน์ สมใจ',
+          companyTax: '0105555123456',
+          telephone: '027667662',
+          product: 'ข้าวเจ้าขาวอื่น',
+          issueDate: '2026-01-01T00:00:00.000Z',
+          expiredDate: '2026-12-31T00:00:00.000Z',
+          exportDate: null,
+          buyerCountry: 'HONG KONG',
+          destinationCountry: 'HONG KONG',
+          exportBy: null,
+          vehicle: 'เรือ',
+          portName: 'ท่าเรือกรุงเทพ/แหลมฉบัง',
+          currency: 'USD',
+          exchangeRate: 33.5,
+          permitConditions: '-',
+          licenseDetails: [
+            { licenseDetailID: '002e19b7-4aeb-4ec4-b93d-5b1a25d14f08', pricePerUnit: 450.5 },
+          ],
+        },
+        data: [
+          {
+            licenseIndex: 1,
+            licenseDetailID: '002e19b7-4aeb-4ec4-b93d-5b1a25d14f08',
+            remainNetWeightKGM: 6000,
+            maximumWeight: 44000,
+            records: [
+              {
+                jobID: 50,
+                quantity: 600,
+                totalNetWeight: 38000,
+                shippingDateTime: '2026-05-18T19:30:00.000Z',
+                surveyProvince: 'กาญจนบุรี',
+                surveyLocateNameThai: 'การพานิช',
+                portName: 'ท่าเรือกรุงเทพ/แหลมฉบัง',
+                surveyPaidBy: 'ซี.พี.อินเตอร์เทรด จำกัด',
+              },
+            ],
+          },
+        ],
+      },
+    },
+  })
+  @ApiQuery({ name: 'licensenumber', required: true, type: String, description: 'License Number', example: '0308116917947' })
+  @Get('licensehistory')
+  getLicenseHistory(
+    @Query('licensenumber') licenseNumber: string,
+    @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
+    return this.recordnotificationService.getLicenseHistory(licenseNumber, request, response);
+  }
+
   @ApiOperation({
     summary: 'Get Check Weight Data filter by jobno and licenseid',
   })
@@ -159,4 +225,6 @@ export class RecordnotificationController {
       response,
     );
   }
+
+  
 }

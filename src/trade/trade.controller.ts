@@ -136,47 +136,38 @@ return {
 
 @ApiOperation({ summary: 'แจ้งขอตรวจสอบ' })
 @ApiResponse({ status: 200, description: 'ทำการแจ้งขอตรวจสอบ Complete' })
-@ApiBody({ 
+@ApiBody({
   description: 'รายละเอียดการแจ้งขอตรวจสอบ',
   schema: {
     example: {
-      "companyName": "บริษัท 16 ไอโอทีอี จำกัดมหาชน",
-      "requestBy": "ite admin",
-      "requestDate": "2025-08-16T10:00:00.000Z",
-      "shippingDateTime": "2025-08-16T13:30:00.000Z",
-      "surveyLocateNameThai": "ไร่ข้าวหอมบ้านป่าบง",
-      "surveyLocateNameEng": "Ban Pa Bong Aromatic Rice Farm",
-      "surveyPaidBy": "บริษัท รุ่งเรืองค้าข้าว จำกัด",
-      "surveyProvince": "เชียงใหม่",
-      "payer": "ชื่อฟิล RequestBy",
-      "surveySubDistrict": "สันทราย",
-      "telInspector": "0891234567",
-      "telDebtor": "0887654321",
-      "licenseNumber": "0308116838587",
+      "companyName": "ซี.พี.อินเตอร์เทรด จำกัด",
+      "payer": "ซี.พี.อินเตอร์เทรด จำกัด",
+      "requestBy": "ธรรมรัตน์",
+      "requestDate": "2026-05-19T17:34:37.904+07:00",
+      "shippingDateTime": "2026-05-19T02:30:00.000+07:00",
+      "surveyLocateNameThai": "การพานิช",
+      "surveyLocateNameEng": "KARNPANICH RICE MILL",
+      "surveyPaidBy": "",
+      "surveyProvince": "กาญจนบุรี",
+      "surveySubDistrict": "ท่าม่วง",
+      "telInspector": "027667662",
+      "telDebtor": "",
+      "licenseNumber": "0308116917947",
       "description": [
           {
-              "destination": "Bangkok",
-              "riceType": "Jasmine",
-              "vehicleName": "Truck A",
-              "marker": "Marker001",
-              "licenseNumber": "528072",
-              "quantity": 100,
-              "quantityUnit": "kg",
-              "grossWeight": 120,
-              "netWeight": 115,
-              "index": 1
-          },
-          {
-              "destination": "BRU",
-              "riceType": "Jasmine",
-              "vehicleName": "Truck A",
-              "marker": "Marker001",
-              "licenseNumber": "123123191",
-              "quantity": 100,
-              "quantityUnit": "kg",
-              "grossWeight": 120,
-              "netWeight": 115,
-              "index": 2
+              "licenseDetailID": "002e19b7-4aeb-4ec4-b93d-5b1a25d14f08",
+              "index": 1,
+              "destination": "HONG KONG",
+              "riceType": "ข้าวเจ้าขาวอื่น 100 %",
+              "vehicleName": "lic",
+              "marker": "",
+              "licenseNumber": "0308116920068",
+              "quantity": 1760,
+              "quantityUnit": "BG",
+              "grossWeight": 200,
+              "netWeightW": 25,
+              "netWeightTON": 44,
+              "netWeightKGM": 40000
           }
       ]
     }

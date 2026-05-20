@@ -104,7 +104,7 @@ model Request {
 model BufferRemain {
   bufferRemainID String   @id @default(uuid())
   licenseDetailID      String  @unique
-
+  MaximumWeight Float?
   remainNetWeightKGM Float?
 
   createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))

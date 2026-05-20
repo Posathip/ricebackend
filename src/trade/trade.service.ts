@@ -289,6 +289,8 @@ async createOrder(dto: CreateOrderDto, @Res({ passthrough: true }) response: Fas
       .map((desc) => ({
         licenseDetailID: desc.licenseDetailID!,
         remainNetWeightKGM: desc.netWeightKGM,
+        MaximumWeight: desc.netWeightKGM,
+
       }));
 
     if (bufferRemainList.length > 0) {

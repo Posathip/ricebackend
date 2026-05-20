@@ -249,7 +249,7 @@ async getcertificatebyid(certificateId: string, request: any, response: any) {
     totalTareWeight: true,
     totalNettWeight: true,
     status: true,
-
+    
     checkWeight: {
       select: {
        
