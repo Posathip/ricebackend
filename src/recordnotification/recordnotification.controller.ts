@@ -181,6 +181,7 @@ export class RecordnotificationController {
                 surveyName: 'KARNPANICH RICE MILL',
                 portName: 'ท่าเรือกรุงเทพ/แหลมฉบัง',
                 surveyPaidBy: '',
+                requestBy: '',
               },
             ],
           },
@@ -202,6 +203,7 @@ export class RecordnotificationController {
                 surveyName: 'KARNPANICH RICE MILL',
                 portName: 'ท่าเรือกรุงเทพ/แหลมฉบัง',
                 surveyPaidBy: '',
+                requestBy: '',
               },
               {
                 jobID: 64,
@@ -215,6 +217,7 @@ export class RecordnotificationController {
                 surveyName: 'KARNPANICH RICE MILL',
                 portName: 'ท่าเรือกรุงเทพ/แหลมฉบัง',
                 surveyPaidBy: '',
+                requestBy: '',
               },
               {
                 jobID: 68,
@@ -228,6 +231,7 @@ export class RecordnotificationController {
                 surveyName: 'KARNPANICH RICE MILL',
                 portName: 'ท่าเรือกรุงเทพ/แหลมฉบัง',
                 surveyPaidBy: '',
+                requestBy: '',
               },
             ],
           },

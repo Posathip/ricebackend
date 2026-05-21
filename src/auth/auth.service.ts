@@ -1,166 +1,167 @@
-
-import { BadRequestException, ForbiddenException, Injectable, Req, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request, response, Response } from 'express';
+import { Request, Response } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
-
 import * as bcrypt from 'bcrypt';
-
-import * as crypto from 'crypto';
-import { jwt_Access_Secret, jwt_Refresh_Secret } from '../config/app.config';
 import { CreateAccountUser, LoginDTO } from 'src/dto/user.dto';
 import { ConfigService } from '@nestjs/config';
 import { FastifyReply } from 'fastify';
 
 @Injectable()
 export class AuthService {
-  [x: string]: any;
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
- private readonly configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
-
-
-async createAccountUser(
-
-   dto: CreateAccountUser,
-        @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,
-
-){
-    const checkEmail = await this.prisma.user.findUnique({
-        where: { email: dto.email}
-    });
-
-    if (checkEmail){
-        throw new BadRequestException('Email already exist');
-    }
-       const password =  "Demoadmin";
-           
-       const hashpassword = await this.hashPassword(password);
-       console.log(hashpassword)
-       const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: password,
-       hashpassword: hashpassword,
-        roleUserLevel: dto.roleUserLevel,
-      },
-    });
-   
-       return response.status(200).send({
-         message: `Create account email: ${dto.email}  complete`,
-       });
-}
-
-async testsignin(
-    dto: LoginDTO,
-     req: Request,
-  res: Response
-){
+  async createAccountUser(
+    dto: CreateAccountUser,
+    request: any,
+    response: FastifyReply,
+  ): Promise<void> {
+    // console.log('[AuthService.createAccountUser] email:', dto.email);
     try {
-         return res.status(200).send({
-         message: `Create account email:  complete`,
-       });
+      const checkEmail = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+
+      if (checkEmail) {
+        throw new BadRequestException('Email already exist');
+      }
+
+      const defaultPassword = this.configService.get<string>('DEFAULT_PASSWORD', 'Demoadmin');
+      const hashpassword = await this.hashPassword(defaultPassword);
+
+      await this.prisma.user.create({
+        data: {
+          email: dto.email,
+          password: defaultPassword,
+          hashpassword: hashpassword,
+          roleUserLevel: dto.roleUserLevel,
+        },
+      });
+
+      // console.log('[AuthService.createAccountUser] created email:', dto.email);
+      return response.status(200).send({
+        message: `Create account email: ${dto.email}  complete`,
+      });
     } catch (error) {
-        return res.status(500).send({
-            message: 'Failed to create account',
-            error: error.message || error,
-          });
-        
+      console.error('[AuthService.createAccountUser]', error);
+      if (error instanceof BadRequestException) throw error;
+      const message = error instanceof Error ? error.message : String(error);
+      throw new InternalServerErrorException(message);
     }
+  }
 
-}
-async signin(
+  async testsignin(dto: LoginDTO, req: Request, res: Response): Promise<void> {
+    // console.log('[AuthService.testsignin] email:', dto.email);
+    try {
+      // console.log('[AuthService.testsignin] result: ok');
+      res.status(200).send({ message: `Create account email:  complete` });
+    } catch (error) {
+      console.error('[AuthService.testsignin]', error);
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(500).send({
+        message: 'Failed to create account',
+        error: message,
+      });
+    }
+  }
+
+  async signin(
     dto: LoginDTO,
-     @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,
+    request: any,
+    response: FastifyReply,
+  ): Promise<void> {
+    // console.log('[AuthService.signin] email:', dto.email);
+    try {
+      const { email, password } = dto;
 
-  ) {
-try {
-     const { email, password } = dto;
-    const foundUser = await this.prisma.user.findUnique({
-      where: { email: email },
-    });
+      const foundUser = await this.prisma.user.findUnique({
+        where: { email: email },
+      });
 
-    if (!foundUser) {
-      throw new BadRequestException('No email in database');
-    }
-    const isMatch = await this.comparePasswords({
-      password,
-      hash: foundUser.hashpassword,
-    });
-    if (!isMatch) {
-      throw new BadRequestException('Password are not correct');
-    }
-    const token = await this.signaccessToken({
-      id: foundUser.id,
-      email: foundUser.email,
-      roleUserLevel: foundUser.roleUserLevel,
-    });
-    const refreshtoken = await this.createRefreshtoken({
+      if (!foundUser) {
+        throw new BadRequestException('No email in database');
+      }
+
+      const isMatch = await this.comparePasswords({
+        password,
+        hash: foundUser.hashpassword,
+      });
+
+      if (!isMatch) {
+        throw new BadRequestException('Password are not correct');
+      }
+
+      const token = await this.signaccessToken({
+        id: foundUser.id,
+        email: foundUser.email,
+        roleUserLevel: foundUser.roleUserLevel,
+      });
+
+      const refreshtoken = await this.createRefreshtoken({
         id: foundUser.id,
         email: foundUser.email,
       });
-    if (!token) {
+
+      if (!token) {
         throw new ForbiddenException();
       }
-    //   response.cookie('token', refreshtoken, {
-    //     httpOnly: true, sameSite: 'none', secure: true , maxAge: 24 * 60 * 60 * 1000,
-    //     domain: 'asia-southeast1-agtechaibackend.cloudfunctions.net'
-    //   });
+
       const date = new Date();
-      const accesstoken_age = new Date(date.getTime() + 24 * 60 * 60 * 60000);
-      const refreshtoken_age = new Date(date.getTime() + 24 * 60 * 60 * 1000);
-       
-      return response.status(200).send( {
+      const accessTokenAgeMs = Number(this.configService.get<string>('ACCESS_TOKEN_AGE_MS'));
+      const refreshTokenAgeMs = Number(this.configService.get<string>('REFRESH_TOKEN_AGE_MS'));
+      const accessTokentime = new Date(date.getTime() + accessTokenAgeMs);
+      const refreshTokentime = new Date(date.getTime() + refreshTokenAgeMs);
+
+      // console.log('[AuthService.signin] login success, email:', email);
+      return response.status(200).send({
         message: 'Logged in sucessfully',
-        accessTokentime: accesstoken_age,
+        accessTokentime,
         accessToken: token,
         refreshToken: refreshtoken,
-        refreshTokentime: refreshtoken_age,
-      }); 
-} catch (error) {
-    console.error('Login error:', error); // log เต็ม
-  return response.status(500).send({
-    message: 'Failed to Login',
-    error: error instanceof Error ? error.message : 'Unknown error',
-  });
-}
-    
-   
-    
-    //sign jwt and return to the user
-}
-//     async signout(
-//         @Req() request: FastifyRequest,
-//         @Res({ passthrough: true }) response: FastifyReply,
-//       ) {
-//         console.log(request.cookies);
-//         response.clearCookie('token',{
-//             path: '/auth', // Clear only for a specific path
-          
-//             secure: true, // Only clear the cookie over HTTPS
-//           });
-//         return response.status(202).send({ message: 'Log Out Successfully' });
-//       }
-    
+        refreshTokentime,
+      });
+    } catch (error) {
+      console.error('[AuthService.signin]', error);
+      return response.status(500).send({
+        message: 'Failed to Login',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
 
-async hashPassword(password: string) {
-    const saltOrRounds = 10;
-    return await bcrypt.hash(password, saltOrRounds);
+  async hashPassword(password: string): Promise<string> {
+    // console.log('[AuthService.hashPassword]');
+    const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT_ROUNDS'));
+    const hash = await bcrypt.hash(password, saltRounds);
+    // console.log('[AuthService.hashPassword] hash generated');
+    return hash;
   }
-  async comparePasswords(args: { password: string; hash: string }) {
-    return await bcrypt.compare(args.password, args.hash);
+
+  async comparePasswords(args: {
+    password: string;
+    hash: string;
+  }): Promise<boolean> {
+    // console.log('[AuthService.comparePasswords]');
+    const result = await bcrypt.compare(args.password, args.hash);
+    // console.log('[AuthService.comparePasswords] isMatch:', result);
+    return result;
   }
-  
+
   async signaccessToken(args: {
     id: string;
     email: string;
     roleUserLevel: string;
-  }) {
+  }): Promise<string> {
+    // console.log('[AuthService.signaccessToken] userId:', args.id);
     const payload = {
       id: args.id,
       email: args.email,
@@ -169,79 +170,26 @@ async hashPassword(password: string) {
 
     const token = await this.jwt.signAsync(payload, {
       secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-      expiresIn: '1d',
+      expiresIn: this.configService.get<string>('ACCESS_TOKEN_EXPIRY'),
     });
 
-    // const token = await this.jwt.signAsync(payload)
-
+    // console.log('[AuthService.signaccessToken] token generated');
     return token;
   }
 
-  async createRefreshtoken(args: { id: string; email: string }) {
+  async createRefreshtoken(args: {
+    id: string;
+    email: string;
+  }): Promise<string> {
+    // console.log('[AuthService.createRefreshtoken] userId:', args.id);
     const payload = { id: args.id, email: args.email };
 
     const token = await this.jwt.signAsync(payload, {
-      secret: jwt_Refresh_Secret,
-      expiresIn: '1d',
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get<string>('REFRESH_TOKEN_EXPIRY'),
     });
+
+    // console.log('[AuthService.createRefreshtoken] token generated');
     return token;
   }
-
-//   async refresh(
-//     headers,
-
-//     request: FastifyRequest,
-//     @Res({ passthrough: true }) response: FastifyReply,
-//   ) {
-//     // response.clearCookie('token',{
-//     //   path: '/', // Clear only for a specific path
-    
-//     //   secure: true, // Only clear the cookie over HTTPS
-//     // });
-
-//     // console.log(token);
-//     // const payload = await this.jwt.verify(token, {
-//     //   secret: jwt_Refresh_Secret,
-//     // });
-//     const refreshtoken = headers.substring(7, headers.length);
-//     const headerdecode = await this.jwt.verify(refreshtoken, {
-//       secret: jwt_Refresh_Secret,
-//     });
-
-//     const foundUser = await this.prisma.userAuthen.findUnique({
-//       where: { email: headerdecode.email },
-//     });
-
-//     const companyUser = await this.prisma.user.findUnique({
-//       where: { user_ID: headerdecode.id },
-//     })
-
-//     if (!foundUser) {
-//       throw new BadRequestException('No account right now');
-//     }
-
-//     const newaccesstoken = await this.signaccessToken({
-//       id: headerdecode.id,
-//       email: headerdecode.email,
-//       roleUserLevel: foundUser.roleUserLevel,
-     
-//     });
-//     //sign jwt and return to the user
-//     const newrefreshtoken = await this.createRefreshtoken({
-//       id: refreshtoken.id,
-//       email: refreshtoken.email,
-//     });
-//     const date = new Date();
-//     const accesstoken_age = new Date(date.getTime() + 30 * 60000);
-//     // response.setCookie('token', newrefreshtoken, {
-//     //   httpOnly: true, sameSite: 'none', secure: true , maxAge: 24 * 60 * 60 * 1000,
-//     //   domain: 'asia-southeast1-agtechaibackend.cloudfunctions.net'
-//     // });
-
-//     return response.status(200).send({
-//       message: 'refresh token complete',
-//       newaccesstoken: newaccesstoken,
-//       accesstokenexpiredin: accesstoken_age,
-//     });
-//   }
 }

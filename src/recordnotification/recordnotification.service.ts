@@ -181,7 +181,7 @@ export class RecordnotificationService {
         where: { checkWeightID },
         include: { request: true, description: true },
       });
-      console.log(getlicense)
+      // console.log(getlicense)
       if (!getlicense) {
         return response.status(404).send({ message: 'Check weight data not found' });
       }
@@ -278,7 +278,7 @@ export class RecordnotificationService {
               surveyProvince: true,
               surveyLocateNameThai: true,
               portName: true,
-              surveyPaidBy: true,
+             requestBy: true,
             },
           },
           description: {
@@ -333,7 +333,7 @@ export class RecordnotificationService {
           surveyProvince: item.request?.surveyProvince,
           surveyName: surveyNameMap.get(item.request?.surveyLocateNameThai ?? '') || item.request?.surveyLocateNameThai,
           portName: item.request?.portName,
-          surveyPaidBy: item.request?.surveyPaidBy,
+          requestBy: item.request?.requestBy,
         });
       }
 
