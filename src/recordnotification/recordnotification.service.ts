@@ -349,18 +349,29 @@ export class RecordnotificationService {
           exchangeRate: true,
          destinationCountry: true,
           licenseDetails: {
-            // select: {
-            //   licenseDetailID: true,
-            //   pricePerUnit: true,
-            //   netWeightTON: true,
-            // },
+            select: {
+              licenseDetailID: true,
+              netWeightTON: true,
+              quantity: true,
+              pricePerUnit: true,
+            },
           },
         },
       });
 
+      const govDataWithIndex = govData
+        ? {
+            ...govData,
+            licenseDetails: govData.licenseDetails.map((detail, i) => ({
+              index: i + 1,
+              ...detail,
+            })),
+          }
+        : govData;
+
       return response.status(200).send({
         message: 'License history retrieved successfully',
-        govData,
+        govData: govDataWithIndex,
         data: result,
       });
     } catch (error) {

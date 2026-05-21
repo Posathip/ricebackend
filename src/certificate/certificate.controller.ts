@@ -351,7 +351,7 @@ getcertificatehistorybymonth(
 
 }
 
-@Get('gethistorycertificate') 
+@Get('certificatehistory') 
 @ApiOperation({ summary: 'Get Certificate History by licenseNumber' })
 @ApiResponse({
   status: 200,

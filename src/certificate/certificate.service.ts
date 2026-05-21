@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Req, Res } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { FastifyReply } from 'fastify';
 import { PrismaService } from 'prisma/prisma.service';
 import { UpdateCertificateDto } from 'src/dto/certificatesheet.dto';
 
@@ -472,78 +473,207 @@ export class CertificateService {
     return certificates.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   }
 
-  async gethistoryCertificate(
-    licenseNumber: string,
-    request: any,
-    response: any,
-  ): Promise<void> {
-    // console.log('[CertificateService.gethistoryCertificate] licenseNumber:', licenseNumber);
-    try {
-      const certificatedetail = await this.prisma.dataFromGoverment.findMany({
-        where: { licenseNumber: licenseNumber },
-        select: { exporter: true, destinationCountry: true },
-      });
 
-      const certificateHistory = await this.prisma.certificatesheet.findMany({
-        where: { licenseNumber: licenseNumber, status: true },
-        select: {
-          checkWeight: {
-            select: {
-              jobID: true,
-              specialJob: true,
-              goDown: true,
-              grossWeight: true,
-              netWeightTon: true,
+    async gethistoryCertificate(licenseNumber: string, @Req() request: any, @Res({ passthrough: true }) response: FastifyReply) {
+      try {
+        const data = await this.prisma.validate_Check_Weight.findMany({
+          where: {
+            status: true,
+            description: { licenseNumber },
+            certificate :{ status: true , },
+          },
+          select: {
+            jobID: true,
+            quantity: true,
+            totalNetWeight: true,
+            loadingDetails: true,
+            riceName: true,
+            
+            request: {
+              select: {
+                shippingDateTime: true,
+                surveyProvince: true,
+                surveyLocateNameThai: true,
+                portName: true,
+               requestBy: true,
+              },
+            },
+            description: {
+              select: { licenseDetailID: true,
+                vehicleName: true
+               },
+            },
+          },
+          orderBy: { jobID: 'asc' },
+        });
+  
+        // ดึง unique licenseDetailID และ bufferRemain ทีเดียว
+        const uniqueLicenseDetailIDs = [...new Set(data.map((i) => i.description?.licenseDetailID).filter(Boolean))] as string[];
+        const bufferRemains = await this.prisma.bufferRemain.findMany({
+          where: { licenseDetailID: { in: uniqueLicenseDetailIDs } },
+        });
+        const bufferRemainMap = new Map(bufferRemains.map((b) => [b.licenseDetailID, b]));
+  
+        // ดึง surveyNameEN จาก surveyName table โดยใช้ surveyLocateNameThai
+        const uniqueSurveyNames = [...new Set(data.map((i) => i.request?.surveyLocateNameThai).filter(Boolean))] as string[];
+        const surveyNames = await this.prisma.surveyName.findMany({
+          where: { surveyNameTH: { in: uniqueSurveyNames } },
+          select: { surveyNameTH: true, surveyNameEN: true },
+        });
+        const surveyNameMap = new Map(surveyNames.map((s) => [s.surveyNameTH, s.surveyNameEN]));
+  
+        // group by licenseDetailID
+        const groupMap = new Map<string, { licenseIndex: number; licenseDetailID: string; remainNetWeightKGM: number | null; maximumWeight: number | null; records: any[] }>();
+        let indexCounter = 1;
+  
+        for (const item of data) {
+          const licenseDetailID = item.description?.licenseDetailID ?? '__unknown__';
+  
+          if (!groupMap.has(licenseDetailID)) {
+            groupMap.set(licenseDetailID, {
+              licenseIndex: indexCounter++,
+              licenseDetailID,
+              remainNetWeightKGM: bufferRemainMap.get(licenseDetailID)?.remainNetWeightKGM ?? null,
+              maximumWeight: bufferRemainMap.get(licenseDetailID)?.MaximumWeight ?? null,
+              records: [],
+            });
+          }
+  
+          groupMap.get(licenseDetailID)!.records.push({
+            jobID: item.jobID,
+            quantity: item.quantity,
+            totalNetWeight: item.totalNetWeight,
+            loadingDetails: item.loadingDetails,
+            riceName: item.riceName,
+            vehicleName: item.description?.vehicleName,
+            shippingDateTime: item.request?.shippingDateTime,
+            surveyProvince: item.request?.surveyProvince,
+            surveyName: surveyNameMap.get(item.request?.surveyLocateNameThai ?? '') || item.request?.surveyLocateNameThai,
+            portName: item.request?.portName,
+            requestBy: item.request?.requestBy,
+          });
+        }
+  
+        const result = [...groupMap.values()];
+
+        const govData = await this.prisma.dataFromGoverment.findFirst({
+          where: { licenseNumber },
+          select: {
+            licenseNumber: true,
+            exporter: true,
+            expiredDate: true,
+            currency: true,
+            exchangeRate: true,
+           destinationCountry: true,
+            licenseDetails: {
+              select: {
+                 licenseDetailID: true,
+              netWeightTON: true,
               quantity: true,
-              loadingDetails: true,
-              riceName: true,
-              vehicleName: true,
-              request: {
-                select: { shippingDateTime: true },
+              pricePerUnit: true,
+             
+                // productDescription: true,
+               
               },
             },
           },
-        },
-      });
+        });
+  
+        const govDataWithIndex = govData
+          ? {
+              ...govData,
+              licenseDetails: govData.licenseDetails.map((detail, i) => ({
+                index: i + 1,
+                ...detail,
+              })),
+            }
+          : govData;
 
-      const goDownList = [
-        ...new Set(
-          certificateHistory
-            .map((item) => item.checkWeight?.goDown)
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ];
-
-      const surveyNames = await this.prisma.surveyName.findMany({
-        where: { surveyNameTH: { in: goDownList } },
-        select: { surveyNameTH: true, surveyNameEN: true, changwat: true },
-      });
-
-      const surveyMap = new Map(
-        surveyNames.map((item) => [
-          item.surveyNameTH,
-          { surveyNameEN: item.surveyNameEN, changwat: item.changwat },
-        ]),
-      );
-
-      const result = certificateHistory.map((item, index) => {
-        const surveyData = surveyMap.get(item.checkWeight?.goDown || '');
-        return {
-          index: (index + 1).toString(),
-          ...item,
-          checkWeight: {
-            ...item.checkWeight,
-            surveyName: surveyData?.surveyNameEN || item.checkWeight?.goDown || null,
-            changwat: surveyData?.changwat || null,
-          },
-        };
-      });
-
-      // console.log('[CertificateService.gethistoryCertificate] returned', result.length, 'records');
-      return response.status(200).send({ certificatedetail, result });
-    } catch (error) {
-      console.error('[CertificateService.gethistoryCertificate]', error);
-      return response.status(500).send({ message: 'Failed to retrieve certificate history' });
+        return response.status(200).send({
+          message: 'License history retrieved successfully',
+          govData: govDataWithIndex,
+          data: result.length > 0 ? result : 'ยังไม่มีข้อมูลที่ออกใบ Cert แล้ว',
+        });
+      } catch (error) {
+        return response.status(500).send({
+          message: 'Failed to retrieve license history',
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
-  }
+
+  // async gethistoryCertificate(
+  //   licenseNumber: string,
+  //   request: any,
+  //   response: any,
+  // ): Promise<void> {
+  //   // console.log('[CertificateService.gethistoryCertificate] licenseNumber:', licenseNumber);
+  //   try {
+  //     const certificatedetail = await this.prisma.dataFromGoverment.findMany({
+  //       where: { licenseNumber: licenseNumber },
+  //       select: { exporter: true, destinationCountry: true },
+  //     });
+
+  //     const certificateHistory = await this.prisma.certificatesheet.findMany({
+  //       where: { licenseNumber: licenseNumber, status: true },
+  //       select: {
+  //         checkWeight: {
+  //           select: {
+  //             jobID: true,
+  //             specialJob: true,
+  //             goDown: true,
+  //             grossWeight: true,
+  //             netWeightTon: true,
+  //             quantity: true,
+  //             loadingDetails: true,
+  //             riceName: true,
+  //             vehicleName: true,
+  //             request: {
+  //               select: { shippingDateTime: true },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+
+  //     const goDownList = [
+  //       ...new Set(
+  //         certificateHistory
+  //           .map((item) => item.checkWeight?.goDown)
+  //           .filter((value): value is string => Boolean(value)),
+  //       ),
+  //     ];
+
+  //     const surveyNames = await this.prisma.surveyName.findMany({
+  //       where: { surveyNameTH: { in: goDownList } },
+  //       select: { surveyNameTH: true, surveyNameEN: true, changwat: true },
+  //     });
+
+  //     const surveyMap = new Map(
+  //       surveyNames.map((item) => [
+  //         item.surveyNameTH,
+  //         { surveyNameEN: item.surveyNameEN, changwat: item.changwat },
+  //       ]),
+  //     );
+
+  //     const result = certificateHistory.map((item, index) => {
+  //       const surveyData = surveyMap.get(item.checkWeight?.goDown || '');
+  //       return {
+  //         index: (index + 1).toString(),
+  //         ...item,
+  //         checkWeight: {
+  //           ...item.checkWeight,
+  //           surveyName: surveyData?.surveyNameEN || item.checkWeight?.goDown || null,
+  //           changwat: surveyData?.changwat || null,
+  //         },
+  //       };
+  //     });
+
+  //     // console.log('[CertificateService.gethistoryCertificate] returned', result.length, 'records');
+  //     return response.status(200).send({ certificatedetail, result });
+  //   } catch (error) {
+  //     console.error('[CertificateService.gethistoryCertificate]', error);
+  //     return response.status(500).send({ message: 'Failed to retrieve certificate history' });
+  //   }
+  // }
 }
