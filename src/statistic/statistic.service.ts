@@ -22,6 +22,9 @@ export class StatisticService {
       gte: parsedStartDate,
       lte: parsedEndDate,
     },
+    certificate :{
+      status: true,
+    }
   },
   select: {
     riceName    : true,
@@ -35,10 +38,10 @@ export class StatisticService {
     request: {
       select: {
         requestID: true,
-        // ใส่ field ที่อยากได้เพิ่ม
-    licenseNumber: true,
+        licenseNumber: true,
         companyName: true,
-        companyNameEng  : true,
+        companyNameEng: true,
+        surveyLocateNameThai: true,
       },
     },
     description:{
@@ -47,8 +50,15 @@ export class StatisticService {
             index:true,
             destination : true,
             vehicleName : true,
+            licenseDetailID: true,
+              netWeightTON : true,
         }
-    }
+    },
+    certificate: {
+      select: {
+        certNo: true,
+      },
+    },
   },
   orderBy: {
   time: 'asc'
@@ -68,48 +78,101 @@ const licenseDetails = await this.prisma.dataFromGoverment.findMany({
   },
   select: {
     licenseNumber: true,
-    exporter: true,
-    product: true,
     exchangeRate: true,
-    
-    
     licenseDetails: {
       select: {
-       pricePerUnit: true,
+        licenseDetailID: true,
+        pricePerUnit: true,
       },
     },
   },
 });
 
 
-const licenseMap = new Map(
-  licenseDetails.map((item) => [item.licenseNumber, item])
+const licenseDetailMap = new Map<string, { pricePerUnit: number | null; exchangeRate: number }>();
+licenseDetails.forEach((item) => {
+  item.licenseDetails.forEach((detail) => {
+    licenseDetailMap.set(detail.licenseDetailID, {
+      pricePerUnit: detail.pricePerUnit,
+      exchangeRate: item.exchangeRate,
+    });
+  });
+});
+
+const surveyNameTHList = [
+  ...new Set(staticticData.map((item) => item.request?.surveyLocateNameThai).filter(Boolean)),
+];
+
+const surveyNames = await this.prisma.surveyName.findMany({
+  where: { surveyNameTH: { in: surveyNameTHList as string[] } },
+  select: { surveyNameTH: true, surveyNameEN: true },
+});
+
+const surveyNameMap = new Map(
+  surveyNames.map((s) => [s.surveyNameTH, s.surveyNameEN])
 );
 
-const excelLikeData = staticticData.map((cw, index) => 
-    {
-    const license = licenseMap.get(cw.request.licenseNumber);
+const riceNameList = [
+  ...new Set(staticticData.map((item) => item.riceName).filter(Boolean)),
+];
 
+const riceManageList = await this.prisma.riceManage.findMany({
+  where: { riceNameThai: { in: riceNameList as string[] } },
+  select: {
+    riceNameThai: true,
+    riceNameEng: true,
+    riceCodeT: true,
+    riceCode1: true,
+    riceCode2: true,
+    riceType: true,
+  },
+});
+
+const riceManageMap = new Map(
+  riceManageList.map((r) => [r.riceNameThai, r])
+);
+
+const excelLikeData = staticticData.map((cw, index) =>
+    {
+    const licenseDetail = cw.description?.licenseDetailID ? licenseDetailMap.get(cw.description.licenseDetailID) : null;
+    const surveyNameTH = cw.request?.surveyLocateNameThai || null;
+    const surveyNameEN = surveyNameTH ? surveyNameMap.get(surveyNameTH) : null;
+    const riceInfo = cw.riceName ? riceManageMap.get(cw.riceName) : null;
+      
     return {
       'ลำดับที่': index + 1,
 //   checkWeightID: cw.checkWeightID,
+ผู้ได้รับอนุญาติส่งออก : cw.request?.companyName || null,
+ ผู้ส่งมอบ: surveyNameEN || surveyNameTH,
+  เข้าตู้: cw.loadingDetails?.toLowerCase().includes('loading') ? '✓' : '',
+    'ลำดับที่c': cw.description?.index || null,
     ปี: cw.time
   ? (cw.time.getFullYear() + 543).toString().slice(-2)
   : null,
-  'ปริมาณต่อตัน'  : cw.weightPerTon,
-  ชนิดข้าว: cw.riceName,
-  เรือใหญ่: cw.description?.vehicleName,
-//   requestID: cw.request?.requestID || null,
-  'index': cw.description?.index || null,
-  ผู้ได้รับอนุญาติส่งออก : cw.request?.companyName || null, 
-  destination : cw.description?.destination || null,
-  jobiD: cw.jobID,
-  loadingDetails: cw.loadingDetails?.toLowerCase().includes('loading') ? '✓' : '',
-    supplierName: cw.supplierName,
-    ผู้ส่งมอบ: cw.goDown,
-    ราคา: license?.licenseDetails?.[0]?.pricePerUnit || null, 
-    อัตราแลกเปลี่ยน : license?.exchangeRate || null,
-    เพิ่มเติม: cw.riceName,
+  'เลขใบอนุญาต': cw.request?.licenseNumber?.slice(-5) || null,
+    'คำสั่งจ่างงานที่': cw.jobID,
+      เรือใหญ่: cw.description?.vehicleName,
+      เมืองตราส่ง : cw.description?.destination,
+        
+       'ชนิดข้าว EN': riceInfo?.riceNameEng || null,
+         'ปริมาณต่อตัน'  : cw.description?.netWeightTON  || null,
+        T: riceInfo?.riceCodeT || null,
+        'CODE 1': riceInfo?.riceCode1 || null,
+        '(Space1)':  null,
+        'CODE 2': riceInfo?.riceCode2 || null,
+          '(Space2)':  null,
+           'ราคา': licenseDetail?.pricePerUnit ?? null,
+               'อัตราแลกเปลี่ยน': licenseDetail?.exchangeRate ?? null,
+        ชื่อข้าวไทย: cw.riceName,
+
+
+//   certNo : cw.certificate?.certNo || null,
+// //   requestID: cw.request?.requestID || null,
+//   destination : cw.description?.destination || null,
+//     supplierName: cw.supplierName,
+//     ราคา: license?.licenseDetails?.[0]?.pricePerUnit || null,
+
+//     เพิ่มเติม: cw.riceName,
 }
     });
 
@@ -120,3 +183,4 @@ const excelLikeData = staticticData.map((cw, index) =>
     }
   }
 }
+
