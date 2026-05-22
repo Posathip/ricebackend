@@ -145,7 +145,7 @@ const excelLikeData = staticticData.map((cw, index) =>
 ผู้ได้รับอนุญาติส่งออก : cw.request?.companyName || null,
  ผู้ส่งมอบ: surveyNameEN || surveyNameTH,
   เข้าตู้: cw.loadingDetails?.toLowerCase().includes('loading') ? '✓' : '',
-    'ลำดับที่c': cw.description?.index || null,
+    'รายการที่': cw.description?.index || null,
     ปี: cw.time
   ? (cw.time.getFullYear() + 543).toString().slice(-2)
   : null,

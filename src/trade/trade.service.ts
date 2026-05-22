@@ -60,24 +60,15 @@ export class TradeService {
     });
   }
 
-  private buildCurrentMonthDateRange(): { STARTDATE: string; ENDDATE: string } {
+  private buildTodayDateRange(): { STARTDATE: string; ENDDATE: string } {
     const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    const getLastDayOfMonth = (year: number, month: number) =>
-      new Date(year, month, 0).getDate();
-
-    const startDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
-    const lastDay = getLastDayOfMonth(currentYear, currentMonth);
-
-    const endDate =
-      currentMonth === 12
-        ? `${currentYear + 1}-01-05`
-        : `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const today = `${y}-${m}-${d}`;
     return {
-      STARTDATE: `${startDate}T00:00:00`,
-      ENDDATE: `${endDate}T00:00:00`,
+      STARTDATE: `${today}T00:00:00`,
+      ENDDATE: `${today}T23:59:59`,
     };
   }
 
@@ -85,7 +76,7 @@ export class TradeService {
 
   async getData(request: any, response: FastifyReply): Promise<void> {
     // console.log('[TradeService.getData]');
-    const { STARTDATE, ENDDATE } = this.buildCurrentMonthDateRange();
+    const { STARTDATE, ENDDATE } = this.buildTodayDateRange();
     // console.log('[TradeService.getData] range:', STARTDATE, '→', ENDDATE);
 
     const xml = this.buildSoapXml(STARTDATE, ENDDATE);
