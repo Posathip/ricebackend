@@ -23,21 +23,47 @@ export class RecordnotificationService {
         where: {
           checkWeightID: checkWeightID,
         },
-        include: {
+        select: {
+          checkWeightID: true,
+          jobID: true,
+          staffID: true,
+          staffName: true,
+          status: true,
+          supplierName: true,
+          time: true,
+          noOfBags: true,
+          grossWeight: true,
+          netWeightW: true,
+          netWeightTon: true,
+          totalGrossWeight: true,
+          totalNetWeight: true,
+          totalTareWeight: true,
+          remainWeight: true,
+          weightPerTon: true,
+          goDown: true,
+          loadingDetails: true,
+          specialJob: true,
+          statusContinue: true,
+          note: true,
+          vehicleName: true,
+          riceName: true,
+          quantity: true,
+          descriptionID: true,
+          requestID: true,
+        
           description: {
             select: {
               destination: true,
-              vehicleName: true,
               licenseDetailID: true,
-            }
+            },
           },
           request: {
             select: {
               licenseNumber: true,
               shippingDateTime: true,
               requestBy: true,
-            }
-          }
+            },
+          },
         },
       });
 

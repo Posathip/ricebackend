@@ -221,7 +221,7 @@ export class CertificateService {
             select: {
               supplierName: true,
               time: true,
-              vesselName: true,
+              // vesselName: true,
               noOfBags: true,
               grossWeight: true,
               netWeightW: true,

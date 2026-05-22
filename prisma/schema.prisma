@@ -144,7 +144,7 @@ model validate_Check_Weight {
   status            Boolean
   supplierName      String?
   time               DateTime?
-  vesselName        String?
+  // vesselName        String?
   noOfBags          Float?
   grossWeight       Float?
   netWeightW        Float?

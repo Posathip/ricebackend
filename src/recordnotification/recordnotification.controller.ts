@@ -52,13 +52,57 @@ export class RecordnotificationController {
   @ApiResponse({
     status: 200,
     description: 'Get check weight data by ID successfully.',
+    schema: {
+      example: {
+        message: 'Check weight data retrieved successfully',
+        data: {
+          checkWeightID: '2ff49ff2-b0f8-4d1e-9d27-7cbb8adf5be7',
+          jobID: 86,
+          staffID: '3f15ef10-3561-4693-b2f3-441825aada30',
+          staffName: null,
+          status: true,
+          supplierName: 'เฮ็ลตี้ไรซ จำกัด',
+          time: '2026-05-21T19:30:00.000Z',
+          noOfBags: 2350,
+          grossWeight: 3,
+          netWeightW: 2,
+          netWeightTon: 21.3145,
+          totalGrossWeight: 7050,
+          totalNetWeight: 4700,
+          totalTareWeight: 4700,
+          remainWeight: null,
+          weightPerTon: 0,
+          goDown: 'ท่าเรือกรุงเทพ/แหลมฉบัง',
+          loadingDetails: '-',
+          specialJob: null,
+          statusContinue: '-',
+          note: '-',
+          vehicleName: 'cc',
+          riceName: 'ข้าวขาวหอมไทย 100%',
+          quantity: 2350,
+          descriptionID: 'e991b31e-2b83-4eac-a33b-346c6b8101fd',
+          requestID: '1b0bcc6c-15f8-4d73-9230-43a6d3dfa9a8',
+          description: {
+            destination: 'UNITED STATES OF AMERICA',
+            licenseDetailID: '8c545be6-e4ac-413d-8eb1-71657184d00c',
+          },
+          request: {
+            licenseNumber: '0308116919489',
+            shippingDateTime: '2026-05-14T19:30:00.000Z',
+            requestBy: 'ธกร',
+          },
+          remainNetWeightKGM: 16614.5,
+        },
+      },
+    },
   })
+  @ApiResponse({ status: 404, description: 'No data found for the given check weight ID.' })
   @ApiQuery({
     name: 'checkWeightID',
     required: true,
     type: String,
     description: 'ID of the check weight record',
-    example: '12323214214',
+    example: '2ff49ff2-b0f8-4d1e-9d27-7cbb8adf5be7',
   })
   @Get('getcheckweightdata')
   getCheckWeightData(
