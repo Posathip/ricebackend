@@ -592,7 +592,7 @@ export class CertificateService {
         return response.status(200).send({
           message: 'License history retrieved successfully',
           govData: govDataWithIndex,
-          data: result.length > 0 ? result : 'ยังไม่มีข้อมูลที่ออกใบ Cert แล้ว',
+          data: result,
         });
       } catch (error) {
         return response.status(500).send({
