@@ -200,17 +200,32 @@ export class RecordnotificationService {
       }
 
       const currentRemain = bufferRemain.remainNetWeightKGM ?? 0;
-      if (currentRemain <= 0) {
-        return response.status(400).send({
-          message: 'Cannot update check weight data because remainNetWeightKGM is zero or negative',
-        });
-      }
 
-      const newRemain = currentRemain - (dto.totalNetWeight || 0);
-      if (newRemain < 0) {
-        return response.status(400).send({
-          message: 'Cannot update: totalNetWeight exceeds remaining remainNetWeightKGM',
-        });
+      let newRemain: number;
+
+      if (!getlicense.status) {
+        // First update: subtract new totalNetWeight from currentRemain
+        if (currentRemain <= 0) {
+          return response.status(400).send({
+            message: 'Cannot update check weight data because remainNetWeightKGM is zero or negative',
+          });
+        }
+        newRemain = currentRemain - (dto.totalNetWeight || 0);
+        if (newRemain < 0) {
+          return response.status(400).send({
+            message: 'Cannot update: totalNetWeight exceeds remaining remainNetWeightKGM',
+          });
+        }
+      } else {
+        // Re-update: apply only the difference between new and old totalNetWeight
+        const oldTotalNetWeight = getlicense.totalNetWeight || 0;
+        const diff = (dto.totalNetWeight || 0) - oldTotalNetWeight;
+        newRemain = currentRemain - diff;
+        if (newRemain < 0) {
+          return response.status(400).send({
+            message: 'Cannot update: adjusted totalNetWeight exceeds remaining remainNetWeightKGM',
+          });
+        }
       }
 
       const updatedData = await this.prisma.validate_Check_Weight.update({
@@ -223,28 +238,41 @@ export class RecordnotificationService {
         data: { remainNetWeightKGM: newRemain },
       });
 
-      await this.prisma.certificatesheet.create({
-        data: {
-          checkWeightID: updatedData.checkWeightID,
-          jobID: getlicense.jobID || 0,
-          licenseNumber: getlicense.request.licenseNumber || '',
-          index: getlicense.description?.index || 0,
-          specialJob: getlicense.specialJob || '',
-          companyName: getlicense.request.companyName || '',
-          surveyLocateNameThai: getlicense.request.surveyLocateNameThai || '',
-          portName: getlicense.request.portName || '',
-          destination: getlicense.description?.destination || '',
-          riceType: getlicense.description?.riceType || '',
-          quantity: getlicense.description?.quantity || 0,
-          totalGrossWeight: updatedData.totalGrossWeight || 0,
-          totalTareWeight: updatedData.totalTareWeight || 0,
-          totalNettWeight: updatedData.totalNetWeight || 0,
-          shipper: getlicense.request.requestBy || '',
-          dateCheckWeight: getlicense.request.requestDate || new Date(),
-          marks: 'xxxxxxx',
-          status: false,
-        },
-      });
+      if (!getlicense.status) {
+        // First update: create certificatesheet
+        await this.prisma.certificatesheet.create({
+          data: {
+            checkWeightID: updatedData.checkWeightID,
+            jobID: getlicense.jobID || 0,
+            licenseNumber: getlicense.request.licenseNumber || '',
+            index: getlicense.description?.index || 0,
+            specialJob: getlicense.specialJob || '',
+            companyName: getlicense.request.companyName || '',
+            surveyLocateNameThai: getlicense.request.surveyLocateNameThai || '',
+            portName: getlicense.request.portName || '',
+            destination: getlicense.description?.destination || '',
+            riceType: getlicense.description?.riceType || '',
+            quantity: getlicense.description?.quantity || 0,
+            totalGrossWeight: updatedData.totalGrossWeight || 0,
+            totalTareWeight: updatedData.totalTareWeight || 0,
+            totalNettWeight: updatedData.totalNetWeight || 0,
+            shipper: getlicense.request.requestBy || '',
+            dateCheckWeight: getlicense.request.requestDate || new Date(),
+            marks: 'xxxxxxx',
+            status: false,
+          },
+        });
+      } else {
+        // Re-update: update existing certificatesheet weights
+        await this.prisma.certificatesheet.update({
+          where: { checkWeightID: updatedData.checkWeightID },
+          data: {
+            totalGrossWeight: updatedData.totalGrossWeight || 0,
+            totalTareWeight: updatedData.totalTareWeight || 0,
+            totalNettWeight: updatedData.totalNetWeight || 0,
+          },
+        });
+      }
 
       return response.status(200).send({
         message: 'Check weight data and addcertificatesheet already updated successfully',
