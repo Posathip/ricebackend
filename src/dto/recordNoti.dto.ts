@@ -82,7 +82,7 @@ export class UpdateCheckWeightData {
   @ApiProperty({ example: 'MV Ocean Star', required: false })
   @IsString()
   @IsOptional()
-  vesselName?: string;
+  vehicleName?: string;
 
   @ApiProperty({ example: 500, required: false })
   @IsNumber()
