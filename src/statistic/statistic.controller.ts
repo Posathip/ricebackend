@@ -1,12 +1,14 @@
-import { Controller, Get, Query, Req, Res } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { StatisticService } from './statistic.service';
 import { FastifyReply } from 'fastify';
 import { ApiOkResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/guards/jwt.guard';
 
 @Controller('statistic')
 export class StatisticController {
   constructor(private readonly statisticService: StatisticService) {}
 
+@UseGuards(JwtAuthGuard)
 @Get('filterstatisticdata')
 @ApiOkResponse({
   description: 'Statistic data (Excel format)',

@@ -7,8 +7,10 @@ import {
   Query,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { RecordnotificationService } from './recordnotification.service';
+import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import {
   UpdateCheckWeightData,
   ValidateCheckWeightDto,
@@ -21,6 +23,7 @@ export class RecordnotificationController {
   constructor(
     private readonly recordnotificationService: RecordnotificationService,
   ) {}
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Post Check Weight Data' })
   @ApiBody({ type: [ValidateCheckWeightDto] })
   @ApiResponse({ status: 200, description: 'Post Data Check Weight Complete.' })
@@ -32,6 +35,7 @@ export class RecordnotificationController {
   ) {
     return this.recordnotificationService.postData(dto, request, response);
   }
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get All Check Weight Data' })
   @ApiResponse({
     status: 200,
@@ -48,6 +52,7 @@ export class RecordnotificationController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get Check Weight Data by ID' })
   @ApiResponse({
     status: 200,
@@ -117,6 +122,7 @@ export class RecordnotificationController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get Check Weight Data by ID FilterBydate' })
   @ApiResponse({
     status: 200,
@@ -140,6 +146,7 @@ export class RecordnotificationController {
       response,
     );
   }
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update Check Weight Data' })
   @ApiResponse({
     status: 200,
@@ -167,6 +174,7 @@ export class RecordnotificationController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get License History by License Number' })
   @ApiResponse({
     status: 200,
@@ -293,6 +301,7 @@ export class RecordnotificationController {
     return this.recordnotificationService.getLicenseHistory(licenseNumber, request, response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Get Check Weight Data filter by jobno and licenseid',
   })

@@ -39,7 +39,7 @@ export class AdminController {
     return this.adminService.createRice(dto, request, response);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(201)
   @ApiOperation({ summary: 'Create Multiple Rice Manage Data' })
   @ApiResponse({ status: 201, description: 'Rice Manage records created successfully' })
@@ -67,7 +67,7 @@ export class AdminController {
     return this.adminService.createManyRice(dto, request, response);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Get all Rice Manage data' })
   @ApiResponse({ status: 200, description: 'Get all Rice Manage data complete' })

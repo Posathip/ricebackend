@@ -25,6 +25,7 @@ export class CertificateController {
       return this.certificateService.getcertificatebyid(id, request, response);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get('getcertificatebydate')
     @ApiOperation({ summary: 'Get All Certificates by Date' })
     @ApiResponse({
@@ -49,6 +50,7 @@ export class CertificateController {
     }
 
   // update-certificate.dto.ts
+  @UseGuards(JwtAuthGuard)
   @Put('updatecertificate')
   @ApiOperation({ summary: 'Update Certificate' })
   @ApiBody({
@@ -163,6 +165,7 @@ export class CertificateController {
   
   
 
+@UseGuards(JwtAuthGuard)
 @Get('search')
 @ApiOperation({ summary: 'Search Certificates by Multiple Fields' })
 @ApiResponse({
@@ -266,7 +269,8 @@ getcertificatehistorybydate(
   return this.certificateService.filterAllCertificatebyDate(startdate, enddate, request, response);
 }
 
-@Get('certificatehistorybymonth')  
+@UseGuards(JwtAuthGuard)
+@Get('certificatehistorybymonth')
 @ApiOperation({ summary: 'Filter All Certificates by Month' })
 @ApiResponse({
   status: 200,
@@ -351,7 +355,8 @@ getcertificatehistorybymonth(
 
 }
 
-@Get('certificatehistory') 
+@UseGuards(JwtAuthGuard)
+@Get('certificatehistory')
 @ApiOperation({ summary: 'Get Certificate History by licenseNumber' })
 @ApiResponse({
   status: 200,

@@ -14,6 +14,7 @@ export class TradeController {
     @ApiOperation({ summary: 'Get Data from Goverment' })
     
     @ApiResponse({ status: 200, description: 'Get Data from Goverment Complete' })
+  @UseGuards(JwtAuthGuard)
   @Post('getdata')
   getdata(@Req() request: any,
        @Res({ passthrough: true }) response: FastifyReply,
@@ -195,6 +196,7 @@ return {
 
     return this.tradeService.deleteOrder(orderID, request, response);
   }
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
    @ApiOperation({ summary: 'ทำการลบ รายละเอียดย่อยข้างล่าง Complete' })
   @ApiResponse({ status: 200, description: 'ทำการลบ รายละเอียดย่อยข้างล่าง Complete' })
@@ -250,7 +252,7 @@ getRequestbydate(
   return this.tradeService.getRequestbydate(date, request, response);  
 }
 
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 @ApiOperation({ summary: 'ทำการPost ข้อมูล SurveyName' })
   @ApiBody({ type: [CreateSurveyDto] })
   @ApiResponse({ status: 200, description: 'ทำการPost ข้อมูล SurveyName Complete' })
@@ -262,6 +264,7 @@ async postSurvey(
 ) {
   return this.tradeService.postSurvey(dto, request, response);  
 }
+@UseGuards(JwtAuthGuard)
 @ApiOperation({ summary: 'ทำการGet ข้อมูล ใบอนุญาติ' })
   @ApiBody({ type: [CreateSurveyDto] })
   @ApiResponse({ status: 200, description: 'ทำการPost ข้อมูล SurveyName Complete' })

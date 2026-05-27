@@ -1,6 +1,7 @@
 import { OrderbillService } from './orderbill.service';
 import { FastifyReply } from 'fastify';
-import { Body, Controller, Delete, Get, Post, Put, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import { CreateExtraInvoiceDto, CreatePhysicalAnalysisDto, CreateSellingLiquidsDto, UpdateDataAnalysisDto, UpdateExtraInvoiceDto, UpdateOrderStatusDto, UpdateSellingLiquidsDto,  } from 'src/dto/orderBill.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
 
@@ -9,6 +10,7 @@ import { ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiBody } from '@nestjs/s
 export class OrderbillController {
   constructor(private readonly orderbillService: OrderbillService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('postdataanalysis')
   @ApiOperation({ summary: 'Post physical analysis data' })
   @ApiBody({ type: CreatePhysicalAnalysisDto })
@@ -21,6 +23,7 @@ export class OrderbillController {
     return this.orderbillService.postDataAnalysis(dto, request, response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('postdataextrainvoice')
   @ApiOperation({ summary: 'Post extra invoice data' })
   @ApiBody({ type: CreateExtraInvoiceDto })
@@ -33,6 +36,7 @@ export class OrderbillController {
     return this.orderbillService.postDataExtrainvoice(dto, request, response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('postdatasellingliquids')
   @ApiOperation({ summary: 'Post selling liquids data' })
   @ApiBody({ type: CreateSellingLiquidsDto })
@@ -45,6 +49,7 @@ export class OrderbillController {
     return this.orderbillService.postDataSellingLiquids(dto, request, response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('getorderbilldatabydate')
   @ApiOperation({ summary: 'Get order bill data by date' })
   @ApiQuery({ name: 'date', type: String, required: true })
@@ -57,6 +62,7 @@ export class OrderbillController {
     return this.orderbillService.getOrderBillDataByDate(date, request, response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('deleteorderbilldata')
   @ApiOperation({ summary: 'Delete order bill data by bill ID' })
   @ApiQuery({ name: 'billid', type: String, required: true })
@@ -69,6 +75,7 @@ export class OrderbillController {
     return this.orderbillService.deleteOrderBillData(orderBillID, request, response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('getorderbilldetail')
   @ApiOperation({ summary: 'Get order bill detail by ID' })
   @ApiQuery({ name: 'orderbillid', type: String, required: true })
@@ -80,6 +87,7 @@ export class OrderbillController {
   ) {
     return this.orderbillService.getOrderBillDataDetail(orderBillID, request, response);
   }
+  @UseGuards(JwtAuthGuard)
   @Put('updatestatus')
   @ApiOperation({ summary: 'Update order bill status' })
   @ApiBody({ type: UpdateOrderStatusDto })
@@ -91,6 +99,7 @@ export class OrderbillController {
   ){
     return this.orderbillService.updateStatus(dto, request, response);
   }
+  @UseGuards(JwtAuthGuard)
   @Put('updatedataanalysis')
   @ApiOperation({ summary: 'Update physical analysis data' })
   @ApiQuery({ name: 'physicaldataanalysisid', type: String, required: true })
@@ -104,6 +113,7 @@ export class OrderbillController {
     return this.orderbillService.updatedataanalysis(physicaldataanalysisID, dto, request, response);
   }
 
+    @UseGuards(JwtAuthGuard)
     @Put('updatedataextrainvoice')
     @ApiOperation({ summary: 'Update extra invoice data' })
     @ApiQuery({ name: 'extrainvoiceid', type: String, required: true })
@@ -119,6 +129,7 @@ export class OrderbillController {
     }
 
 
+    @UseGuards(JwtAuthGuard)
     @Put('updatedatasellingliquids')
     @ApiOperation({ summary: 'Update selling liquids data' })
     @ApiQuery({ name: 'sellingliquidsid', type: String, required: true })
