@@ -493,8 +493,7 @@ export class CertificateService {
 
   private formatCertNo(certNo: number | null | undefined): string {
     if (!certNo) return '';
-    const str = certNo.toString();
-    return str.length === 4 ? str.padStart(5, '0') : str;
+    return certNo.toString().padStart(5, '0');
   }
 
   private sumQuantity(certificates: any[]): number {
