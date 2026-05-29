@@ -315,9 +315,11 @@ export class TradeService {
         },
         select: {
           requestID: true,
+        
           companyName: true,
           status: true,
           surveySubDistrict: true,
+          
           descriptions: {
             select: {
               index: true,
@@ -329,6 +331,7 @@ export class TradeService {
               vehicleName: true,
               netWeightTON: true,
             },
+            
             orderBy: [
               { index: 'asc' },
               { licenseNumber: 'asc' },
@@ -342,6 +345,25 @@ export class TradeService {
           surveyLocateNameThai: true,
           surveyProvince: true,
           shippingDateTime: true,
+          validate_Check_Weight: {
+            select: {
+              checkWeightID: true,
+              jobID: true,
+              status: true,
+              staffName: true,
+              vehicleName: true,
+              riceName: true,
+              quantity: true,
+              netWeightTon: true,
+              totalNetWeight: true,
+              grossWeight: true,
+              noOfBags: true,
+              goDown: true,
+              specialJob: true,
+              statusContinue: true,
+              descriptionID: true,
+            },
+          },
         },
         orderBy: { createdAt: 'asc' },
       });

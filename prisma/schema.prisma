@@ -214,6 +214,9 @@ shippingPort String?
 carryingVessel String?
 qualityLine1 String?
 qualityLine2 String?
+packingLine1 String?
+packingLine2 String?
+packingLine3 String?
 weight String?
 totalGrossWeight Float?
 totalTareWeight Float?

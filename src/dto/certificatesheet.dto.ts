@@ -170,6 +170,21 @@ export class UpdateCertificateDto {
   @IsString()
   qualityLine2?: string;
 
+    @ApiPropertyOptional({ example: 'Broken < 5%' })
+  @IsOptional()
+  @IsString()
+  packingLine1?: string;
+
+  @ApiPropertyOptional({ example: 'Broken < 5%' })
+  @IsOptional()
+  @IsString()
+  packingLine2?: string;
+  
+   @ApiPropertyOptional({ example: 'Broken < 5%' })
+  @IsOptional()
+  @IsString()
+  packingLine3?: string;
+
   @ApiPropertyOptional({ example: '50000 KGS' })
   @IsOptional()
   @IsString()

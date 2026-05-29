@@ -217,6 +217,10 @@ export class CertificateService {
           totalTareWeight: true,
           totalNettWeight: true,
           status: true,
+          packingLine1: true,
+          packingLine2: true,
+          packingLine3: true,
+
           checkWeight: {
             select: {
               supplierName: true,
@@ -261,6 +265,11 @@ export class CertificateService {
 
       const certificateWithEnNames = {
         ...certificate,
+        carryingVessel: this.toUpperStr(certificate.carryingVessel),
+        descriptionOfGoodsLine1: this.toUpperStr(certificate.descriptionOfGoodsLine1),
+        descriptionOfGoodsLine2: this.toUpperStr(certificate.descriptionOfGoodsLine2),
+        descriptionOfGoodsLine3: this.toUpperStr(certificate.descriptionOfGoodsLine3),
+        shipper: this.toTitleStr(certificate.shipper),
         surveyLocateNameEN: findEnNameSurvey?.surveyNameEN || null,
         riceTypeEN: findRiceNameEN?.riceNameEng || null,
         companyNameEN: findCompanyNameEN?.companyNameEN || null,
@@ -461,12 +470,31 @@ export class CertificateService {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
-          'CER NO.': item.certNo || '',
-          'PAPER NO': item.paperNoCopy || '',
-          'PAPER NO ': item.paperNoOriginal || '',
+          'CER NO.': this.formatCertNo(item.certNo),
+          'PAPER NO': this.formatCertNo(item.paperNoCopy),
+          'PAPER NO ': this.formatCertNo(item.paperNoOriginal),
         };
       }),
     );
+  }
+
+  private toUpperStr(val: string | null | undefined): string {
+    return val ? val.toUpperCase() : '';
+  }
+
+  private toTitleStr(val: string | null | undefined): string {
+    if (!val) return '';
+    return val
+      .toLowerCase()
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  private formatCertNo(certNo: number | null | undefined): string {
+    if (!certNo) return '';
+    const str = certNo.toString();
+    return str.length === 4 ? str.padStart(5, '0') : str;
   }
 
   private sumQuantity(certificates: any[]): number {
