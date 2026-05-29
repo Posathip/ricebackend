@@ -3,6 +3,12 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 
 
 export class UpdateCertificateDto {
+ @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  applyGodown?: boolean;
+
+
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
   @IsNumber()

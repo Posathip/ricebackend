@@ -220,6 +220,7 @@ export class CertificateService {
           packingLine1: true,
           packingLine2: true,
           packingLine3: true,
+          applyGodown: true,
 
           checkWeight: {
             select: {

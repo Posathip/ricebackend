@@ -286,6 +286,7 @@ export class RecordnotificationService {
             dateCheckWeight: getlicense.request.requestDate || new Date(),
             marks: 'xxxxxxx',
             status: false,
+            applyGodown: true,
           },
         });
       } else {

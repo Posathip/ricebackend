@@ -222,6 +222,7 @@ totalGrossWeight Float?
 totalTareWeight Float?
 totalNettWeight Float?
 status            Boolean
+applyGodown Boolean?
 
   createdAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt          DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
