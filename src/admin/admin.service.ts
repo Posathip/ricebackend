@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateCompanyDto, UpdateCompanyDto } from 'src/dto/company.dto';
+import { CreateGoDownGroupDto, UpdateGoDownGroupDto } from 'src/dto/goDownGroup.dto';
 import { CreatePackingDto, UpdatePackingDto } from 'src/dto/packing.dto';
 import { CreateRiceManageDto, UpdateRiceManageDto } from 'src/dto/rice.dto';
 import {
@@ -818,6 +819,90 @@ export class AdminService {
       return response.status(200).send({ message: 'Search survey name success', data: surveyNameList });
     } catch (error) {
       console.error('[AdminService.searchSurveyName]', error);
+      return response.status(500).send({ message: 'Internal server error' });
+    }
+  }
+
+  // ─── GoDownGroup ─────────────────────────────────────────────────────────────
+
+  async getAllGoDownGroup(request: any, response: any): Promise<void> {
+    try {
+      const list = await this.prisma.goDownGroup.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      return response.status(200).send({ message: 'Get all goDownGroup data complete', data: list });
+    } catch (error) {
+      console.error('[AdminService.getAllGoDownGroup]', error);
+      return response.status(500).send({ message: 'Internal server error' });
+    }
+  }
+
+  async getEachGoDownGroup(id: string, request: any, response: any): Promise<void> {
+    try {
+      const item = await this.prisma.goDownGroup.findUnique({
+        where: { goDownGroupID: id },
+        include: { surveyNames: true },
+      });
+      if (!item) {
+        return response.status(404).send({ message: 'GoDownGroup not found' });
+      }
+      return response.status(200).send({ message: 'Get goDownGroup data complete', data: item });
+    } catch (error) {
+      console.error('[AdminService.getEachGoDownGroup]', error);
+      return response.status(500).send({ message: 'Internal server error' });
+    }
+  }
+
+  async createGoDownGroup(dto: CreateGoDownGroupDto, request: any, response: any): Promise<void> {
+    try {
+      const created = await this.prisma.goDownGroup.create({ data: dto });
+      return response.status(201).send({ message: 'Created goDownGroup data complete', data: created });
+    } catch (error) {
+      console.error('[AdminService.createGoDownGroup]', error);
+      return response.status(500).send({ message: 'Internal server error' });
+    }
+  }
+
+  async updateGoDownGroup(id: string, dto: UpdateGoDownGroupDto, request: any, response: any): Promise<void> {
+    try {
+      const existing = await this.prisma.goDownGroup.findUnique({ where: { goDownGroupID: id } });
+      if (!existing) {
+        return response.status(404).send({ message: 'GoDownGroup not found' });
+      }
+      const updated = await this.prisma.goDownGroup.update({ where: { goDownGroupID: id }, data: dto });
+      return response.status(200).send({ message: 'Updated goDownGroup data complete', data: updated });
+    } catch (error) {
+      console.error('[AdminService.updateGoDownGroup]', error);
+      return response.status(500).send({ message: 'Internal server error' });
+    }
+  }
+
+  async deleteGoDownGroup(id: string, request: any, response: any): Promise<void> {
+    try {
+      const existing = await this.prisma.goDownGroup.findUnique({ where: { goDownGroupID: id } });
+      if (!existing) {
+        return response.status(404).send({ message: 'GoDownGroup not found' });
+      }
+      await this.prisma.goDownGroup.delete({ where: { goDownGroupID: id } });
+      return response.status(200).send({ message: 'GoDownGroup deleted successfully' });
+    } catch (error) {
+      console.error('[AdminService.deleteGoDownGroup]', error);
+      return response.status(500).send({ message: 'Internal server error' });
+    }
+  }
+
+  async searchGoDownGroup(goDownGroupName?: string, request?: any, response?: any): Promise<void> {
+    try {
+      const where = goDownGroupName
+        ? { goDownGroupName: { contains: goDownGroupName, mode: 'insensitive' as const } }
+        : {};
+      const list = await this.prisma.goDownGroup.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+      });
+      return response.status(200).send({ message: 'Search goDownGroup success', data: list });
+    } catch (error) {
+      console.error('[AdminService.searchGoDownGroup]', error);
       return response.status(500).send({ message: 'Internal server error' });
     }
   }

@@ -288,13 +288,15 @@ model extraInvoice {
 }
 
 model surveyName {
-surveyNameID String   @id @default(uuid())
-amphoes      String
-changwat     String
-surveyNameEN String
-surveyNameTH String
-createdAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+  surveyNameID  String      @id @default(uuid())
+  amphoes       String
+  changwat      String
+  surveyNameEN  String
+  surveyNameTH  String
+  goDownGroupID String?
+  goDownGroup   goDownGroup? @relation(fields: [goDownGroupID], references: [goDownGroupID])
+  createdAt     DateTime    @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt     DateTime    @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
 model staff {
   staffID    String   @id @default(uuid())
@@ -352,4 +354,28 @@ model packing {
   unit String?
   createdAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
+
+model entireCertificate{
+  entireCertificateID String   @id @default(uuid())
+  orderbillNo Int?
+  certificateType String?
+  shipper String?
+  destination String?
+  invoice String?
+  note String?
+  shipping String
+  statusAccounting Boolean
+  date  DateTime?
+  createdAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt    DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
+}
+
+model goDownGroup {
+  goDownGroupID   String       @id @default(uuid())
+  goDownGroupName String?
+  goDownColor     String?
+  surveyNames     surveyName[]
+  createdAt       DateTime     @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt       DateTime     @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }

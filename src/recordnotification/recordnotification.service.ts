@@ -443,6 +443,19 @@ export class RecordnotificationService {
   try {
   const requestIds = dtoArray.map((dto) => dto.requestID);
   const descriptionIds = dtoArray.map((dto) => dto.descriptionID);
+const staffIds = dtoArray
+  .map((dto) => dto.staffID)
+  .filter((id): id is string => !!id);
+
+const staffs = await this.prisma.staff.findMany({
+  where: {
+    staffID: { in: staffIds },
+  },
+});
+
+const staffMap = new Map(
+  staffs.map((s) => [s.staffID, s.staffName])
+);
 
   // 1️⃣ Check existing records
   const existingRecords = await this.prisma.validate_Check_Weight.findMany({
@@ -481,7 +494,7 @@ export class RecordnotificationService {
         jobID: dto.jobID,
         note: dto.note,
         statusContinue: dto.statusContinue,
-        staffName: dto.staffName,
+        staffName: staffMap.get(dto.staffID ?? '') ?? dto.staffName ?? null,
         specialJob: dto.specialJob || null,
       };
 
@@ -518,7 +531,7 @@ export class RecordnotificationService {
           jobID: dto.jobID,
           note: dto.note,
           statusContinue: dto.statusContinue,
-          staffName: dto.staffName,
+          staffName: staffMap.get(dto.staffID ?? '') ?? dto.staffName ?? null,
           specialJob: dto.specialJob || null,
           vehicleName: desc?.vehicleName || null,
           riceName: desc?.riceType || null,

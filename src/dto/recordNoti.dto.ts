@@ -29,6 +29,7 @@ export class ValidateCheckWeightDto {
   @IsOptional()
   staffID?: string;
 
+
   @ApiProperty({ example: 1, required: false })
   @IsInt()
   @IsOptional()

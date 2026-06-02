@@ -8,6 +8,7 @@ import { CreateStaffDto, CreateSurveyDto, UpdateStaffDto, UpdateSurveyNameDto } 
 import { CreatePackingDto, UpdatePackingDto } from 'src/dto/packing.dto';
 import { use } from 'passport';
 import { CreateCompanyDto, UpdateCompanyDto } from 'src/dto/company.dto';
+import { CreateGoDownGroupDto, UpdateGoDownGroupDto } from 'src/dto/goDownGroup.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -573,7 +574,103 @@ export class AdminController {
   ) {
     return this.adminService.searchSurveyName(changwat, amphoe, tambon, request, response);
   }
-  
+
+  // ─── GoDownGroup ─────────────────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Get all GoDownGroup data' })
+  @ApiResponse({ status: 200, description: 'Get all GoDownGroup data complete' })
+  @Get('getallgodowngroup')
+  getAllGoDownGroup(
+    @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
+    return this.adminService.getAllGoDownGroup(request, response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Get each GoDownGroup data' })
+  @ApiQuery({ name: 'id', required: true, type: String })
+  @Get('geteachgodowngroup')
+  getEachGoDownGroup(
+    @Query('id') id: string,
+    @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
+    return this.adminService.getEachGoDownGroup(id, request, response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Create GoDownGroup data' })
+  @ApiResponse({ status: 201, description: 'GoDownGroup created successfully' })
+  @ApiBody({
+    schema: {
+      example: {
+        goDownGroupName: 'Group A',
+        goDownColor: '#FF5733',
+      },
+    },
+  })
+  @Post('creategodowngroup')
+  createGoDownGroup(
+    @Body() dto: CreateGoDownGroupDto,
+    @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
+    return this.adminService.createGoDownGroup(dto, request, response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Update GoDownGroup data' })
+  @ApiQuery({ name: 'id', required: true, type: String })
+  @ApiBody({
+    schema: {
+      example: {
+        goDownGroupName: 'Group A',
+        goDownColor: '#FF5733',
+      },
+    },
+  })
+  @Put('updategodowngroup')
+  updateGoDownGroup(
+    @Query('id') id: string,
+    @Body() dto: UpdateGoDownGroupDto,
+    @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
+    return this.adminService.updateGoDownGroup(id, dto, request, response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Delete GoDownGroup data' })
+  @ApiQuery({ name: 'id', required: true, type: String })
+  @Delete('deletegodowngroup')
+  deleteGoDownGroup(
+    @Query('id') id: string,
+    @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
+    return this.adminService.deleteGoDownGroup(id, request, response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Search GoDownGroup data' })
+  @ApiQuery({ name: 'goDownGroupName', required: false, type: String })
+  @Get('searchgodowngroup')
+  searchGoDownGroup(
+    @Req() request: any,
+    @Res({ passthrough: true }) response: FastifyReply,
+    @Query('goDownGroupName') goDownGroupName?: string,
+  ) {
+    return this.adminService.searchGoDownGroup(goDownGroupName, request, response);
+  }
+
 }
 
  
