@@ -69,6 +69,7 @@ export class EntirecertificateController {
           note: 'Handle with care',
           shipping: 'Laem Chabang Port',
           statusAccounting: false,
+          date: '2026-05-11T10:00:00.000Z',
         },
       },
     },
@@ -148,16 +149,16 @@ export class EntirecertificateController {
   @UseGuards(JwtAuthGuard)
   @Get('filterbyday')
   @ApiOperation({ summary: 'Filter by date range (startDate–endDate)' })
-  @ApiQuery({ name: 'startDate', example: '2026-06-01' })
-  @ApiQuery({ name: 'endDate', example: '2026-06-30' })
-  @ApiQuery({ name: 'type', example: 'Form A', description: 'Use "All" to skip type filter' })
+  @ApiQuery({ name: 'startDate', example: '2026-05-11T00:00:00.000Z' })
+  @ApiQuery({ name: 'endDate', example: '2026-05-11T23:59:59.999Z' })
+  @ApiQuery({ name: 'type', required: false, description: 'ระบุประเภท เช่น "Form A" — ถ้าต้องการข้อมูลทุกประเภท ไม่ต้องส่ง parameter นี้มา' })
   @ApiResponse({ status: 200, description: 'Returns filtered records.' })
   filterByDay(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
-    @Query('type') type: string,
     @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
+    @Query('type') type?: string,
   ) {
     return this.entirecertificateService.filterByDay(startDate, endDate, type, request, response);
   }
@@ -167,14 +168,14 @@ export class EntirecertificateController {
   @ApiOperation({ summary: 'Filter by month and year' })
   @ApiQuery({ name: 'month', example: '6' })
   @ApiQuery({ name: 'year', example: '2026' })
-  @ApiQuery({ name: 'type', example: 'Form A', description: 'Use "All" to skip type filter' })
+  @ApiQuery({ name: 'type', required: false, description: 'ระบุประเภท เช่น "Form A" — ถ้าต้องการข้อมูลทุกประเภท ไม่ต้องส่ง parameter นี้มา' })
   @ApiResponse({ status: 200, description: 'Returns filtered records.' })
   filterByMonth(
     @Query('month') month: string,
     @Query('year') year: string,
-    @Query('type') type: string,
     @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
+    @Query('type') type?: string,
   ) {
     return this.entirecertificateService.filterByMonth(month, year, type, request, response);
   }
@@ -183,13 +184,13 @@ export class EntirecertificateController {
   @Get('filterbyyear')
   @ApiOperation({ summary: 'Filter by year' })
   @ApiQuery({ name: 'year', example: '2026' })
-  @ApiQuery({ name: 'type', example: 'Form A', description: 'Use "All" to skip type filter' })
+  @ApiQuery({ name: 'type', required: false, description: 'ระบุประเภท เช่น "Form A" — ถ้าต้องการข้อมูลทุกประเภท ไม่ต้องส่ง parameter นี้มา' })
   @ApiResponse({ status: 200, description: 'Returns filtered records.' })
   filterByYear(
     @Query('year') year: string,
-    @Query('type') type: string,
     @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,
+    @Query('type') type?: string,
   ) {
     return this.entirecertificateService.filterByYear(year, type, request, response);
   }

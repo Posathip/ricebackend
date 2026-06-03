@@ -126,17 +126,17 @@ export class EntirecertificateService {
     }
   }
 
-  private buildTypeFilter(type: string): object {
-    return type === 'All' ? {} : { certificateType: type };
+  private buildTypeFilter(type?: string): object {
+    return !type || type === 'All' ? {} : { certificateType: type };
   }
 
-  async filterByDay(startDate: string, endDate: string, type: string, _request: any, response: any): Promise<void> {
+  async filterByDay(startDate: string, endDate: string, type: string | undefined, _request: any, response: any): Promise<void> {
     console.log('[EntirecertificateService.filterByDay] startDate:', startDate, 'endDate:', endDate, 'type:', type);
     try {
       const records = await this.prisma.entireCertificate.findMany({
         where: {
-          // date: { gte: new Date(startDate), lte: new Date(endDate) },
-          // ...this.buildTypeFilter(type),
+          date: { gte: new Date(startDate), lte: new Date(endDate) },
+          ...this.buildTypeFilter(type),
         },
         orderBy: { date: 'asc' },
       });
@@ -148,7 +148,7 @@ export class EntirecertificateService {
     }
   }
 
-  async filterByMonth(month: string, year: string, type: string, _request: any, response: any): Promise<void> {
+  async filterByMonth(month: string, year: string, type: string | undefined, _request: any, response: any): Promise<void> {
     console.log('[EntirecertificateService.filterByMonth] month:', month, 'year:', year, 'type:', type);
     try {
       const m = parseInt(month, 10);
@@ -170,7 +170,7 @@ export class EntirecertificateService {
     }
   }
 
-  async filterByYear(year: string, type: string, _request: any, response: any): Promise<void> {
+  async filterByYear(year: string, type: string | undefined, _request: any, response: any): Promise<void> {
     console.log('[EntirecertificateService.filterByYear] year:', year, 'type:', type);
     try {
       const y = parseInt(year, 10);

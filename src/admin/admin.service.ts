@@ -829,6 +829,11 @@ export class AdminService {
     try {
       const list = await this.prisma.goDownGroup.findMany({
         orderBy: { createdAt: 'desc' },
+        select: {
+          goDownGroupID: true,
+          goDownGroupName: true,
+          goDownColor: true,
+        }
       });
       return response.status(200).send({ message: 'Get all goDownGroup data complete', data: list });
     } catch (error) {
