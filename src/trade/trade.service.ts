@@ -351,6 +351,7 @@ export class TradeService {
               jobID: true,
               status: true,
               staffName: true,
+              staffID: true,
               vehicleName: true,
               riceName: true,
               quantity: true,
@@ -374,6 +375,21 @@ export class TradeService {
         select: { companyNameTH: true, companyNameEN: true },
       });
 
+      const surveyNames = [...new Set(requests.map((r) => r.surveyLocateNameThai))].filter(Boolean);
+      const surveyNameRecords = await this.prisma.surveyName.findMany({
+        where: { surveyNameTH: { in: surveyNames } },
+        select: {
+          surveyNameTH: true,
+          goDownGroupID: true,
+          goDownGroup: {
+            select: {
+              goDownGroupName: true,
+              goDownColor: true,
+            },
+          },
+        },
+      });
+
       const result = await Promise.all(
         requests.map(async (r) => {
           const foundCompany = companies.find((c) => c.companyNameTH === r.companyName);
@@ -383,11 +399,16 @@ export class TradeService {
             select: { jobID: true },
           });
 
+          const matchedSurvey = surveyNameRecords.find((s) => s.surveyNameTH === r.surveyLocateNameThai);
+
           return {
             ...r,
             surveyLocateNameThai: `${r.surveyLocateNameThai ?? ''}-${r.surveyProvince ?? ''}`.trim(),
             companyNameEng: foundCompany?.companyNameEN ?? '',
             jobID: latestJob?.jobID ?? null,
+            goDownGroupID: matchedSurvey?.goDownGroupID ?? null,
+            goDownGroupName: matchedSurvey?.goDownGroup?.goDownGroupName ?? null,
+            goDownColor: matchedSurvey?.goDownGroup?.goDownColor ?? null,
           };
         }),
       );
