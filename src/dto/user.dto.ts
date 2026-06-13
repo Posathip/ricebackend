@@ -193,4 +193,10 @@ export class LoginDTO {
   @IsString()
   @IsOptional()
   surveyNameTH?: string;
+
+  @ApiPropertyOptional({ example: 'ID ของ GodownGroupID' })
+  @IsString()
+  @IsOptional()
+  goDownGroupID?: string;
+
 }
