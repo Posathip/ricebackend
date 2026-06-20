@@ -99,6 +99,7 @@ model Request {
   
   descriptions          Description[]
   validate_Check_Weight validate_Check_Weight[]
+  notificationReceipts  NotificationReceipt[]
 }
 
 model BufferRemain {
@@ -132,6 +133,7 @@ model Description {
   createdAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
   validate_Check_Weight validate_Check_Weight[]
+  notificationReceipts  NotificationReceipt[]
 }
 
 model validate_Check_Weight {
@@ -174,6 +176,25 @@ model validate_Check_Weight {
   description Description @relation(fields: [descriptionID], references: [descriptionID])
   // licenseID           String
     certificate certificatesheet?
+    notificationReceipt NotificationReceipt?
+}
+
+model NotificationReceipt {
+  notificationReceiptID String  @id @default(uuid())
+
+  jobName String?
+
+  checkWeightID String?               @unique
+  checkWeight   validate_Check_Weight? @relation(fields: [checkWeightID], references: [checkWeightID])
+
+  descriptionID String
+  requestID     String
+
+  request     Request     @relation(fields: [requestID], references: [requestID])
+  description Description @relation(fields: [descriptionID], references: [descriptionID])
+
+  createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+  updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
 }
 
 model certificatesheet {

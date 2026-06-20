@@ -54,6 +54,11 @@ export class ValidateCheckWeightDto {
   @IsString()
   @IsOptional()
   specialJob?: string;
+
+  @ApiProperty({ example: 'Checkweight', required: false })
+  @IsString()
+  @IsOptional()
+  jobName?: string;
 }
 
 export class UpdateCheckWeightData {

@@ -441,9 +441,24 @@ export class RecordnotificationService {
     @Res({ passthrough: true }) response: FastifyReply,
 ) {
   try {
-  const requestIds = dtoArray.map((dto) => dto.requestID);
-  const descriptionIds = dtoArray.map((dto) => dto.descriptionID);
-const staffIds = dtoArray
+  // 0️⃣ Always log a NotificationReceipt for every incoming item
+  const notificationReceiptMap = new Map<string, string>();
+  for (const dto of dtoArray) {
+    const notificationReceipt = await this.prisma.notificationReceipt.create({
+      data: {
+        jobName: dto.jobName,
+        descriptionID: dto.descriptionID,
+        requestID: dto.requestID,
+      },
+    });
+    notificationReceiptMap.set(dto.descriptionID, notificationReceipt.notificationReceiptID);
+  }
+
+  const checkWeightDtos = dtoArray.filter((dto) => dto.jobName === 'Checkweight');
+
+  const requestIds = checkWeightDtos.map((dto) => dto.requestID);
+  const descriptionIds = checkWeightDtos.map((dto) => dto.descriptionID);
+const staffIds = checkWeightDtos
   .map((dto) => dto.staffID)
   .filter((id): id is string => !!id);
 
@@ -462,11 +477,15 @@ const staffMap = new Map(
     where: {
       descriptionID: { in: descriptionIds },
     },
-    select: { descriptionID: true },
+    select: { descriptionID: true, checkWeightID: true },
   });
 
   const existingDescriptionIds = new Set(
     existingRecords.map((r) => r.descriptionID)
+  );
+
+  const existingCheckWeightIdMap = new Map(
+    existingRecords.map((r) => [r.descriptionID, r.checkWeightID])
   );
 
   // 2️⃣ Fetch related data (for insert logic)
@@ -481,8 +500,8 @@ const staffMap = new Map(
   const descriptionMap = new Map(descriptions.map((d) => [d.descriptionID, d]));
   const requestMap = new Map(requests.map((r) => [r.requestID, r]));
 
-  // 3️⃣ Loop through DTOs
-  for (const dto of dtoArray) {
+  // 3️⃣ Loop through Checkweight DTOs
+  for (const dto of checkWeightDtos) {
     if (existingDescriptionIds.has(dto.descriptionID)) {
       // === UPDATE existing record ===
       const desc = descriptionMap.get(dto.descriptionID);
@@ -517,12 +536,17 @@ const staffMap = new Map(
         where: { descriptionID: dto.descriptionID },
         data: updatePayload,
       });
+
+      await this.linkNotificationReceiptToCheckWeight(
+        notificationReceiptMap.get(dto.descriptionID),
+        existingCheckWeightIdMap.get(dto.descriptionID),
+      );
     } else {
       // === CREATE new record (original logic) ===
       const desc = descriptionMap.get(dto.descriptionID);
       const req = requestMap.get(dto.requestID);
 
-      await this.prisma.validate_Check_Weight.create({
+      const created = await this.prisma.validate_Check_Weight.create({
         data: {
           descriptionID: dto.descriptionID,
           requestID: dto.requestID,
@@ -544,6 +568,11 @@ const staffMap = new Map(
           supplierName: req?.companyName || null,
         },
       });
+
+      await this.linkNotificationReceiptToCheckWeight(
+        notificationReceiptMap.get(dto.descriptionID),
+        created.checkWeightID,
+      );
     }
   }
 
@@ -556,7 +585,7 @@ const staffMap = new Map(
   return {
     message: 'Successfully processed check weight data',
     updated: Array.from(existingDescriptionIds).length,
-    created: dtoArray.length - existingDescriptionIds.size,
+    created: checkWeightDtos.length - existingDescriptionIds.size,
   };
 } catch (error) {
   return response.status(500).send({
@@ -565,6 +594,18 @@ const staffMap = new Map(
   });
 }
 }
+
+  private async linkNotificationReceiptToCheckWeight(
+    notificationReceiptID: string | undefined,
+    checkWeightID: string | null | undefined,
+  ) {
+    if (!notificationReceiptID || !checkWeightID) return;
+    await this.prisma.notificationReceipt.update({
+      where: { notificationReceiptID },
+      data: { checkWeightID },
+    });
+  }
+
   async getCheckWeightDataFilterjobNoandid(jobNo: number,licenseId: string,  @Req() request: any,
     @Res({ passthrough: true }) response: FastifyReply,){
 

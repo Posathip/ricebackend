@@ -365,6 +365,14 @@ export class TradeService {
               descriptionID: true,
             },
           },
+          notificationReceipts: {
+            select: {
+              notificationReceiptID: true,
+              jobName: true,
+              checkWeightID: true,
+              descriptionID: true,
+            },
+          },
         },
         orderBy: { createdAt: 'asc' },
       });
