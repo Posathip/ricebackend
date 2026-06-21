@@ -578,7 +578,7 @@ const staffMap = new Map(
 
   // 4️⃣ Update request status
   await this.prisma.request.updateMany({
-    where: { requestID: { in: requestIds } },
+    where: { requestID: { in: dtoArray.map((dto) => dto.requestID) } },
     data: { status: 'completed' },
   });
 

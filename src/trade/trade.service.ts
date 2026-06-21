@@ -369,8 +369,7 @@ export class TradeService {
             select: {
               notificationReceiptID: true,
               jobName: true,
-              checkWeightID: true,
-              descriptionID: true,
+             
             },
           },
         },
