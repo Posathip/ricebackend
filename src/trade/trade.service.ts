@@ -369,7 +369,9 @@ export class TradeService {
             select: {
               notificationReceiptID: true,
               jobName: true,
-             
+              staffID: true,
+              jobID: true,
+              specialJob: true,
             },
           },
         },
@@ -381,6 +383,19 @@ export class TradeService {
         where: { companyNameTH: { in: companyNames } },
         select: { companyNameTH: true, companyNameEN: true },
       });
+
+      const notificationStaffIds = [
+        ...new Set(
+          requests.flatMap((r) => r.notificationReceipts.map((n) => n.staffID)).filter(Boolean),
+        ),
+      ] as string[];
+      const notificationStaffs = await this.prisma.staff.findMany({
+        where: { staffID: { in: notificationStaffIds } },
+        select: { staffID: true, staffName: true },
+      });
+      const notificationStaffNameMap = new Map(
+        notificationStaffs.map((s) => [s.staffID, s.staffName]),
+      );
 
       const surveyNames = [...new Set(requests.map((r) => r.surveyLocateNameThai))].filter(Boolean);
       const surveyNameRecords = await this.prisma.surveyName.findMany({
@@ -416,6 +431,10 @@ export class TradeService {
             goDownGroupID: matchedSurvey?.goDownGroupID ?? null,
             goDownGroupName: matchedSurvey?.goDownGroup?.goDownGroupName ?? null,
             goDownColor: matchedSurvey?.goDownGroup?.goDownColor ?? null,
+            notificationReceipts: r.notificationReceipts.map((n) => ({
+              ...n,
+              staffName: notificationStaffNameMap.get(n.staffID ?? '') ?? null,
+            })),
           };
         }),
       );

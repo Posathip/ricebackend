@@ -447,6 +447,9 @@ export class RecordnotificationService {
     const notificationReceipt = await this.prisma.notificationReceipt.create({
       data: {
         jobName: dto.jobName,
+        staffID: dto.staffID,
+        jobID: dto.jobID,
+        specialJob: dto.specialJob,
         descriptionID: dto.descriptionID,
         requestID: dto.requestID,
       },

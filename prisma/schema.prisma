@@ -181,9 +181,11 @@ model validate_Check_Weight {
 
 model NotificationReceipt {
   notificationReceiptID String  @id @default(uuid())
-
+  staffID String?
   jobName String?
-
+  jobID             Int?
+  specialJob   String? // งานพิเศษ
+  // statusContinue           String?
   checkWeightID String?               @unique
   checkWeight   validate_Check_Weight? @relation(fields: [checkWeightID], references: [checkWeightID])
 
