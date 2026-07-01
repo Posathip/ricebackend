@@ -440,10 +440,12 @@ export class TradeService {
       );
 
       const prevRequest = await this.prisma.notificationReceipt.findFirst({
+        where: { jobID: { not: null } },
         orderBy: { jobID: 'desc' },
         select: { jobID: true },
       });
 
+      console.log(prevRequest);
       if (!requests || requests.length === 0) {
         // console.log('[TradeService.getRequestbydate] no requests found');
         return response.status(404).send({
