@@ -439,7 +439,7 @@ export class TradeService {
         }),
       );
 
-      const prevRequest = await this.prisma.validate_Check_Weight.findFirst({
+      const prevRequest = await this.prisma.notificationReceipt.findFirst({
         orderBy: { jobID: 'desc' },
         select: { jobID: true },
       });
