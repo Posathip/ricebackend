@@ -517,7 +517,7 @@ export class TradeService {
       }
 
       const findOrder = await this.prisma.validate_Check_Weight.findFirst({
-        where: { descriptionID: orderID },
+        where: { requestID: orderID },
       });
 
       if (findOrder) {
@@ -527,6 +527,7 @@ export class TradeService {
         });
       }
 
+      await this.prisma.notificationReceipt.deleteMany({ where: { requestID: orderID } });
       await this.prisma.description.deleteMany({ where: { requestId: orderID } });
       await this.prisma.request.delete({ where: { requestID: orderID } });
 
