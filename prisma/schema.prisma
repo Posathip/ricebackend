@@ -179,6 +179,7 @@ model validate_Check_Weight {
     notificationReceipt NotificationReceipt?
 }
 
+
 model NotificationReceipt {
   notificationReceiptID String  @id @default(uuid())
   staffID String?
