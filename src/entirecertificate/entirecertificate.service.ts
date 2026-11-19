@@ -1,52 +1,54 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, entireCertificate } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { rethrowAsHttpException } from 'src/common/service-error';
 import {
   CreateEntireCertificateDto,
   UpdateEntireCertificateDto,
 } from 'src/dto/entirecertificate.dto';
 
+const ALL_TYPES = 'All';
+const DECIMAL_RADIX = 10;
+const JANUARY = 0;
+
+export interface DataWrapper<T> {
+  data: T;
+}
+
 @Injectable()
 export class EntirecertificateService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getAll(request: any, response: any): Promise<void> {
+  async getAll(): Promise<DataWrapper<entireCertificate[]>> {
     console.log('[EntirecertificateService.getAll]');
     try {
-      const records = await this.prisma.entireCertificate.findMany({
+      const certificates = await this.prisma.entireCertificate.findMany({
         orderBy: { createdAt: 'desc' },
       });
-      console.log('[EntirecertificateService.getAll] count:', records.length);
-      return response.status(200).send({ data: records });
+      console.log('[EntirecertificateService.getAll] result count:', certificates.length);
+      return { data: certificates };
     } catch (error) {
-      console.error('[EntirecertificateService.getAll]', error);
-      return response.status(500).send({ data: null, error: 'Failed to retrieve entire certificate data' });
+      rethrowAsHttpException('EntirecertificateService.getAll', error);
     }
   }
 
-  async getById(id: string, request: any, response: any): Promise<void> {
+  async getById(id: string): Promise<DataWrapper<entireCertificate>> {
     console.log('[EntirecertificateService.getById] id:', id);
     try {
-      const record = await this.prisma.entireCertificate.findUnique({
-        where: { entireCertificateID: id },
-      });
-      if (!record) {
-        return response.status(404).send({ data: null, error: `EntireCertificate ${id} not found` });
-      }
-      console.log('[EntirecertificateService.getById] found:', record.entireCertificateID);
-      return response.status(200).send({ data: record });
+      const certificate = await this.findByIdOrThrow(id);
+      console.log('[EntirecertificateService.getById] result:', certificate.entireCertificateID);
+      return { data: certificate };
     } catch (error) {
-      console.error('[EntirecertificateService.getById]', error);
-      return response.status(500).send({ data: null, error: 'Failed to retrieve entire certificate' });
+      rethrowAsHttpException('EntirecertificateService.getById', error);
     }
   }
 
-  async create(dto: CreateEntireCertificateDto, request: any, response: any): Promise<void> {
+  async create(dto: CreateEntireCertificateDto): Promise<DataWrapper<entireCertificate>> {
     console.log('[EntirecertificateService.create] shipping:', dto.shipping);
     try {
-      if (!dto.shipping) {
-        throw new BadRequestException('shipping is required');
-      }
-      const record = await this.prisma.entireCertificate.create({
+      if (!dto.shipping) throw new BadRequestException('shipping is required');
+
+      const certificate = await this.prisma.entireCertificate.create({
         data: {
           orderbillNo: dto.orderbillNo,
           certificateType: dto.certificateType,
@@ -56,153 +58,162 @@ export class EntirecertificateService {
           note: dto.note,
           shipping: dto.shipping,
           statusAccounting: dto.statusAccounting,
-          date: dto.date 
+          date: dto.date,
         },
       });
-      console.log('[EntirecertificateService.create] created:', record.entireCertificateID);
-      return response.status(201).send({ data: record });
+      console.log('[EntirecertificateService.create] result:', certificate.entireCertificateID);
+      return { data: certificate };
     } catch (error) {
-      console.error('[EntirecertificateService.create]', error);
-      if (error instanceof BadRequestException) throw error;
-      return response.status(500).send({ data: null, error: 'Failed to create entire certificate' });
+      rethrowAsHttpException('EntirecertificateService.create', error);
     }
   }
 
-  async update(id: string, dto: UpdateEntireCertificateDto, request: any, response: any): Promise<void> {
+  async update(
+    id: string,
+    dto: UpdateEntireCertificateDto,
+  ): Promise<DataWrapper<entireCertificate>> {
     console.log('[EntirecertificateService.update] id:', id);
     try {
-      const existing = await this.prisma.entireCertificate.findUnique({
-        where: { entireCertificateID: id },
-      });
-      if (!existing) {
-        return response.status(404).send({ data: null, error: `EntireCertificate ${id} not found` });
-      }
-      const record = await this.prisma.entireCertificate.update({
+      await this.findByIdOrThrow(id);
+      const certificate = await this.prisma.entireCertificate.update({
         where: { entireCertificateID: id },
         data: dto,
       });
-      console.log('[EntirecertificateService.update] updated:', record.entireCertificateID);
-      return response.status(200).send({ data: record });
+      console.log('[EntirecertificateService.update] result:', certificate.entireCertificateID);
+      return { data: certificate };
     } catch (error) {
-      console.error('[EntirecertificateService.update]', error);
-      return response.status(500).send({ data: null, error: 'Failed to update entire certificate' });
+      rethrowAsHttpException('EntirecertificateService.update', error);
     }
   }
 
-  async remove(id: string, request: any, response: any): Promise<void> {
+  async remove(id: string): Promise<DataWrapper<{ message: string }>> {
     console.log('[EntirecertificateService.remove] id:', id);
     try {
-      const existing = await this.prisma.entireCertificate.findUnique({
-        where: { entireCertificateID: id },
-      });
-      if (!existing) {
-        return response.status(404).send({ data: null, error: `EntireCertificate ${id} not found` });
-      }
-      await this.prisma.entireCertificate.delete({
-        where: { entireCertificateID: id },
-      });
-      console.log('[EntirecertificateService.remove] deleted:', id);
-      return response.status(200).send({ data: { message: `EntireCertificate ${id} deleted successfully` } });
+      await this.findByIdOrThrow(id);
+      await this.prisma.entireCertificate.delete({ where: { entireCertificateID: id } });
+      console.log('[EntirecertificateService.remove] result deleted:', id);
+      return { data: { message: `EntireCertificate ${id} deleted successfully` } };
     } catch (error) {
-      console.error('[EntirecertificateService.remove]', error);
-      return response.status(500).send({ data: null, error: 'Failed to delete entire certificate' });
+      rethrowAsHttpException('EntirecertificateService.remove', error);
     }
   }
 
-  async getLatestNumber(type: string,   request: any, response: any): Promise<void> {
-    console.log('[EntirecertificateService.getLatestNumber]');
+  async getLatestOrderbillNo(type: string): Promise<DataWrapper<{ orderbillNo: number }>> {
+    console.log('[EntirecertificateService.getLatestOrderbillNo] type:', type);
     try {
-      const record = await this.prisma.entireCertificate.findFirst({
+      const latestCertificate = await this.prisma.entireCertificate.findFirst({
         where: { certificateType: type },
         orderBy: { orderbillNo: 'desc' },
         select: { orderbillNo: true },
       });
-      const latestNumber = record?.orderbillNo ?? 0;
-      console.log('[EntirecertificateService.getLatestNumber] latestNumber:', latestNumber);
-      return response.status(200).send({ data: { orderbillNo: latestNumber } });
+      const orderbillNo = latestCertificate?.orderbillNo ?? 0;
+      console.log('[EntirecertificateService.getLatestOrderbillNo] result:', orderbillNo);
+      return { data: { orderbillNo } };
     } catch (error) {
-      console.error('[EntirecertificateService.getLatestNumber]', error);
-      return response.status(500).send({ data: null, error: 'Failed to retrieve latest orderbillNo' });
+      rethrowAsHttpException('EntirecertificateService.getLatestOrderbillNo', error);
     }
   }
 
-  private buildTypeFilter(type?: string): object {
-    return !type || type === 'All' ? {} : { certificateType: type };
-  }
-
-  async filterByDay(startDate: string, endDate: string, type: string | undefined, _request: any, response: any): Promise<void> {
+  async filterByDay(
+    startDate: string,
+    endDate: string,
+    type?: string,
+  ): Promise<DataWrapper<entireCertificate[]>> {
     console.log('[EntirecertificateService.filterByDay] startDate:', startDate, 'endDate:', endDate, 'type:', type);
     try {
-      const records = await this.prisma.entireCertificate.findMany({
-        where: {
-          date: { gte: new Date(startDate), lte: new Date(endDate) },
-          ...this.buildTypeFilter(type),
-        },
-        orderBy: { date: 'asc' },
-      });
-      console.log('[EntirecertificateService.filterByDay] count:', records.length);
-      return response.status(200).send({ data: records });
+      const dateRange = { gte: this.parseDate(startDate), lte: this.parseDate(endDate) };
+      const certificates = await this.findByDateRange(dateRange, type);
+      console.log('[EntirecertificateService.filterByDay] result count:', certificates.length);
+      return { data: certificates };
     } catch (error) {
-      console.error('[EntirecertificateService.filterByDay]', error);
-      return response.status(500).send({ data: null, error: 'Failed to filter by day' });
+      rethrowAsHttpException('EntirecertificateService.filterByDay', error);
     }
   }
 
-  async filterByMonth(month: string, year: string, type: string | undefined, _request: any, response: any): Promise<void> {
+  async filterByMonth(
+    month: string,
+    year: string,
+    type?: string,
+  ): Promise<DataWrapper<entireCertificate[]>> {
     console.log('[EntirecertificateService.filterByMonth] month:', month, 'year:', year, 'type:', type);
     try {
-      const m = parseInt(month, 10);
-      const y = parseInt(year, 10);
-      const start = new Date(y, m - 1, 1);
-      const end = new Date(y, m, 1);
-      const records = await this.prisma.entireCertificate.findMany({
-        where: {
-          date: { gte: start, lt: end },
-          ...this.buildTypeFilter(type),
-        },
-        orderBy: { date: 'asc' },
-      });
-      console.log('[EntirecertificateService.filterByMonth] count:', records.length);
-      return response.status(200).send({ data: records });
+      const monthIndex = this.parseInteger(month, 'month') - 1;
+      const yearNumber = this.parseInteger(year, 'year');
+      const dateRange = {
+        gte: new Date(yearNumber, monthIndex, 1),
+        lt: new Date(yearNumber, monthIndex + 1, 1),
+      };
+      const certificates = await this.findByDateRange(dateRange, type);
+      console.log('[EntirecertificateService.filterByMonth] result count:', certificates.length);
+      return { data: certificates };
     } catch (error) {
-      console.error('[EntirecertificateService.filterByMonth]', error);
-      return response.status(500).send({ data: null, error: 'Failed to filter by month' });
+      rethrowAsHttpException('EntirecertificateService.filterByMonth', error);
     }
   }
 
-  async filterByYear(year: string, type: string | undefined, _request: any, response: any): Promise<void> {
+  async filterByYear(year: string, type?: string): Promise<DataWrapper<entireCertificate[]>> {
     console.log('[EntirecertificateService.filterByYear] year:', year, 'type:', type);
     try {
-      const y = parseInt(year, 10);
-      const start = new Date(y, 0, 1);
-      const end = new Date(y + 1, 0, 1);
-      const records = await this.prisma.entireCertificate.findMany({
-        where: {
-          date: { gte: start, lt: end },
-          ...this.buildTypeFilter(type),
-        },
-        orderBy: { date: 'asc' },
-      });
-      console.log('[EntirecertificateService.filterByYear] count:', records.length);
-      return response.status(200).send({ data: records });
+      const yearNumber = this.parseInteger(year, 'year');
+      const dateRange = {
+        gte: new Date(yearNumber, JANUARY, 1),
+        lt: new Date(yearNumber + 1, JANUARY, 1),
+      };
+      const certificates = await this.findByDateRange(dateRange, type);
+      console.log('[EntirecertificateService.filterByYear] result count:', certificates.length);
+      return { data: certificates };
     } catch (error) {
-      console.error('[EntirecertificateService.filterByYear]', error);
-      return response.status(500).send({ data: null, error: 'Failed to filter by year' });
+      rethrowAsHttpException('EntirecertificateService.filterByYear', error);
     }
   }
 
-  async filterByType(type: string, request: any, response: any): Promise<void> {
+  async filterByType(type: string): Promise<DataWrapper<entireCertificate[]>> {
     console.log('[EntirecertificateService.filterByType] type:', type);
     try {
-      const records = await this.prisma.entireCertificate.findMany({
+      const certificates = await this.prisma.entireCertificate.findMany({
         where: { certificateType: type },
         orderBy: { createdAt: 'desc' },
       });
-      console.log('[EntirecertificateService.filterByType] count:', records.length);
-      return response.status(200).send({ data: records });
+      console.log('[EntirecertificateService.filterByType] result count:', certificates.length);
+      return { data: certificates };
     } catch (error) {
-      console.error('[EntirecertificateService.filterByType]', error);
-      return response.status(500).send({ data: null, error: 'Failed to filter entire certificates by type' });
+      rethrowAsHttpException('EntirecertificateService.filterByType', error);
     }
+  }
+
+  // ─── Private helpers ────────────────────────────────────────────────────────
+
+  private async findByIdOrThrow(id: string): Promise<entireCertificate> {
+    const certificate = await this.prisma.entireCertificate.findUnique({
+      where: { entireCertificateID: id },
+    });
+    if (!certificate) throw new NotFoundException(`EntireCertificate ${id} not found`);
+    return certificate;
+  }
+
+  private findByDateRange(
+    dateRange: Prisma.DateTimeNullableFilter,
+    type?: string,
+  ): Promise<entireCertificate[]> {
+    return this.prisma.entireCertificate.findMany({
+      where: { date: dateRange, ...this.buildTypeFilter(type) },
+      orderBy: { date: 'asc' },
+    });
+  }
+
+  private buildTypeFilter(type?: string): Prisma.entireCertificateWhereInput {
+    return !type || type === ALL_TYPES ? {} : { certificateType: type };
+  }
+
+  private parseDate(value: string): Date {
+    const date = new Date(value);
+    if (isNaN(date.getTime())) throw new BadRequestException(`Invalid date: ${value}`);
+    return date;
+  }
+
+  private parseInteger(value: string, fieldName: string): number {
+    const parsed = parseInt(value, DECIMAL_RADIX);
+    if (isNaN(parsed)) throw new BadRequestException(`Invalid ${fieldName}: ${value}`);
+    return parsed;
   }
 }

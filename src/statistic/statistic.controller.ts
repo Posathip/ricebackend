@@ -1,43 +1,51 @@
-import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { StatisticService } from './statistic.service';
-import { FastifyReply } from 'fastify';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { Controller, Get, HttpCode, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
+import { StatisticRow, StatisticService } from './statistic.service';
 
+const STATISTIC_ROW_EXAMPLE = {
+  'ลำดับที่': 1,
+  'ผู้ได้รับอนุญาติส่งออก': 'โรงสีเอกไรซ์ จำกัด',
+  'ผู้ส่งมอบ': 'K.V.C. RICE INTERTRADE',
+  'เข้าตู้': '✓',
+  'รายการที่': 1,
+  'ปี': '69',
+  'เลขใบอนุญาต': '19555',
+  'คำสั่งจ่างงานที่': 70,
+  'เรือใหญ่': 'xTest',
+  'เมืองตราส่ง': 'HONG KONG',
+  'ชนิดข้าว EN': 'WHITE RICE 15%',
+  'ปริมาณต่อตัน': 26.5,
+  T: 'ข้าวขาวตัญขาว',
+  'CODE 1': '4 W R 15',
+  '(Space1)': null,
+  'CODE 2': 'ข้าวขาว 15',
+  '(Space2)': null,
+  'ราคา': 615,
+  'อัตราแลกเปลี่ยน': 31.8975,
+  'ชื่อข้าวไทย': 'ข้าวขาว 15%',
+};
+
+@ApiTags('Statistic')
+@ApiBearerAuth()
 @Controller('statistic')
 export class StatisticController {
   constructor(private readonly statisticService: StatisticService) {}
 
-@UseGuards(JwtAuthGuard)
-@Get('filterstatisticdata')
-@ApiOkResponse({
-  description: 'Statistic data (Excel format)',
-  schema: {
-    example: [
-      { 'ลำดับที่': 1, 'ผู้ได้รับอนุญาติส่งออก': 'โกลบอล พรีเชียส ไรซ์ จำกัด', 'ผู้ส่งมอบ': 'KARNPANICH RICE MILL', 'เข้าตู้': '✓', 'ลำดับที่c': 1, 'ปี': '69', 'เลขใบอนุญาต': '18597', 'คำสั่งจ่างงานที่': 67, 'เรือใหญ่': 'xTest', 'เมืองตราส่ง': 'SINGAPORE', 'ชนิดข้าว EN': null, 'ปริมาณต่อตัน': 10, 'T': null, 'CODE 1': null, '(Space1)': null, 'CODE 2': null, '(Space2)': null, 'ราคา': 395, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวเจ้าขาวอื่น 5 %' },
-      { 'ลำดับที่': 2, 'ผู้ได้รับอนุญาติส่งออก': 'โกลบอล พรีเชียส ไรซ์ จำกัด', 'ผู้ส่งมอบ': 'KARNPANICH RICE MILL', 'เข้าตู้': '✓', 'ลำดับที่c': 2, 'ปี': '69', 'เลขใบอนุญาต': '18597', 'คำสั่งจ่างงานที่': 67, 'เรือใหญ่': 'XTest', 'เมืองตราส่ง': 'SINGAPORE', 'ชนิดข้าว EN': null, 'ปริมาณต่อตัน': 8, 'T': null, 'CODE 1': null, '(Space1)': null, 'CODE 2': null, '(Space2)': null, 'ราคา': 685, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวเจ้าขาวหอมไทย 100%' },
-      { 'ลำดับที่': 3, 'ผู้ได้รับอนุญาติส่งออก': 'โรงสีเอกไรซ์ จำกัด', 'ผู้ส่งมอบ': 'K.V.C. RICE INTERTRADE', 'เข้าตู้': '', 'ลำดับที่c': 1, 'ปี': '69', 'เลขใบอนุญาต': '19555', 'คำสั่งจ่างงานที่': 70, 'เรือใหญ่': 'xTest', 'เมืองตราส่ง': 'HONG KONG', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 26.5, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 615, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 4, 'ผู้ได้รับอนุญาติส่งออก': 'วุฒิชัยโปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'KARNPANICH RICE MILL', 'เข้าตู้': '✓', 'ลำดับที่c': 1, 'ปี': '69', 'เลขใบอนุญาต': '19768', 'คำสั่งจ่างงานที่': 78, 'เรือใหญ่': 'boat', 'เมืองตราส่ง': 'FRENCE GUIANA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 7.9, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1580, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 5, 'ผู้ได้รับอนุญาติส่งออก': 'วุฒิชัยโปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'KARNPANICH RICE MILL', 'เข้าตู้': '', 'ลำดับที่c': 2, 'ปี': '69', 'เลขใบอนุญาต': '19768', 'คำสั่งจ่างงานที่': 78, 'เรือใหญ่': 'x', 'เมืองตราส่ง': 'FRENCE GUIANA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 2.4, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1050, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 6, 'ผู้ได้รับอนุญาติส่งออก': 'วุฒิชัยโปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'KARNPANICH RICE MILL', 'เข้าตู้': '', 'ลำดับที่c': 3, 'ปี': '69', 'เลขใบอนุญาต': '19768', 'คำสั่งจ่างงานที่': 78, 'เรือใหญ่': 'x', 'เมืองตราส่ง': 'FRENCE GUIANA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 1.7, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1030, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 7, 'ผู้ได้รับอนุญาติส่งออก': 'อุทัย โปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'AIR SEA FREIGHT FORWARDERS', 'เข้าตู้': '', 'ลำดับที่c': 1, 'ปี': '69', 'เลขใบอนุญาต': '20342', 'คำสั่งจ่างงานที่': 71, 'เรือใหญ่': 'เรื่อหางยาว', 'เมืองตราส่ง': 'CANADA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 20.8, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1185, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 8, 'ผู้ได้รับอนุญาติส่งออก': 'วุฒิชัยโปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'KASISURI', 'เข้าตู้': '', 'ลำดับที่c': 4, 'ปี': '69', 'เลขใบอนุญาต': '19768', 'คำสั่งจ่างงานที่': 76, 'เรือใหญ่': '', 'เมืองตราส่ง': 'FRENCE GUIANA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 1.7, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1030, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 9, 'ผู้ได้รับอนุญาติส่งออก': 'วุฒิชัยโปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'KASISURI', 'เข้าตู้': '', 'ลำดับที่c': 3, 'ปี': '69', 'เลขใบอนุญาต': '19768', 'คำสั่งจ่างงานที่': 76, 'เรือใหญ่': '', 'เมืองตราส่ง': 'FRENCE GUIANA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 2.4, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1050, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 10, 'ผู้ได้รับอนุญาติส่งออก': 'วุฒิชัยโปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'KASISURI', 'เข้าตู้': '✓', 'ลำดับที่c': 2, 'ปี': '69', 'เลขใบอนุญาต': '19768', 'คำสั่งจ่างงานที่': 76, 'เรือใหญ่': '', 'เมืองตราส่ง': 'FRENCE GUIANA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 9, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1590, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 11, 'ผู้ได้รับอนุญาติส่งออก': 'วุฒิชัยโปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'KASISURI', 'เข้าตู้': '', 'ลำดับที่c': 1, 'ปี': '69', 'เลขใบอนุญาต': '19768', 'คำสั่งจ่างงานที่': 76, 'เรือใหญ่': '', 'เมืองตราส่ง': 'FRENCE GUIANA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 7.9, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1580, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-      { 'ลำดับที่': 12, 'ผู้ได้รับอนุญาติส่งออก': 'อุทัย โปรดิวส์ จำกัด', 'ผู้ส่งมอบ': 'KASISURI', 'เข้าตู้': '', 'ลำดับที่c': 1, 'ปี': '69', 'เลขใบอนุญาต': '20342', 'คำสั่งจ่างงานที่': 72, 'เรือใหญ่': '', 'เมืองตราส่ง': 'CANADA', 'ชนิดข้าว EN': 'WHITE RICE 15%', 'ปริมาณต่อตัน': 20.8, 'T': 'ข้าวขาวตัญขาว', 'CODE 1': '4 W R 15', '(Space1)': null, 'CODE 2': 'ข้าวขาว 15', '(Space2)': null, 'ราคา': 1185, 'อัตราแลกเปลี่ยน': 31.8975, 'ชื่อข้าวไทย': 'ข้าวขาว 15%' },
-    ],
-  },
-})
-
-getStatisticData(
-  @Req() request: any,
-  @Res({ passthrough: true }) response: FastifyReply,
-  @Query('startdate') startdate: string,
-  @Query('enddate') enddate: string,
-  
-
-) {
-  return this.statisticService.getStatisticData(startdate, enddate,request, response);
-}
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('filterstatisticdata')
+  @ApiOperation({ summary: 'Get certified check-weight statistics in Excel row format' })
+  @ApiQuery({ name: 'startdate', example: '2026-05-01T00:00:00.000Z' })
+  @ApiQuery({ name: 'enddate', example: '2026-05-31T23:59:59.999Z' })
+  @ApiOkResponse({
+    description: 'Statistic rows (Excel format, Thai column headers)',
+    schema: { example: [STATISTIC_ROW_EXAMPLE] },
+  })
+  getStatisticData(
+    @Query('startdate') startDate: string,
+    @Query('enddate') endDate: string,
+  ): Promise<StatisticRow[]> {
+    return this.statisticService.getStatisticData(startDate, endDate);
+  }
 }

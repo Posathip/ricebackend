@@ -1,195 +1,125 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Request, Response } from 'express';
-import { PrismaService } from '../../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
-import { CreateAccountUser, LoginDTO } from 'src/dto/user.dto';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FastifyReply } from 'fastify';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { rethrowAsHttpException } from 'src/common/service-error';
+import { CreateAccountUser, LoginDTO } from 'src/dto/user.dto';
+import { PrismaService } from '../../prisma/prisma.service';
+
+const FALLBACK_DEFAULT_PASSWORD = 'Demoadmin';
+
+interface AccessTokenPayload {
+  id: string;
+  email: string;
+  roleUserLevel: string;
+}
+
+interface RefreshTokenPayload {
+  id: string;
+  email: string;
+}
+
+export interface SignInResult {
+  message: string;
+  accessTokentime: Date;
+  accessToken: string;
+  refreshToken: string;
+  refreshTokentime: Date;
+}
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
-    private jwt: JwtService,
+    private readonly prisma: PrismaService,
+    private readonly jwt: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
-  async createAccountUser(
-    dto: CreateAccountUser,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[AuthService.createAccountUser] email:', dto.email);
+  async createAccountUser(dto: CreateAccountUser): Promise<{ message: string }> {
+    console.log('[AuthService.createAccountUser] email:', dto.email);
     try {
-      const checkEmail = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-      });
+      const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+      if (existingUser) throw new BadRequestException('Email already exist');
 
-      if (checkEmail) {
-        throw new BadRequestException('Email already exist');
-      }
-
-      const defaultPassword = this.configService.get<string>('DEFAULT_PASSWORD', 'Demoadmin');
-      const hashpassword = await this.hashPassword(defaultPassword);
+      const defaultPassword = this.configService.get<string>('DEFAULT_PASSWORD', FALLBACK_DEFAULT_PASSWORD);
+      const hashedPassword = await this.hashPassword(defaultPassword);
 
       await this.prisma.user.create({
         data: {
           email: dto.email,
-          password: defaultPassword,
-          hashpassword: hashpassword,
+          // `password` is @unique in the schema; store the (salted, therefore unique) hash
+          // instead of the shared plaintext default password.
+          password: hashedPassword,
+          hashpassword: hashedPassword,
           roleUserLevel: dto.roleUserLevel,
         },
       });
 
-      // console.log('[AuthService.createAccountUser] created email:', dto.email);
-      return response.status(200).send({
-        message: `Create account email: ${dto.email}  complete`,
-      });
+      console.log('[AuthService.createAccountUser] result created:', dto.email);
+      return { message: `Create account email: ${dto.email}  complete` };
     } catch (error) {
-      console.error('[AuthService.createAccountUser]', error);
-      if (error instanceof BadRequestException) throw error;
-      const message = error instanceof Error ? error.message : String(error);
-      throw new InternalServerErrorException(message);
+      rethrowAsHttpException('AuthService.createAccountUser', error);
     }
   }
 
-  async testsignin(dto: LoginDTO, req: Request, res: Response): Promise<void> {
-    // console.log('[AuthService.testsignin] email:', dto.email);
+  async signIn(dto: LoginDTO): Promise<SignInResult> {
+    console.log('[AuthService.signIn] email:', dto.email);
     try {
-      // console.log('[AuthService.testsignin] result: ok');
-      res.status(200).send({ message: `Create account email:  complete` });
-    } catch (error) {
-      console.error('[AuthService.testsignin]', error);
-      const message = error instanceof Error ? error.message : String(error);
-      res.status(500).send({
-        message: 'Failed to create account',
-        error: message,
+      const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+      if (!user) throw new BadRequestException('No email in database');
+
+      const isPasswordMatch = await this.comparePasswords(dto.password, user.hashpassword);
+      if (!isPasswordMatch) throw new BadRequestException('Password are not correct');
+
+      const accessToken = await this.signAccessToken({
+        id: user.id,
+        email: user.email,
+        roleUserLevel: user.roleUserLevel,
       });
-    }
-  }
+      if (!accessToken) throw new ForbiddenException();
 
-  async signin(
-    dto: LoginDTO,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[AuthService.signin] email:', dto.email);
-    try {
-      const { email, password } = dto;
+      const refreshToken = await this.signRefreshToken({ id: user.id, email: user.email });
 
-      const foundUser = await this.prisma.user.findUnique({
-        where: { email: email },
-      });
-
-      if (!foundUser) {
-        throw new BadRequestException('No email in database');
-      }
-
-      const isMatch = await this.comparePasswords({
-        password,
-        hash: foundUser.hashpassword,
-      });
-
-      if (!isMatch) {
-        throw new BadRequestException('Password are not correct');
-      }
-
-      const token = await this.signaccessToken({
-        id: foundUser.id,
-        email: foundUser.email,
-        roleUserLevel: foundUser.roleUserLevel,
-      });
-
-      const refreshtoken = await this.createRefreshtoken({
-        id: foundUser.id,
-        email: foundUser.email,
-      });
-
-      if (!token) {
-        throw new ForbiddenException();
-      }
-
-      const date = new Date();
-      const accessTokenAgeMs = Number(this.configService.get<string>('ACCESS_TOKEN_AGE_MS'));
-      const refreshTokenAgeMs = Number(this.configService.get<string>('REFRESH_TOKEN_AGE_MS'));
-      const accessTokentime = new Date(date.getTime() + accessTokenAgeMs);
-      const refreshTokentime = new Date(date.getTime() + refreshTokenAgeMs);
-
-      // console.log('[AuthService.signin] login success, email:', email);
-      return response.status(200).send({
+      const now = Date.now();
+      const result: SignInResult = {
         message: 'Logged in sucessfully',
-        accessTokentime,
-        accessToken: token,
-        refreshToken: refreshtoken,
-        refreshTokentime,
-      });
+        accessTokentime: new Date(now + this.getConfigNumber('ACCESS_TOKEN_AGE_MS')),
+        accessToken,
+        refreshToken,
+        refreshTokentime: new Date(now + this.getConfigNumber('REFRESH_TOKEN_AGE_MS')),
+      };
+      console.log('[AuthService.signIn] result: login success', dto.email);
+      return result;
     } catch (error) {
-      console.error('[AuthService.signin]', error);
-      return response.status(500).send({
-        message: 'Failed to Login',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      rethrowAsHttpException('AuthService.signIn', error);
     }
   }
 
-  async hashPassword(password: string): Promise<string> {
-    // console.log('[AuthService.hashPassword]');
-    const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT_ROUNDS'));
-    const hash = await bcrypt.hash(password, saltRounds);
-    // console.log('[AuthService.hashPassword] hash generated');
-    return hash;
+  // ─── Private helpers ────────────────────────────────────────────────────────
+
+  private async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, this.getConfigNumber('BCRYPT_SALT_ROUNDS'));
   }
 
-  async comparePasswords(args: {
-    password: string;
-    hash: string;
-  }): Promise<boolean> {
-    // console.log('[AuthService.comparePasswords]');
-    const result = await bcrypt.compare(args.password, args.hash);
-    // console.log('[AuthService.comparePasswords] isMatch:', result);
-    return result;
+  private async comparePasswords(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
   }
 
-  async signaccessToken(args: {
-    id: string;
-    email: string;
-    roleUserLevel: string;
-  }): Promise<string> {
-    // console.log('[AuthService.signaccessToken] userId:', args.id);
-    const payload = {
-      id: args.id,
-      email: args.email,
-      roleUserLevel: args.roleUserLevel,
-    };
-
-    const token = await this.jwt.signAsync(payload, {
+  private async signAccessToken(payload: AccessTokenPayload): Promise<string> {
+    return this.jwt.signAsync(payload, {
       secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
       expiresIn: this.configService.get<string>('ACCESS_TOKEN_EXPIRY'),
     });
-
-    // console.log('[AuthService.signaccessToken] token generated');
-    return token;
   }
 
-  async createRefreshtoken(args: {
-    id: string;
-    email: string;
-  }): Promise<string> {
-    // console.log('[AuthService.createRefreshtoken] userId:', args.id);
-    const payload = { id: args.id, email: args.email };
-
-    const token = await this.jwt.signAsync(payload, {
+  private async signRefreshToken(payload: RefreshTokenPayload): Promise<string> {
+    return this.jwt.signAsync(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       expiresIn: this.configService.get<string>('REFRESH_TOKEN_EXPIRY'),
     });
+  }
 
-    // console.log('[AuthService.createRefreshtoken] token generated');
-    return token;
+  private getConfigNumber(key: string): number {
+    return Number(this.configService.get<string>(key));
   }
 }

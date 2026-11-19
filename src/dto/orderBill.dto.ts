@@ -146,28 +146,28 @@ export class UpdateSellingLiquidsDto {
 export class CreatePhysicalAnalysisDto {
     @ApiProperty({ example: 'completed' })
     @IsString()
-    status?: string;
+    status!: string;
 
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
-    orderNo?: string;
+    orderNo!: string;
 
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
-    date?: Date;
+    date!: string;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
-    companyName?: string;
+    companyName!: string;
 
     @ApiProperty({ example: true })
     @IsBoolean()
-    physicalAnalysis?: boolean;
+    physicalAnalysis!: boolean;
 
     @ApiProperty({ example: ['Moisture', 'Protein'], type: [String] })
     @IsArray()
     @IsString({ each: true })
-    physicalChemical?: string[];
+    physicalChemical!: string[];
 
     @ApiProperty({ example: 1500, required: false })
     @IsOptional()
@@ -184,15 +184,15 @@ export class CreatePhysicalAnalysisDto {
 export class CreateExtraInvoiceDto {
     @ApiProperty({ example: 'pending' })
     @IsString()
-    status?: string;
+    status!: string;
 
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
-    orderNo?: string;
+    orderNo!: string;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
-    companyName?: string;
+    companyName!: string;
 
     @ApiProperty({ example: 10, required: false })
     @IsOptional()
@@ -219,29 +219,29 @@ export class CreateExtraInvoiceDto {
 
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
-    date?: Date;
+    date!: string;
 }
 
 export class CreateSellingLiquidsDto {
     @ApiProperty({ example: 'completed' })
     @IsString()
-    status?: string;
+    status!: string;
 
     @ApiProperty({ example: 'ORD12345' })
     @IsString()
-    orderNo?: string;
+    orderNo!: string;
 
     @ApiProperty({ example: 'Acme Rice Co.' })
     @IsString()
-    companyName?: string;
+    companyName!: string;
 
     @ApiProperty({ example: '2024-06-01' })
     @IsDateString()
-    date?: Date;
+    date!: string;
 
     @ApiProperty({ example: true })
     @IsBoolean()
-    liquidsBoolean?: boolean;
+    liquidsBoolean!: boolean;
 
     @ApiProperty({ example: 5, required: false })
     @IsOptional()

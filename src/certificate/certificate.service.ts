@@ -1,255 +1,225 @@
-import { Injectable, Req, Res } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { FastifyReply } from 'fastify';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, certificatesheet } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { buildLicenseHistory, LicenseHistoryResponse } from 'src/common/license-history';
+import { rethrowAsHttpException } from 'src/common/service-error';
 import { UpdateCertificateDto } from 'src/dto/certificatesheet.dto';
+
+const CERT_NO_PAD_LENGTH = 5;
+const LICENSE_NO_PREFIX_LENGTH = 6;
+const DECIMAL_RADIX = 10;
+const TWO_DECIMALS: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+const THAI_DATE_FORMAT = new Intl.DateTimeFormat('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const TOTAL_TONNAGE_KEY = 'รวมปริมาณตัน';
+
+const CERTIFICATE_LIST_SELECT = {
+  certificateSheetID: true,
+  certNo: true,
+  paperNoCopy: true,
+  paperNoOriginal: true,
+  specialJob: true,
+  index: true,
+  companyName: true,
+  surveyLocateNameThai: true,
+  destination: true,
+  riceType: true,
+  totalNettWeight: true,
+} satisfies Prisma.certificatesheetSelect;
+
+const CERTIFICATE_DETAIL_SELECT = {
+  certificateSheetID: true,
+  certNo: true,
+  paperNoOriginal: true,
+  paperNoCopy: true,
+  licenseNumber: true,
+  jobID: true,
+  index: true,
+  specialJob: true,
+  No: true,
+  title: true,
+  companyName: true,
+  surveyLocateNameThai: true,
+  portName: true,
+  destination: true,
+  netWeightTON: true,
+  riceType: true,
+  note: true,
+  dateCertificate: true,
+  quantity: true,
+  unit: true,
+  descriptionOfGoodsLine1: true,
+  descriptionOfGoodsLine2: true,
+  descriptionOfGoodsLine3: true,
+  packing: true,
+  unitKGS_Nett: true,
+  marks: true,
+  shipper: true,
+  goDown: true,
+  dateOfLoading: true,
+  dateCheckWeight: true,
+  shippingPort: true,
+  carryingVessel: true,
+  qualityLine1: true,
+  qualityLine2: true,
+  weight: true,
+  totalGrossWeight: true,
+  totalTareWeight: true,
+  totalNettWeight: true,
+  status: true,
+  packingLine1: true,
+  packingLine2: true,
+  packingLine3: true,
+  applyGodown: true,
+  checkWeight: {
+    select: {
+      supplierName: true,
+      time: true,
+      noOfBags: true,
+      grossWeight: true,
+      netWeightW: true,
+      netWeightTon: true,
+      remainWeight: true,
+      weightPerTon: true,
+      goDown: true,
+      loadingDetails: true,
+      specialJob: true,
+      vehicleName: true,
+      riceName: true,
+      quantity: true,
+    },
+  },
+} satisfies Prisma.certificatesheetSelect;
+
+const CERTIFICATE_EXPORT_SELECT = {
+  certNo: true,
+  paperNoCopy: true,
+  paperNoOriginal: true,
+  companyName: true,
+  destination: true,
+  riceType: true,
+  quantity: true,
+  dateCertificate: true,
+  goDown: true,
+  licenseNumber: true,
+  jobID: true,
+  shippingPort: true,
+} satisfies Prisma.certificatesheetSelect;
+
+/** Fields that must be unique across certificate sheets. */
+const UNIQUE_NUMBER_FIELDS = ['certNo', 'paperNoOriginal', 'paperNoCopy'] as const;
+
+type CertificateListItem = Prisma.certificatesheetGetPayload<{ select: typeof CERTIFICATE_LIST_SELECT }>;
+type CertificateDetail = Prisma.certificatesheetGetPayload<{ select: typeof CERTIFICATE_DETAIL_SELECT }>;
+type CertificateExportSource = Prisma.certificatesheetGetPayload<{ select: typeof CERTIFICATE_EXPORT_SELECT }>;
+
+export type CertificateListByDateItem = CertificateListItem & { status: boolean };
+
+export interface CertificatesByDateResponse {
+  data: CertificateListByDateItem[];
+  previousDayLatestCertNo: number;
+  previousDayDate: Date | null;
+  previousDayPaperNoOriginal: number;
+  previousDayPaperNoCopy: number;
+}
+
+export type CertificateDetailWithEnNames = CertificateDetail & {
+  carryingVessel: string;
+  descriptionOfGoodsLine1: string;
+  descriptionOfGoodsLine2: string;
+  descriptionOfGoodsLine3: string;
+  shipper: string;
+  surveyLocateNameEN: string | null;
+  riceTypeEN: string | null;
+  companyNameEN: string | null;
+};
+
+export interface CertificateSearchFilters {
+  certNo?: string;
+  jobID?: string;
+  licenseNumber?: string;
+}
+
+/** One row of the certificate export sheet — keys are the Thai column headers used by the frontend. */
+export type CertificateExportRow = Record<string, string | number>;
+
+export interface CertificateExportResponse {
+  result: CertificateExportRow[];
+  [TOTAL_TONNAGE_KEY]: string;
+}
 
 @Injectable()
 export class CertificateService {
-  constructor(
-    private prisma: PrismaService,
-    private jwt: JwtService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getAllCertificatebyDate(
-    date: string,
-    request: any,
-    response: any,
-  ): Promise<void> {
-    // console.log('[CertificateService.getAllCertificatebyDate] date:', date);
+  async getCertificatesByDate(date: string): Promise<CertificatesByDateResponse> {
+    console.log('[CertificateService.getCertificatesByDate] date:', date);
     try {
-      const parsedDate = new Date(date);
-      const startOfDay = new Date(
-        parsedDate.getFullYear(),
-        parsedDate.getMonth(),
-        parsedDate.getDate(),
-      );
-      const endOfDay = new Date(
-        parsedDate.getFullYear(),
-        parsedDate.getMonth(),
-        parsedDate.getDate() + 1,
-      );
+      const { gte: startOfDay, lt: endOfDay } = this.buildDayRange(new Date(date));
 
-      const getallcheckweightdata = await this.prisma.certificatesheet.findMany({
-        where: {
-          dateCheckWeight: { gte: startOfDay, lt: endOfDay },
-        },
-        select: {
-          certificateSheetID: true,
-          certNo: true,
-          paperNoCopy: true,
-          paperNoOriginal: true,
-          specialJob: true,
-          index: true,
-          companyName: true,
-          surveyLocateNameThai: true,
-          destination: true,
-          riceType: true,
-          totalNettWeight: true,
-          status: true,
-        },
-        orderBy: { dateCheckWeight: 'asc' },
-      });
+      const [certificates, previousDayDate, latestCertNo, latestPaperNo] = await Promise.all([
+        this.prisma.certificatesheet.findMany({
+          where: { dateCheckWeight: { gte: startOfDay, lt: endOfDay } },
+          select: { ...CERTIFICATE_LIST_SELECT, status: true },
+          orderBy: { dateCheckWeight: 'asc' },
+        }),
+        this.findPreviousCheckWeightDate(startOfDay),
+        this.prisma.certificatesheet.findFirst({
+          where: { certNo: { not: null } },
+          orderBy: { certNo: 'desc' },
+          select: { certNo: true },
+        }),
+        this.prisma.certificatesheet.findFirst({
+          where: { paperNoOriginal: { not: null } },
+          orderBy: { paperNoOriginal: 'desc' },
+          select: { paperNoOriginal: true, paperNoCopy: true },
+        }),
+      ]);
 
-      const latestDateBefore = await this.prisma.certificatesheet.findFirst({
-        where: { dateCheckWeight: { lt: startOfDay } },
-        orderBy: { dateCheckWeight: 'desc' },
-        select: { dateCheckWeight: true },
-      });
-
-      // console.log('[CertificateService.getAllCertificatebyDate] latestDateBefore:', latestDateBefore?.dateCheckWeight);
-
-      const prevDate = new Date(latestDateBefore?.dateCheckWeight || startOfDay);
-      const startPrev = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-      const endPrev = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate() + 1);
-
-      const latestPrevCert = await this.prisma.certificatesheet.findFirst({
-        where: { dateCheckWeight: { gte: startPrev, lt: endPrev } },
-        orderBy: { dateCheckWeight: 'desc' },
-        select: { certNo: true, dateCheckWeight: true, paperNoOriginal: true, paperNoCopy: true },
-      });
-
-      const findlatestCertNo = await this.prisma.certificatesheet.findFirst({
-        orderBy: { certNo: 'desc' },
-        where: { certNo: { not: null } },
-        select: { certNo: true, paperNoOriginal: true, paperNoCopy: true },
-      });
-
-      const findlatestCertOriginal = await this.prisma.certificatesheet.findFirst({
-        orderBy: { paperNoOriginal: 'desc' },
-        where: { paperNoOriginal: { not: null } },
-        select: { paperNoOriginal: true, paperNoCopy: true },
-      });
-
-      // console.log('[CertificateService.getAllCertificatebyDate] returned', getallcheckweightdata.length, 'records');
-      return response.status(200).send({
-        data: getallcheckweightdata,
-        previousDayLatestCertNo: findlatestCertNo?.certNo || 0,
-        previousDayDate: latestPrevCert?.dateCheckWeight || null,
-        previousDayPaperNoOriginal: findlatestCertOriginal?.paperNoOriginal || 0,
-        previousDayPaperNoCopy: findlatestCertOriginal?.paperNoCopy || 0,
-      });
+      console.log('[CertificateService.getCertificatesByDate] result count:', certificates.length);
+      return {
+        data: certificates,
+        previousDayLatestCertNo: latestCertNo?.certNo || 0,
+        previousDayDate,
+        previousDayPaperNoOriginal: latestPaperNo?.paperNoOriginal || 0,
+        previousDayPaperNoCopy: latestPaperNo?.paperNoCopy || 0,
+      };
     } catch (error) {
-      console.error('[CertificateService.getAllCertificatebyDate]', error);
-      return response.status(500).send({ error: 'Failed to retrieve check weight data' });
+      rethrowAsHttpException('CertificateService.getCertificatesByDate', error);
     }
   }
 
-  async updateCertificate(
-    certificateId: string,
-    updateData: UpdateCertificateDto,
-    request: any,
-    response: any,
-  ): Promise<void> {
-    // console.log('[CertificateService.updateCertificate] certificateId:', certificateId);
+  async updateCertificate(certificateId: string, dto: UpdateCertificateDto): Promise<certificatesheet> {
+    console.log('[CertificateService.updateCertificate] certificateId:', certificateId);
     try {
-      await this.validateNoDuplicateCertNo(certificateId, updateData, response);
-      await this.validateNoDuplicatePaperOriginal(certificateId, updateData, response);
-      await this.validateNoDuplicatePaperCopy(certificateId, updateData, response);
+      const existing = await this.prisma.certificatesheet.findUnique({
+        where: { certificateSheetID: certificateId },
+        select: { certificateSheetID: true },
+      });
+      if (!existing) throw new NotFoundException('Certificate not found');
+
+      await this.assertUniqueNumbers(certificateId, dto);
 
       const updated = await this.prisma.certificatesheet.update({
         where: { certificateSheetID: certificateId },
-        data: updateData,
+        data: dto,
       });
-
-      // console.log('[CertificateService.updateCertificate] updated:', updated.certificateSheetID);
-      return response.status(200).send(updated);
+      console.log('[CertificateService.updateCertificate] result:', updated.certificateSheetID);
+      return updated;
     } catch (error) {
-      console.error('[CertificateService.updateCertificate]', error);
-      return response.status(500).send({ error: 'Failed to update certificate', message: error });
+      rethrowAsHttpException('CertificateService.updateCertificate', error);
     }
   }
 
-  private async validateNoDuplicateCertNo(
-    certificateId: string,
-    updateData: UpdateCertificateDto,
-    response: any,
-  ): Promise<void> {
-    if (updateData.certNo === undefined) return;
-
-    const existing = await this.prisma.certificatesheet.findFirst({
-      where: { certNo: updateData.certNo, NOT: { certificateSheetID: certificateId } },
-    });
-
-    if (existing) {
-      return response.status(400).send({ error: 'certNo already exists' });
-    }
-  }
-
-  private async validateNoDuplicatePaperOriginal(
-    certificateId: string,
-    updateData: UpdateCertificateDto,
-    response: any,
-  ): Promise<void> {
-    if (updateData.paperNoOriginal === undefined) return;
-
-    const existing = await this.prisma.certificatesheet.findFirst({
-      where: { paperNoOriginal: updateData.paperNoOriginal, NOT: { certificateSheetID: certificateId } },
-    });
-
-    if (existing) {
-      return response.status(400).send({ error: 'paperNoOriginal already exists' });
-    }
-  }
-
-  private async validateNoDuplicatePaperCopy(
-    certificateId: string,
-    updateData: UpdateCertificateDto,
-    response: any,
-  ): Promise<void> {
-    if (updateData.paperNoCopy === undefined) return;
-
-    const existing = await this.prisma.certificatesheet.findFirst({
-      where: { paperNoCopy: updateData.paperNoCopy, NOT: { certificateSheetID: certificateId } },
-    });
-
-    if (existing) {
-      return response.status(400).send({ error: 'paperNoCopy already exists' });
-    }
-  }
-
-  async getcertificatebyid(
-    certificateId: string,
-    request: any,
-    response: any,
-  ): Promise<void> {
-    // console.log('[CertificateService.getcertificatebyid] certificateId:', certificateId);
+  async getCertificateById(certificateId: string): Promise<CertificateDetailWithEnNames> {
+    console.log('[CertificateService.getCertificateById] certificateId:', certificateId);
     try {
       const certificate = await this.prisma.certificatesheet.findUnique({
         where: { certificateSheetID: certificateId },
-        select: {
-          certificateSheetID: true,
-          certNo: true,
-          paperNoOriginal: true,
-          paperNoCopy: true,
-          licenseNumber: true,
-          jobID: true,
-          index: true,
-          specialJob: true,
-          No: true,
-          title: true,
-          companyName: true,
-          surveyLocateNameThai: true,
-          portName: true,
-          destination: true,
-          netWeightTON: true,
-          riceType: true,
-          note: true,
-          dateCertificate: true,
-          quantity: true,
-          unit: true,
-          descriptionOfGoodsLine1: true,
-          descriptionOfGoodsLine2: true,
-          descriptionOfGoodsLine3: true,
-          packing: true,
-          unitKGS_Nett: true,
-          marks: true,
-          shipper: true,
-          goDown: true,
-          dateOfLoading: true,
-          dateCheckWeight: true,
-          shippingPort: true,
-          carryingVessel: true,
-          qualityLine1: true,
-          qualityLine2: true,
-          weight: true,
-          totalGrossWeight: true,
-          totalTareWeight: true,
-          totalNettWeight: true,
-          status: true,
-          packingLine1: true,
-          packingLine2: true,
-          packingLine3: true,
-          applyGodown: true,
-
-          checkWeight: {
-            select: {
-              supplierName: true,
-              time: true,
-              // vesselName: true,
-              noOfBags: true,
-              grossWeight: true,
-              netWeightW: true,
-              netWeightTon: true,
-              remainWeight: true,
-              weightPerTon: true,
-              goDown: true,
-              loadingDetails: true,
-              specialJob: true,
-              vehicleName: true,
-              riceName: true,
-              quantity: true,
-            },
-          },
-        },
+        select: CERTIFICATE_DETAIL_SELECT,
       });
+      if (!certificate) throw new NotFoundException('Certificate not found');
 
-      if (!certificate) {
-        // console.log('[CertificateService.getcertificatebyid] not found:', certificateId);
-        return response.status(404).send({ error: 'Certificate not found' });
-      }
-
-      const [findEnNameSurvey, findRiceNameEN, findCompanyNameEN] = await Promise.all([
+      const [survey, rice, company] = await Promise.all([
         this.prisma.surveyName.findFirst({
           where: { surveyNameTH: certificate.surveyLocateNameThai || '' },
           select: { surveyNameEN: true },
@@ -264,444 +234,238 @@ export class CertificateService {
         }),
       ]);
 
-      const certificateWithEnNames = {
+      const result: CertificateDetailWithEnNames = {
         ...certificate,
-        carryingVessel: this.toUpperStr(certificate.carryingVessel),
-        descriptionOfGoodsLine1: this.toUpperStr(certificate.descriptionOfGoodsLine1),
-        descriptionOfGoodsLine2: this.toUpperStr(certificate.descriptionOfGoodsLine2),
-        descriptionOfGoodsLine3: this.toUpperStr(certificate.descriptionOfGoodsLine3),
-        shipper: this.toTitleStr(certificate.shipper),
-        surveyLocateNameEN: findEnNameSurvey?.surveyNameEN || null,
-        riceTypeEN: findRiceNameEN?.riceNameEng || null,
-        companyNameEN: findCompanyNameEN?.companyNameEN || null,
+        carryingVessel: this.toUpperCase(certificate.carryingVessel),
+        descriptionOfGoodsLine1: this.toUpperCase(certificate.descriptionOfGoodsLine1),
+        descriptionOfGoodsLine2: this.toUpperCase(certificate.descriptionOfGoodsLine2),
+        descriptionOfGoodsLine3: this.toUpperCase(certificate.descriptionOfGoodsLine3),
+        shipper: this.toTitleCase(certificate.shipper),
+        surveyLocateNameEN: survey?.surveyNameEN || null,
+        riceTypeEN: rice?.riceNameEng || null,
+        companyNameEN: company?.companyNameEN || null,
       };
-
-      // console.log('[CertificateService.getcertificatebyid] found:', certificate.certificateSheetID);
-      return response.status(200).send(certificateWithEnNames);
+      console.log('[CertificateService.getCertificateById] result:', result.certificateSheetID);
+      return result;
     } catch (error) {
-      console.error('[CertificateService.getcertificatebyid]', error);
-      return response.status(500).send({ error: 'Failed to retrieve certificate' });
+      rethrowAsHttpException('CertificateService.getCertificateById', error);
     }
   }
 
-  async searchCertificates(
-    filters: { certNo?: number; jobID?: string; licenseNumber?: string },
-    request: any,
-    response: any,
-  ): Promise<void> {
-    // console.log('[CertificateService.searchCertificates] filters:', filters);
+  async searchCertificates(filters: CertificateSearchFilters): Promise<CertificateListItem[]> {
+    console.log('[CertificateService.searchCertificates] filters:', filters);
     try {
-      const where = {
-        ...(filters.certNo && { certNo: filters.certNo }),
-        ...(filters.jobID && !isNaN(Number(filters.jobID)) && { jobID: Number(filters.jobID) }),
-        ...(filters.licenseNumber && {
-          licenseNumber: { contains: filters.licenseNumber, mode: 'insensitive' as const },
-        }),
-      };
-
-      const results = await this.prisma.certificatesheet.findMany({
-        where,
-        select: {
-          certificateSheetID: true,
-          certNo: true,
-          paperNoCopy: true,
-          paperNoOriginal: true,
-          specialJob: true,
-          index: true,
-          companyName: true,
-          surveyLocateNameThai: true,
-          destination: true,
-          riceType: true,
-          totalNettWeight: true,
-        },
+      const certificates = await this.prisma.certificatesheet.findMany({
+        where: this.buildSearchWhere(filters),
+        select: CERTIFICATE_LIST_SELECT,
       });
+      if (certificates.length === 0) throw new NotFoundException('No data found');
 
-      if (!results.length) {
-        // console.log('[CertificateService.searchCertificates] no data found');
-        return response.status(404).send({ message: 'No data found' });
-      }
-
-      // console.log('[CertificateService.searchCertificates] count:', results.length);
-      return response.status(200).send(results);
+      console.log('[CertificateService.searchCertificates] result count:', certificates.length);
+      return certificates;
     } catch (error) {
-      console.error('[CertificateService.searchCertificates]', error);
-      return response.status(500).send({ message: 'Failed to search certificates' });
+      rethrowAsHttpException('CertificateService.searchCertificates', error);
     }
   }
 
-  async filterAllCertificatebyDate(
-    startdate: string,
-    enddate: string,
-    request: any,
-    response: any,
-  ): Promise<void> {
-    // console.log('[CertificateService.filterAllCertificatebyDate] startdate:', startdate, 'enddate:', enddate);
+  async exportCertificatesByDateRange(startDate: string, endDate: string): Promise<CertificateExportResponse> {
+    console.log('[CertificateService.exportCertificatesByDateRange] startDate:', startDate, 'endDate:', endDate);
     try {
-      const start = new Date(startdate);
-      const end = new Date(enddate);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
-      const certificates = await this.prisma.certificatesheet.findMany({
-        where: {
-          dateCheckWeight: { gte: start, lte: end },
-          certNo: { not: null },
-        },
-        select: {
-          certNo: true,
-          paperNoCopy: true,
-          paperNoOriginal: true,
-          companyName: true,
-          destination: true,
-          riceType: true,
-          quantity: true,
-          dateCertificate: true,
-          goDown: true,
-          licenseNumber: true,
-          jobID: true,
-          shippingPort: true,
-        },
-        orderBy: { certNo: 'asc' },
-      });
-
-      if (!certificates || certificates.length === 0) {
-        // console.log('[CertificateService.filterAllCertificatebyDate] no data found');
-        return response.status(404).send({ message: 'Data Not found' });
-      }
-
-      const result = await this.mapCertificatesToExportRows(certificates);
-      const summarize = this.sumQuantity(certificates);
-
-      // console.log('[CertificateService.filterAllCertificatebyDate] count:', result.length);
-      return response.status(200).send({
-        result,
-        'รวมปริมาณตัน': Number(summarize).toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-      });
+      const result = await this.buildCertificateExport(start, end, 'Data Not found');
+      console.log('[CertificateService.exportCertificatesByDateRange] result count:', result.result.length);
+      return result;
     } catch (error) {
-      console.error('[CertificateService.filterAllCertificatebyDate]', error);
-      return response.status(500).send({ message: 'Failed to filter certificates by date' });
+      rethrowAsHttpException('CertificateService.exportCertificatesByDateRange', error);
     }
   }
 
-  async filterAllCertificatebyMonth(
-    startdate: string,
-    enddate: string,
-    request: any,
-    response: any,
-  ): Promise<void> {
-    // console.log('[CertificateService.filterAllCertificatebyMonth] startdate:', startdate, 'enddate:', enddate);
+  async exportCertificatesByMonth(month: string, year: string): Promise<CertificateExportResponse> {
+    console.log('[CertificateService.exportCertificatesByMonth] month:', month, 'year:', year);
     try {
-      const start = new Date(startdate);
-      const end = new Date(enddate);
-      end.setHours(23, 59, 59, 999);
+      const monthIndex = this.parseInteger(month, 'month') - 1;
+      const yearNumber = this.parseInteger(year, 'year');
+      const start = new Date(yearNumber, monthIndex, 1);
+      // Day 0 of the next month = last day of this month (handles 28/29/30/31-day months).
+      const end = new Date(yearNumber, monthIndex + 1, 0, 23, 59, 59, 999);
 
-      const certificates = await this.prisma.certificatesheet.findMany({
-        where: {
-          dateCheckWeight: { gte: start, lte: end },
-          certNo: { not: null },
-        },
-        select: {
-          certNo: true,
-          paperNoCopy: true,
-          paperNoOriginal: true,
-          companyName: true,
-          destination: true,
-          riceType: true,
-          quantity: true,
-          dateCertificate: true,
-          goDown: true,
-          licenseNumber: true,
-          jobID: true,
-          shippingPort: true,
-        },
-        orderBy: { certNo: 'asc' },
-      });
-
-      if (!certificates || certificates.length === 0) {
-        // console.log('[CertificateService.filterAllCertificatebyMonth] no data found');
-        return response.status(404).send({ message: 'Data Notfound' });
-      }
-
-      const result = await this.mapCertificatesToExportRows(certificates);
-      const summarize = this.sumQuantity(certificates);
-
-      // console.log('[CertificateService.filterAllCertificatebyMonth] count:', result.length);
-      return response.status(200).send({
-        result,
-        'รวมปริมาณตัน': Number(summarize).toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-      });
+      const result = await this.buildCertificateExport(start, end, 'Data Notfound');
+      console.log('[CertificateService.exportCertificatesByMonth] result count:', result.result.length);
+      return result;
     } catch (error) {
-      console.error('[CertificateService.filterAllCertificatebyMonth]', error);
-      return response.status(500).send({ message: 'Failed to filter certificates by month' });
+      rethrowAsHttpException('CertificateService.exportCertificatesByMonth', error);
     }
   }
 
-  private async mapCertificatesToExportRows(certificates: any[]): Promise<any[]> {
-    return Promise.all(
-      certificates.map(async (item) => {
-        const company = await this.prisma.company.findFirst({
-          where: { companyNameTH: item.companyName || '' },
-          select: { companyNameEN: true },
-        });
+  async getCertificateHistory(licenseNumber: string): Promise<LicenseHistoryResponse> {
+    console.log('[CertificateService.getCertificateHistory] licenseNumber:', licenseNumber);
+    try {
+      const result = await buildLicenseHistory(this.prisma, licenseNumber, {
+        certificate: { status: true },
+      });
+      console.log('[CertificateService.getCertificateHistory] result groups:', result.data.length);
+      return result;
+    } catch (error) {
+      rethrowAsHttpException('CertificateService.getCertificateHistory', error);
+    }
+  }
 
-        const rice = await this.prisma.riceManage.findFirst({
-          where: { riceNameThai: item.riceType || '' },
-          select: { riceNameEng: true },
-        });
+  // ─── Private helpers ────────────────────────────────────────────────────────
 
-        return {
-          วันที่: item.dateCertificate
-            ? new Intl.DateTimeFormat('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(
-                new Date(item.dateCertificate),
-              )
-            : '',
-          ผู้ได้รับอนุญาต: company?.companyNameEN || item.companyName || '',
-          ผู้ส่งมอบ: item.goDown || '',
-          เลขที่ใบอนุญาต: item.licenseNumber?.slice(6) || '',
-          คำสั่งจ่ายงานเลขที่: item.jobID || '',
-          เรือใหญ่: item.shippingPort || '',
-          เมืองตราส่ง: item.destination || '',
-          ชนิดข้าว: rice?.riceNameEng || item.riceType || '',
-          'ปริมาณ/เมตริกตัน': Number(item.quantity || 0).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-          'CER NO.': this.formatCertNo(item.certNo),
-          'PAPER NO': this.formatCertNo(item.paperNoCopy),
-          'PAPER NO ': this.formatCertNo(item.paperNoOriginal),
-        };
+  private async findPreviousCheckWeightDate(before: Date): Promise<Date | null> {
+    const latestBefore = await this.prisma.certificatesheet.findFirst({
+      where: { dateCheckWeight: { lt: before } },
+      orderBy: { dateCheckWeight: 'desc' },
+      select: { dateCheckWeight: true },
+    });
+    const previousDayRange = this.buildDayRange(new Date(latestBefore?.dateCheckWeight || before));
+    const latestOnPreviousDay = await this.prisma.certificatesheet.findFirst({
+      where: { dateCheckWeight: previousDayRange },
+      orderBy: { dateCheckWeight: 'desc' },
+      select: { dateCheckWeight: true },
+    });
+    return latestOnPreviousDay?.dateCheckWeight || null;
+  }
+
+  private async assertUniqueNumbers(certificateId: string, dto: UpdateCertificateDto): Promise<void> {
+    for (const field of UNIQUE_NUMBER_FIELDS) {
+      const value = dto[field];
+      if (value === undefined) continue;
+
+      const duplicate = await this.prisma.certificatesheet.findFirst({
+        where: { [field]: value, NOT: { certificateSheetID: certificateId } },
+        select: { certificateSheetID: true },
+      });
+      if (duplicate) throw new BadRequestException(`${field} already exists`);
+    }
+  }
+
+  private buildSearchWhere(filters: CertificateSearchFilters): Prisma.certificatesheetWhereInput {
+    const certNo = filters.certNo ? parseInt(filters.certNo, DECIMAL_RADIX) : NaN;
+    const jobID = filters.jobID ? Number(filters.jobID) : NaN;
+    return {
+      ...(!isNaN(certNo) && certNo !== 0 && { certNo }),
+      ...(!isNaN(jobID) && { jobID }),
+      ...(filters.licenseNumber && {
+        licenseNumber: { contains: filters.licenseNumber, mode: 'insensitive' as const },
       }),
+    };
+  }
+
+  private async buildCertificateExport(
+    start: Date,
+    end: Date,
+    notFoundMessage: string,
+  ): Promise<CertificateExportResponse> {
+    const certificates = await this.prisma.certificatesheet.findMany({
+      where: { dateCheckWeight: { gte: start, lte: end }, certNo: { not: null } },
+      select: CERTIFICATE_EXPORT_SELECT,
+      orderBy: { certNo: 'asc' },
+    });
+    if (certificates.length === 0) throw new NotFoundException(notFoundMessage);
+
+    const [companyNameEnByTh, riceNameEnByTh] = await Promise.all([
+      this.buildCompanyNameEnMap(certificates.map((c) => c.companyName || '')),
+      this.buildRiceNameEnMap(certificates.map((c) => c.riceType || '')),
+    ]);
+
+    return {
+      result: certificates.map((certificate) =>
+        this.toExportRow(certificate, companyNameEnByTh, riceNameEnByTh),
+      ),
+      [TOTAL_TONNAGE_KEY]: this.formatTwoDecimals(this.sumQuantity(certificates)),
+    };
+  }
+
+  private toExportRow(
+    certificate: CertificateExportSource,
+    companyNameEnByTh: Map<string, string>,
+    riceNameEnByTh: Map<string, string | null>,
+  ): CertificateExportRow {
+    return {
+      'วันที่': certificate.dateCertificate ? THAI_DATE_FORMAT.format(new Date(certificate.dateCertificate)) : '',
+      'ผู้ได้รับอนุญาต':
+        companyNameEnByTh.get(certificate.companyName || '') || certificate.companyName || '',
+      'ผู้ส่งมอบ': certificate.goDown || '',
+      'เลขที่ใบอนุญาต': certificate.licenseNumber?.slice(LICENSE_NO_PREFIX_LENGTH) || '',
+      'คำสั่งจ่ายงานเลขที่': certificate.jobID || '',
+      'เรือใหญ่': certificate.shippingPort || '',
+      'เมืองตราส่ง': certificate.destination || '',
+      'ชนิดข้าว': riceNameEnByTh.get(certificate.riceType || '') || certificate.riceType || '',
+      'ปริมาณ/เมตริกตัน': this.formatTwoDecimals(Number(certificate.quantity || 0)),
+      'CER NO.': this.padCertNo(certificate.certNo),
+      'PAPER NO': this.padCertNo(certificate.paperNoCopy),
+      'PAPER NO ': this.padCertNo(certificate.paperNoOriginal),
+    };
+  }
+
+  private async buildCompanyNameEnMap(companyNamesTh: string[]): Promise<Map<string, string>> {
+    const companies = await this.prisma.company.findMany({
+      where: { companyNameTH: { in: [...new Set(companyNamesTh)] } },
+      select: { companyNameTH: true, companyNameEN: true },
+    });
+    return this.firstMatchMap(companies.map((c) => [c.companyNameTH, c.companyNameEN]));
+  }
+
+  private async buildRiceNameEnMap(riceNamesTh: string[]): Promise<Map<string, string | null>> {
+    const riceList = await this.prisma.riceManage.findMany({
+      where: { riceNameThai: { in: [...new Set(riceNamesTh)] } },
+      select: { riceNameThai: true, riceNameEng: true },
+    });
+    return this.firstMatchMap(
+      riceList
+        .filter((rice): rice is { riceNameThai: string; riceNameEng: string | null } => rice.riceNameThai !== null)
+        .map((rice) => [rice.riceNameThai, rice.riceNameEng]),
     );
   }
 
-  private toUpperStr(val: string | null | undefined): string {
-    return val ? val.toUpperCase() : '';
+  /** Keeps the first value per key — same result as the previous per-row `findFirst` lookups. */
+  private firstMatchMap<V>(entries: [string, V][]): Map<string, V> {
+    const map = new Map<string, V>();
+    for (const [key, value] of entries) {
+      if (!map.has(key)) map.set(key, value);
+    }
+    return map;
   }
 
-  private toTitleStr(val: string | null | undefined): string {
-    if (!val) return '';
-    return val
+  private buildDayRange(date: Date): { gte: Date; lt: Date } {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    return { gte: new Date(year, month, day), lt: new Date(year, month, day + 1) };
+  }
+
+  private parseInteger(value: string, fieldName: string): number {
+    const parsed = parseInt(value, DECIMAL_RADIX);
+    if (isNaN(parsed)) throw new BadRequestException(`Invalid ${fieldName}: ${value}`);
+    return parsed;
+  }
+
+  private sumQuantity(certificates: CertificateExportSource[]): number {
+    return certificates.reduce((sum, certificate) => sum + Number(certificate.quantity || 0), 0);
+  }
+
+  private formatTwoDecimals(value: number): string {
+    return value.toLocaleString('en-US', TWO_DECIMALS);
+  }
+
+  private padCertNo(certNo: number | null | undefined): string {
+    return certNo ? certNo.toString().padStart(CERT_NO_PAD_LENGTH, '0') : '';
+  }
+
+  private toUpperCase(value: string | null | undefined): string {
+    return value ? value.toUpperCase() : '';
+  }
+
+  private toTitleCase(value: string | null | undefined): string {
+    if (!value) return '';
+    return value
       .toLowerCase()
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
-
-  private formatCertNo(certNo: number | null | undefined): string {
-    if (!certNo) return '';
-    return certNo.toString().padStart(5, '0');
-  }
-
-  private sumQuantity(certificates: any[]): number {
-    return certificates.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-  }
-
-
-    async gethistoryCertificate(licenseNumber: string, @Req() request: any, @Res({ passthrough: true }) response: FastifyReply) {
-      try {
-        const data = await this.prisma.validate_Check_Weight.findMany({
-          where: {
-            status: true,
-            description: { licenseNumber },
-            certificate :{ status: true , },
-          },
-          select: {
-            jobID: true,
-            quantity: true,
-            totalNetWeight: true,
-            loadingDetails: true,
-            riceName: true,
-            
-            request: {
-              select: {
-                shippingDateTime: true,
-                surveyProvince: true,
-                surveyLocateNameThai: true,
-                portName: true,
-               requestBy: true,
-              },
-            },
-            description: {
-              select: { licenseDetailID: true,
-                vehicleName: true
-               },
-            },
-          },
-          orderBy: { jobID: 'asc' },
-        });
-  
-        // ดึง unique licenseDetailID และ bufferRemain ทีเดียว
-        const uniqueLicenseDetailIDs = [...new Set(data.map((i) => i.description?.licenseDetailID).filter(Boolean))] as string[];
-        const bufferRemains = await this.prisma.bufferRemain.findMany({
-          where: { licenseDetailID: { in: uniqueLicenseDetailIDs } },
-        });
-        const bufferRemainMap = new Map(bufferRemains.map((b) => [b.licenseDetailID, b]));
-  
-        // ดึง surveyNameEN จาก surveyName table โดยใช้ surveyLocateNameThai
-        const uniqueSurveyNames = [...new Set(data.map((i) => i.request?.surveyLocateNameThai).filter(Boolean))] as string[];
-        const surveyNames = await this.prisma.surveyName.findMany({
-          where: { surveyNameTH: { in: uniqueSurveyNames } },
-          select: { surveyNameTH: true, surveyNameEN: true },
-        });
-        const surveyNameMap = new Map(surveyNames.map((s) => [s.surveyNameTH, s.surveyNameEN]));
-  
-        // group by licenseDetailID
-        const groupMap = new Map<string, { licenseIndex: number; licenseDetailID: string; remainNetWeightKGM: number | null; maximumWeight: number | null; records: any[] }>();
-        let indexCounter = 1;
-  
-        for (const item of data) {
-          const licenseDetailID = item.description?.licenseDetailID ?? '__unknown__';
-  
-          if (!groupMap.has(licenseDetailID)) {
-            groupMap.set(licenseDetailID, {
-              licenseIndex: indexCounter++,
-              licenseDetailID,
-              remainNetWeightKGM: bufferRemainMap.get(licenseDetailID)?.remainNetWeightKGM ?? null,
-              maximumWeight: bufferRemainMap.get(licenseDetailID)?.MaximumWeight ?? null,
-              records: [],
-            });
-          }
-  
-          groupMap.get(licenseDetailID)!.records.push({
-            jobID: item.jobID,
-            quantity: item.quantity,
-            totalNetWeight: item.totalNetWeight,
-            loadingDetails: item.loadingDetails,
-            riceName: item.riceName,
-            vehicleName: item.description?.vehicleName,
-            shippingDateTime: item.request?.shippingDateTime,
-            surveyProvince: item.request?.surveyProvince,
-            surveyName: surveyNameMap.get(item.request?.surveyLocateNameThai ?? '') || item.request?.surveyLocateNameThai,
-            portName: item.request?.portName,
-            requestBy: item.request?.requestBy,
-          });
-        }
-  
-        const result = [...groupMap.values()];
-
-        const govData = await this.prisma.dataFromGoverment.findFirst({
-          where: { licenseNumber },
-          select: {
-            licenseNumber: true,
-            exporter: true,
-            expiredDate: true,
-            currency: true,
-            exchangeRate: true,
-           destinationCountry: true,
-            licenseDetails: {
-              select: {
-                 licenseDetailID: true,
-              netWeightTON: true,
-              quantity: true,
-              pricePerUnit: true,
-             
-                // productDescription: true,
-               
-              },
-            },
-          },
-        });
-  
-        const govDataWithIndex = govData
-          ? {
-              ...govData,
-              licenseDetails: govData.licenseDetails.map((detail, i) => ({
-                index: i + 1,
-                ...detail,
-              })),
-            }
-          : govData;
-
-        return response.status(200).send({
-          message: 'License history retrieved successfully',
-          govData: govDataWithIndex,
-          data: result,
-        });
-      } catch (error) {
-        return response.status(500).send({
-          message: 'Failed to retrieve license history',
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    }
-
-  // async gethistoryCertificate(
-  //   licenseNumber: string,
-  //   request: any,
-  //   response: any,
-  // ): Promise<void> {
-  //   // console.log('[CertificateService.gethistoryCertificate] licenseNumber:', licenseNumber);
-  //   try {
-  //     const certificatedetail = await this.prisma.dataFromGoverment.findMany({
-  //       where: { licenseNumber: licenseNumber },
-  //       select: { exporter: true, destinationCountry: true },
-  //     });
-
-  //     const certificateHistory = await this.prisma.certificatesheet.findMany({
-  //       where: { licenseNumber: licenseNumber, status: true },
-  //       select: {
-  //         checkWeight: {
-  //           select: {
-  //             jobID: true,
-  //             specialJob: true,
-  //             goDown: true,
-  //             grossWeight: true,
-  //             netWeightTon: true,
-  //             quantity: true,
-  //             loadingDetails: true,
-  //             riceName: true,
-  //             vehicleName: true,
-  //             request: {
-  //               select: { shippingDateTime: true },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     const goDownList = [
-  //       ...new Set(
-  //         certificateHistory
-  //           .map((item) => item.checkWeight?.goDown)
-  //           .filter((value): value is string => Boolean(value)),
-  //       ),
-  //     ];
-
-  //     const surveyNames = await this.prisma.surveyName.findMany({
-  //       where: { surveyNameTH: { in: goDownList } },
-  //       select: { surveyNameTH: true, surveyNameEN: true, changwat: true },
-  //     });
-
-  //     const surveyMap = new Map(
-  //       surveyNames.map((item) => [
-  //         item.surveyNameTH,
-  //         { surveyNameEN: item.surveyNameEN, changwat: item.changwat },
-  //       ]),
-  //     );
-
-  //     const result = certificateHistory.map((item, index) => {
-  //       const surveyData = surveyMap.get(item.checkWeight?.goDown || '');
-  //       return {
-  //         index: (index + 1).toString(),
-  //         ...item,
-  //         checkWeight: {
-  //           ...item.checkWeight,
-  //           surveyName: surveyData?.surveyNameEN || item.checkWeight?.goDown || null,
-  //           changwat: surveyData?.changwat || null,
-  //         },
-  //       };
-  //     });
-
-  //     // console.log('[CertificateService.gethistoryCertificate] returned', result.length, 'records');
-  //     return response.status(200).send({ certificatedetail, result });
-  //   } catch (error) {
-  //     console.error('[CertificateService.gethistoryCertificate]', error);
-  //     return response.status(500).send({ message: 'Failed to retrieve certificate history' });
-  //   }
-  // }
 }

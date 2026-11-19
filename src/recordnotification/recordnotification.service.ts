@@ -1,643 +1,536 @@
-import { Injectable, Req, Res } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Description, Prisma, Request, validate_Check_Weight } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
-import {
-  UpdateCheckWeightData,
-  ValidateCheckWeightDto,
-} from 'src/dto/recordNoti.dto';
-import express, { Request, Response } from 'express';
-import { FastifyReply } from 'fastify';
-@Injectable()
-export class RecordnotificationService {
-  [x: string]: any;
-  constructor(
-    private prisma: PrismaService,
-    private jwt: JwtService,
-  ) {}
+import { buildLicenseHistory, LicenseHistoryResponse } from 'src/common/license-history';
+import { rethrowAsHttpException } from 'src/common/service-error';
+import { UpdateCheckWeightData, ValidateCheckWeightDto } from 'src/dto/recordNoti.dto';
 
-  async getCheckWeightData(checkWeightID: string,  @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,
-) {
-    try {
-      const checkWeightData = await this.prisma.validate_Check_Weight.findUnique({
-        where: {
-          checkWeightID: checkWeightID,
-        },
-        select: {
-          checkWeightID: true,
-          jobID: true,
-          staffID: true,
-          staffName: true,
-          status: true,
-          supplierName: true,
-          time: true,
-          noOfBags: true,
-          grossWeight: true,
-          netWeightW: true,
-          netWeightTon: true,
-          totalGrossWeight: true,
-          totalNetWeight: true,
-          totalTareWeight: true,
-          remainWeight: true,
-          weightPerTon: true,
-          goDown: true,
-          loadingDetails: true,
-          specialJob: true,
-          statusContinue: true,
-          note: true,
-          vehicleName: true,
-          riceName: true,
-          quantity: true,
-          descriptionID: true,
-          requestID: true,
-        
-          description: {
-            select: {
-              destination: true,
-              licenseDetailID: true,
-            },
-          },
-          request: {
-            select: {
-              licenseNumber: true,
-              shippingDateTime: true,
-              requestBy: true,
-            },
-          },
-        },
-      });
+const CHECKWEIGHT_JOB_NAME = 'Checkweight';
+const REQUEST_STATUS_COMPLETED = 'completed';
+const DEFAULT_CERTIFICATE_MARKS = 'xxxxxxx';
+const COMPANY_SUFFIX_PATTERN = /จำกัด/g;
+const DECIMAL_RADIX = 10;
+/** Bulk check-weight processing runs many writes in one transaction — allow more than Prisma's 5s default. */
+const BULK_TRANSACTION_TIMEOUT_MS = 30_000;
 
-      if (!checkWeightData) {
-        return response
-          .status(404)
-          .send({ message: 'No data found for the given check weight ID' });
-      }
+const CHECK_WEIGHT_DETAIL_SELECT = {
+  checkWeightID: true,
+  jobID: true,
+  staffID: true,
+  staffName: true,
+  status: true,
+  supplierName: true,
+  time: true,
+  noOfBags: true,
+  grossWeight: true,
+  netWeightW: true,
+  netWeightTon: true,
+  totalGrossWeight: true,
+  totalNetWeight: true,
+  totalTareWeight: true,
+  remainWeight: true,
+  weightPerTon: true,
+  goDown: true,
+  loadingDetails: true,
+  specialJob: true,
+  statusContinue: true,
+  note: true,
+  vehicleName: true,
+  riceName: true,
+  quantity: true,
+  descriptionID: true,
+  requestID: true,
+  description: { select: { destination: true, licenseDetailID: true } },
+  request: { select: { licenseNumber: true, shippingDateTime: true, requestBy: true } },
+} satisfies Prisma.validate_Check_WeightSelect;
 
-      const licenseDetailID = checkWeightData.description?.licenseDetailID;
-      const bufferRemain = licenseDetailID
-        ? await this.prisma.bufferRemain.findFirst({ where: { licenseDetailID } })
-        : null;
+const CHECK_WEIGHT_BY_DATE_INCLUDE = {
+  request: {
+    select: {
+      licenseNumber: true,
+      surveyLocateNameThai: true,
+      surveyLocateNameEng: true,
+      companyName: true,
+    },
+  },
+  description: { select: { destination: true } },
+} satisfies Prisma.validate_Check_WeightInclude;
 
-      const companyData = await this.prisma.company.findFirst({
-        where: {
-          companyNameTH: checkWeightData.supplierName !== null
-            ? checkWeightData.supplierName
-            : undefined
-        },
-        select: { companyNameEN: true },
-      });
+type CheckWeightDetail = Prisma.validate_Check_WeightGetPayload<{ select: typeof CHECK_WEIGHT_DETAIL_SELECT }>;
+type CheckWeightByDate = Prisma.validate_Check_WeightGetPayload<{ include: typeof CHECK_WEIGHT_BY_DATE_INCLUDE }>;
+type CheckWeightWithRelations = Prisma.validate_Check_WeightGetPayload<{
+  include: { request: true; description: true };
+}>;
+type CheckWeightWithRequest = Prisma.validate_Check_WeightGetPayload<{ include: { request: true } }>;
 
-      const result = {
-        ...checkWeightData,
-        supplierName: companyData?.companyNameEN || checkWeightData.supplierName,
-        remainNetWeightKGM: bufferRemain?.remainNetWeightKGM ?? null,
-      };
-
-
-
-      return response
-        .status(200)
-        .send({
-          message: 'Check weight data retrieved successfully',
-          data: result,
-        });
-    } catch (error) {
-      return response.status(500).send({
-        message: 'Failed to retrieve check weight data',
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-
-  async getCheckWeightDataFilterDate(date: string, @Req() req: any, @Res({ passthrough: true }) response: FastifyReply) {
-  try {
-    const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) {
-      return response.status(400).send({ message: 'Invalid date format' });
-    }
-
-    // 1. ดึงข้อมูล Validate_Check_Weight โดยกรองจากวันที่ในตาราง Request
-    const checkWeightData = await this.prisma.validate_Check_Weight.findMany({
-      where: {
-        request: {
-          requestDate: {
-            gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
-            lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
-          }
-        }
-      },
-      include: {
-        request: {
-          select: {
-            licenseNumber: true,
-            surveyLocateNameThai: true,
-            surveyLocateNameEng: true,
-            companyName: true, // ต้องดึงมาเพื่อใช้หาชื่อภาษาอังกฤษ
-          },
-        },
-        description: {
-          select: {
-            destination: true,
-          }
-        }
-      },
-      orderBy: [
-        { jobID: 'asc' },
-        { specialJob: 'asc' },
-      ],
-    });
-
-    if (!checkWeightData || checkWeightData.length === 0) {
-      return response.status(404).send({
-        message: 'No check weight data found for the given date',
-      });
-    }
-
-    // 2. [Gather] รวบรวมชื่อบริษัททั้งหมดที่มีในผลลัพธ์
-    const companyNames = [...new Set(checkWeightData.map(cw => cw.request?.companyName))].filter(Boolean);
-
-    // 3. [Fetch] ดึงข้อมูลจากตาราง Company มาทีเดียว
-    const companies = await this.prisma.company.findMany({
-      where: {
-        companyNameTH: { in: companyNames },
-      },
-      select: {
-        companyNameTH: true,
-        companyNameEN: true,
-      }
-    });
-
-    // 4. [Map] ประกอบร่างข้อมูล (เหมือเดิมคือเพิ่ม companyNameEn และ Clean ชื่อบริษัทถ้าต้องการ)
-    const result = checkWeightData.map(item => {
-      const foundCompany = companies.find(c => c.companyNameTH === item.request?.companyName);
-      
-      return {
-        ...item,
-        request: {
-          ...item.request,
-          // แถม: ลบคำว่า "จำกัด" ออกตาม Logic ที่คุณเคย Comment ไว้
-          companyName: item.request?.companyName?.replace(/จำกัด/g, '').trim() || '',
-          companyNameEn: foundCompany?.companyNameEN ?? '',
-        },
-      };
-    });
-
-    return response.status(200).send({
-      message: 'Check weight data retrieved successfully by date',
-      data: result,
-    });
-
-  } catch (error) {
-    console.error(error);
-    return response.status(500).send({
-      message: 'Failed to retrieve check weight data by date',
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
+export interface MessageDataResponse<T> {
+  message: string;
+  data: T;
 }
 
-  async updateCheckWeightData(
+export type CheckWeightDetailResult = CheckWeightDetail & { remainNetWeightKGM: number | null };
+
+export type CheckWeightByDateResult = Omit<CheckWeightByDate, 'request'> & {
+  request: Partial<CheckWeightByDate['request']> & { companyName: string; companyNameEn: string };
+};
+
+export interface ProcessCheckWeightResult {
+  message: string;
+  updated: number;
+  created: number;
+}
+
+@Injectable()
+export class RecordnotificationService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  // ─── Read ───────────────────────────────────────────────────────────────────
+
+  async getCheckWeightById(checkWeightID: string): Promise<MessageDataResponse<CheckWeightDetailResult>> {
+    console.log('[RecordnotificationService.getCheckWeightById] checkWeightID:', checkWeightID);
+    try {
+      const checkWeight = await this.prisma.validate_Check_Weight.findUnique({
+        where: { checkWeightID },
+        select: CHECK_WEIGHT_DETAIL_SELECT,
+      });
+      if (!checkWeight) throw new NotFoundException('No data found for the given check weight ID');
+
+      const licenseDetailID = checkWeight.description?.licenseDetailID;
+      const [bufferRemain, companyNameEn] = await Promise.all([
+        licenseDetailID ? this.prisma.bufferRemain.findFirst({ where: { licenseDetailID } }) : null,
+        this.findCompanyNameEn(checkWeight.supplierName),
+      ]);
+
+      const result: CheckWeightDetailResult = {
+        ...checkWeight,
+        supplierName: companyNameEn || checkWeight.supplierName,
+        remainNetWeightKGM: bufferRemain?.remainNetWeightKGM ?? null,
+      };
+      console.log('[RecordnotificationService.getCheckWeightById] result:', result.checkWeightID);
+      return { message: 'Check weight data retrieved successfully', data: result };
+    } catch (error) {
+      rethrowAsHttpException('RecordnotificationService.getCheckWeightById', error);
+    }
+  }
+
+  async getCheckWeightsByDate(date: string): Promise<MessageDataResponse<CheckWeightByDateResult[]>> {
+    console.log('[RecordnotificationService.getCheckWeightsByDate] date:', date);
+    try {
+      const checkWeights = await this.prisma.validate_Check_Weight.findMany({
+        where: { request: { requestDate: this.buildDayRange(date) } },
+        include: CHECK_WEIGHT_BY_DATE_INCLUDE,
+        orderBy: [{ jobID: 'asc' }, { specialJob: 'asc' }],
+      });
+      if (checkWeights.length === 0) {
+        throw new NotFoundException('No check weight data found for the given date');
+      }
+
+      const companyNamesTh = this.uniqueNonEmpty(checkWeights.map((cw) => cw.request?.companyName));
+      const companyNameEnByTh = await this.buildCompanyNameEnMap(companyNamesTh);
+
+      const result = checkWeights.map((checkWeight) => ({
+        ...checkWeight,
+        request: {
+          ...checkWeight.request,
+          companyName: this.stripCompanySuffix(checkWeight.request?.companyName),
+          companyNameEn: companyNameEnByTh.get(checkWeight.request?.companyName ?? '') ?? '',
+        },
+      }));
+      console.log('[RecordnotificationService.getCheckWeightsByDate] result count:', result.length);
+      return { message: 'Check weight data retrieved successfully by date', data: result };
+    } catch (error) {
+      rethrowAsHttpException('RecordnotificationService.getCheckWeightsByDate', error);
+    }
+  }
+
+  async getLicenseHistory(licenseNumber: string): Promise<LicenseHistoryResponse> {
+    console.log('[RecordnotificationService.getLicenseHistory] licenseNumber:', licenseNumber);
+    try {
+      const result = await buildLicenseHistory(this.prisma, licenseNumber);
+      console.log('[RecordnotificationService.getLicenseHistory] result groups:', result.data.length);
+      return result;
+    } catch (error) {
+      rethrowAsHttpException('RecordnotificationService.getLicenseHistory', error);
+    }
+  }
+
+  async getCheckWeightsByJobNoOrLicense(
+    jobNo: string,
+    licenseNumber: string,
+  ): Promise<MessageDataResponse<CheckWeightWithRequest[]>> {
+    console.log('[RecordnotificationService.getCheckWeightsByJobNoOrLicense] jobNo:', jobNo, 'licenseNumber:', licenseNumber);
+    try {
+      const jobID = parseInt(jobNo, DECIMAL_RADIX);
+      const conditions: Prisma.validate_Check_WeightWhereInput[] = [
+        { request: { licenseNumber } },
+        ...(isNaN(jobID) ? [] : [{ jobID }]),
+      ];
+
+      const checkWeights = await this.prisma.validate_Check_Weight.findMany({
+        where: { OR: conditions },
+        include: { request: true },
+      });
+      if (checkWeights.length === 0) {
+        throw new NotFoundException('No check weight data found for the given jobNo and licenseId');
+      }
+      console.log('[RecordnotificationService.getCheckWeightsByJobNoOrLicense] result count:', checkWeights.length);
+      return {
+        message: 'Check weight data retrieved successfully by jobNo and licenseId',
+        data: checkWeights,
+      };
+    } catch (error) {
+      rethrowAsHttpException('RecordnotificationService.getCheckWeightsByJobNoOrLicense', error);
+    }
+  }
+
+  // ─── Write ──────────────────────────────────────────────────────────────────
+
+  async updateCheckWeight(
     checkWeightID: string,
     dto: UpdateCheckWeightData,
-    @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,
-  ) {
+  ): Promise<MessageDataResponse<validate_Check_Weight>> {
+    console.log('[RecordnotificationService.updateCheckWeight] checkWeightID:', checkWeightID);
     try {
-      const getlicense = await this.prisma.validate_Check_Weight.findUnique({
-        where: { checkWeightID },
-        include: { request: true, description: true },
-      });
-      // console.log(getlicense)
-      if (!getlicense) {
-        return response.status(404).send({ message: 'Check weight data not found' });
-      }
-
-      const licenseDetailID = (getlicense.description as any)?.licenseDetailID as string | undefined;
-      if (!licenseDetailID) {
-        return response.status(400).send({ message: 'Description has no licenseDetailID linked' });
-      }
-
-      const bufferRemain = await this.prisma.bufferRemain.findFirst({
-        where: { licenseDetailID },
-      });
-
-      if (!bufferRemain) {
-        return response.status(404).send({ message: 'BufferRemain not found for this license detail' });
-      }
-
-      const currentRemain = bufferRemain.remainNetWeightKGM ?? 0;
-
-      let newRemain: number;
-
-      if (!getlicense.status) {
-        // First update: subtract new totalNetWeight from currentRemain
-        if (currentRemain <= 0) {
-          return response.status(400).send({
-            message: 'Cannot update check weight data because remainNetWeightKGM is zero or negative',
-          });
-        }
-        newRemain = currentRemain - (dto.totalNetWeight || 0);
-        if (newRemain < 0) {
-          return response.status(400).send({
-            message: 'Cannot update: totalNetWeight exceeds remaining remainNetWeightKGM',
-          });
-        }
-      } else {
-        // Re-update: apply only the difference between new and old totalNetWeight
-        const oldTotalNetWeight = getlicense.totalNetWeight || 0;
-        const diff = (dto.totalNetWeight || 0) - oldTotalNetWeight;
-        newRemain = currentRemain - diff;
-        if (newRemain < 0) {
-          return response.status(400).send({
-            message: 'Cannot update: adjusted totalNetWeight exceeds remaining remainNetWeightKGM',
-          });
-        }
-      }
-
-      const updatedData = await this.prisma.validate_Check_Weight.update({
-        where: { checkWeightID },
-        data: dto,
-      });
-
-      await this.prisma.bufferRemain.update({
-        where: { bufferRemainID: bufferRemain.bufferRemainID },
-        data: { remainNetWeightKGM: newRemain },
-      });
-
-      if (!getlicense.status) {
-        // First update: create certificatesheet
-        await this.prisma.certificatesheet.create({
-          data: {
-            checkWeightID: updatedData.checkWeightID,
-            jobID: getlicense.jobID || 0,
-            licenseNumber: getlicense.request.licenseNumber || '',
-            index: getlicense.description?.index || 0,
-            specialJob: getlicense.specialJob || '',
-            companyName: getlicense.request.companyName || '',
-            surveyLocateNameThai: getlicense.request.surveyLocateNameThai || '',
-            portName: getlicense.request.portName || '',
-            destination: getlicense.description?.destination || '',
-            riceType: getlicense.description?.riceType || '',
-            quantity: getlicense.description?.quantity || 0,
-            totalGrossWeight: updatedData.totalGrossWeight || 0,
-            totalTareWeight: updatedData.totalTareWeight || 0,
-            totalNettWeight: updatedData.totalNetWeight || 0,
-            shipper: getlicense.request.requestBy || '',
-            dateCheckWeight: getlicense.request.requestDate || new Date(),
-            marks: 'xxxxxxx',
-            status: false,
-            applyGodown: true,
-          },
+      const updatedCheckWeight = await this.prisma.$transaction(async (tx) => {
+        const checkWeight = await tx.validate_Check_Weight.findUnique({
+          where: { checkWeightID },
+          include: { request: true, description: true },
         });
-      } else {
-        // Re-update: update existing certificatesheet weights
-        await this.prisma.certificatesheet.update({
-          where: { checkWeightID: updatedData.checkWeightID },
-          data: {
-            totalGrossWeight: updatedData.totalGrossWeight || 0,
-            totalTareWeight: updatedData.totalTareWeight || 0,
-            totalNettWeight: updatedData.totalNetWeight || 0,
-          },
-        });
-      }
+        if (!checkWeight) throw new NotFoundException('Check weight data not found');
 
-      return response.status(200).send({
+        const licenseDetailID = checkWeight.description?.licenseDetailID;
+        if (!licenseDetailID) throw new BadRequestException('Description has no licenseDetailID linked');
+
+        const bufferRemain = await tx.bufferRemain.findFirst({ where: { licenseDetailID } });
+        if (!bufferRemain) throw new NotFoundException('BufferRemain not found for this license detail');
+
+        const newRemain = this.calculateNewRemain(
+          checkWeight,
+          bufferRemain.remainNetWeightKGM ?? 0,
+          dto.totalNetWeight || 0,
+        );
+
+        const updated = await tx.validate_Check_Weight.update({ where: { checkWeightID }, data: dto });
+        await tx.bufferRemain.update({
+          where: { bufferRemainID: bufferRemain.bufferRemainID },
+          data: { remainNetWeightKGM: newRemain },
+        });
+        await this.syncCertificateSheet(tx, checkWeight, updated);
+        return updated;
+      });
+
+      console.log('[RecordnotificationService.updateCheckWeight] result:', updatedCheckWeight.checkWeightID);
+      return {
         message: 'Check weight data and addcertificatesheet already updated successfully',
-        data: updatedData,
-      });
+        data: updatedCheckWeight,
+      };
     } catch (error) {
-      return response.status(500).send({
-        message: 'Failed to update check weight data',
-        error: error instanceof Error ? error.message : String(error),
-      });
+      rethrowAsHttpException('RecordnotificationService.updateCheckWeight', error);
     }
   }
 
-  async getLicenseHistory(licenseNumber: string, @Req() request: any, @Res({ passthrough: true }) response: FastifyReply) {
+  async processCheckWeights(dtoList: ValidateCheckWeightDto[]): Promise<ProcessCheckWeightResult> {
+    console.log('[RecordnotificationService.processCheckWeights] count:', dtoList.length);
     try {
-      const data = await this.prisma.validate_Check_Weight.findMany({
-        where: {
-          status: true,
-          description: { licenseNumber },
-        },
-        select: {
-          jobID: true,
-          quantity: true,
-          totalNetWeight: true,
-          loadingDetails: true,
-          riceName: true,
-          
-          request: {
-            select: {
-              shippingDateTime: true,
-              surveyProvince: true,
-              surveyLocateNameThai: true,
-              portName: true,
-             requestBy: true,
-            },
-          },
-          description: {
-            select: { licenseDetailID: true,
-              vehicleName: true
-             },
-          },
-        },
-        orderBy: { jobID: 'asc' },
-      });
-
-      // ดึง unique licenseDetailID และ bufferRemain ทีเดียว
-      const uniqueLicenseDetailIDs = [...new Set(data.map((i) => i.description?.licenseDetailID).filter(Boolean))] as string[];
-      const bufferRemains = await this.prisma.bufferRemain.findMany({
-        where: { licenseDetailID: { in: uniqueLicenseDetailIDs } },
-      });
-      const bufferRemainMap = new Map(bufferRemains.map((b) => [b.licenseDetailID, b]));
-
-      // ดึง surveyNameEN จาก surveyName table โดยใช้ surveyLocateNameThai
-      const uniqueSurveyNames = [...new Set(data.map((i) => i.request?.surveyLocateNameThai).filter(Boolean))] as string[];
-      const surveyNames = await this.prisma.surveyName.findMany({
-        where: { surveyNameTH: { in: uniqueSurveyNames } },
-        select: { surveyNameTH: true, surveyNameEN: true },
-      });
-      const surveyNameMap = new Map(surveyNames.map((s) => [s.surveyNameTH, s.surveyNameEN]));
-
-      // group by licenseDetailID
-      const groupMap = new Map<string, { licenseIndex: number; licenseDetailID: string; remainNetWeightKGM: number | null; maximumWeight: number | null; records: any[] }>();
-      let indexCounter = 1;
-
-      for (const item of data) {
-        const licenseDetailID = item.description?.licenseDetailID ?? '__unknown__';
-
-        if (!groupMap.has(licenseDetailID)) {
-          groupMap.set(licenseDetailID, {
-            licenseIndex: indexCounter++,
-            licenseDetailID,
-            remainNetWeightKGM: bufferRemainMap.get(licenseDetailID)?.remainNetWeightKGM ?? null,
-            maximumWeight: bufferRemainMap.get(licenseDetailID)?.MaximumWeight ?? null,
-            records: [],
-          });
-        }
-
-        groupMap.get(licenseDetailID)!.records.push({
-          jobID: item.jobID,
-          quantity: item.quantity,
-          totalNetWeight: item.totalNetWeight,
-          loadingDetails: item.loadingDetails,
-          riceName: item.riceName,
-          vehicleName: item.description?.vehicleName,
-          shippingDateTime: item.request?.shippingDateTime,
-          surveyProvince: item.request?.surveyProvince,
-          surveyName: surveyNameMap.get(item.request?.surveyLocateNameThai ?? '') || item.request?.surveyLocateNameThai,
-          portName: item.request?.portName,
-          requestBy: item.request?.requestBy,
-        });
-      }
-
-      const result = [...groupMap.values()];
-
-      const govData = await this.prisma.dataFromGoverment.findFirst({
-        where: { licenseNumber },
-        select: {
-          licenseNumber: true,
-          exporter: true,
-          expiredDate: true,
-          currency: true,
-          exchangeRate: true,
-         destinationCountry: true,
-          licenseDetails: {
-            select: {
-              licenseDetailID: true,
-              netWeightTON: true,
-              quantity: true,
-              pricePerUnit: true,
-            },
-          },
-        },
-      });
-
-      const govDataWithIndex = govData
-        ? {
-            ...govData,
-            licenseDetails: govData.licenseDetails.map((detail, i) => ({
-              index: i + 1,
-              ...detail,
-            })),
-          }
-        : govData;
-
-      return response.status(200).send({
-        message: 'License history retrieved successfully',
-        govData: govDataWithIndex,
-        data: result,
-      });
+      const result = await this.prisma.$transaction(
+        (tx) => this.processCheckWeightsInTransaction(tx, dtoList),
+        { timeout: BULK_TRANSACTION_TIMEOUT_MS },
+      );
+      console.log('[RecordnotificationService.processCheckWeights] result:', result);
+      return result;
     } catch (error) {
-      return response.status(500).send({
-        message: 'Failed to retrieve license history',
-        error: error instanceof Error ? error.message : String(error),
-      });
+      rethrowAsHttpException('RecordnotificationService.processCheckWeights', error);
     }
   }
 
-  async postData(dtoArray: ValidateCheckWeightDto[],  @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,
-) {
-  try {
-  // 0️⃣ Always log a NotificationReceipt for every incoming item
-  const notificationReceiptMap = new Map<string, string>();
-  for (const dto of dtoArray) {
-    const notificationReceipt = await this.prisma.notificationReceipt.create({
-      data: {
+  // ─── Private helpers: processCheckWeights ───────────────────────────────────
+
+  private async processCheckWeightsInTransaction(
+    tx: Prisma.TransactionClient,
+    dtoList: ValidateCheckWeightDto[],
+  ): Promise<ProcessCheckWeightResult> {
+    // Every incoming item is logged as a NotificationReceipt, whatever its jobName.
+    const receiptIdByDescriptionId = await this.createNotificationReceipts(tx, dtoList);
+
+    const checkWeightDtos = dtoList.filter((dto) => dto.jobName === CHECKWEIGHT_JOB_NAME);
+    const descriptionIds = checkWeightDtos.map((dto) => dto.descriptionID);
+
+    const [staffList, existingCheckWeights, requests, descriptions] = await Promise.all([
+      tx.staff.findMany({ where: { staffID: { in: this.uniqueNonEmpty(checkWeightDtos.map((dto) => dto.staffID)) } } }),
+      tx.validate_Check_Weight.findMany({
+        where: { descriptionID: { in: descriptionIds } },
+        select: { descriptionID: true, checkWeightID: true },
+      }),
+      tx.request.findMany({ where: { requestID: { in: checkWeightDtos.map((dto) => dto.requestID) } } }),
+      tx.description.findMany({ where: { descriptionID: { in: descriptionIds } } }),
+    ]);
+
+    const staffNameById = new Map(staffList.map((staff) => [staff.staffID, staff.staffName]));
+    const existingCheckWeightIdByDescriptionId = new Map(
+      existingCheckWeights.map((cw) => [cw.descriptionID, cw.checkWeightID]),
+    );
+    const requestById = new Map(requests.map((request) => [request.requestID, request]));
+    const descriptionById = new Map(descriptions.map((description) => [description.descriptionID, description]));
+
+    const dtosToUpdate = checkWeightDtos.filter((dto) => existingCheckWeightIdByDescriptionId.has(dto.descriptionID));
+    const dtosToCreate = checkWeightDtos.filter((dto) => !existingCheckWeightIdByDescriptionId.has(dto.descriptionID));
+
+    for (const dto of dtosToUpdate) {
+      await tx.validate_Check_Weight.updateMany({
+        where: { descriptionID: dto.descriptionID },
+        data: this.buildCheckWeightUpdateData(
+          dto,
+          staffNameById,
+          descriptionById.get(dto.descriptionID),
+          requestById.get(dto.requestID),
+        ),
+      });
+    }
+
+    const createdCheckWeights = await tx.validate_Check_Weight.createManyAndReturn({
+      data: dtosToCreate.map((dto) =>
+        this.buildCheckWeightCreateData(
+          dto,
+          staffNameById,
+          descriptionById.get(dto.descriptionID),
+          requestById.get(dto.requestID),
+        ),
+      ),
+      select: { descriptionID: true, checkWeightID: true },
+    });
+
+    const checkWeightIdByDescriptionId = new Map([
+      ...existingCheckWeightIdByDescriptionId,
+      ...createdCheckWeights.map((cw): [string, string] => [cw.descriptionID, cw.checkWeightID]),
+    ]);
+    await this.linkReceiptsToCheckWeights(tx, checkWeightDtos, receiptIdByDescriptionId, checkWeightIdByDescriptionId);
+
+    await tx.request.updateMany({
+      where: { requestID: { in: dtoList.map((dto) => dto.requestID) } },
+      data: { status: REQUEST_STATUS_COMPLETED },
+    });
+
+    const existingCount = existingCheckWeightIdByDescriptionId.size;
+    return {
+      message: 'Successfully processed check weight data',
+      updated: existingCount,
+      created: checkWeightDtos.length - existingCount,
+    };
+  }
+
+  private async createNotificationReceipts(
+    tx: Prisma.TransactionClient,
+    dtoList: ValidateCheckWeightDto[],
+  ): Promise<Map<string, string>> {
+    const receipts = await tx.notificationReceipt.createManyAndReturn({
+      data: dtoList.map((dto) => ({
         jobName: dto.jobName,
         staffID: dto.staffID,
         jobID: dto.jobID,
         specialJob: dto.specialJob,
         descriptionID: dto.descriptionID,
         requestID: dto.requestID,
-      },
+      })),
+      select: { descriptionID: true, notificationReceiptID: true },
     });
-    notificationReceiptMap.set(dto.descriptionID, notificationReceipt.notificationReceiptID);
+    return new Map(receipts.map((receipt) => [receipt.descriptionID, receipt.notificationReceiptID]));
   }
 
-  const checkWeightDtos = dtoArray.filter((dto) => dto.jobName === 'Checkweight');
-
-  const requestIds = checkWeightDtos.map((dto) => dto.requestID);
-  const descriptionIds = checkWeightDtos.map((dto) => dto.descriptionID);
-const staffIds = checkWeightDtos
-  .map((dto) => dto.staffID)
-  .filter((id): id is string => !!id);
-
-const staffs = await this.prisma.staff.findMany({
-  where: {
-    staffID: { in: staffIds },
-  },
-});
-
-const staffMap = new Map(
-  staffs.map((s) => [s.staffID, s.staffName])
-);
-
-  // 1️⃣ Check existing records
-  const existingRecords = await this.prisma.validate_Check_Weight.findMany({
-    where: {
-      descriptionID: { in: descriptionIds },
-    },
-    select: { descriptionID: true, checkWeightID: true },
-  });
-
-  const existingDescriptionIds = new Set(
-    existingRecords.map((r) => r.descriptionID)
-  );
-
-  const existingCheckWeightIdMap = new Map(
-    existingRecords.map((r) => [r.descriptionID, r.checkWeightID])
-  );
-
-  // 2️⃣ Fetch related data (for insert logic)
-  const requests = await this.prisma.request.findMany({
-    where: { requestID: { in: requestIds } },
-  });
-
-  const descriptions = await this.prisma.description.findMany({
-    where: { descriptionID: { in: descriptionIds } },
-  });
-
-  const descriptionMap = new Map(descriptions.map((d) => [d.descriptionID, d]));
-  const requestMap = new Map(requests.map((r) => [r.requestID, r]));
-
-  // 3️⃣ Loop through Checkweight DTOs
-  for (const dto of checkWeightDtos) {
-    if (existingDescriptionIds.has(dto.descriptionID)) {
-      // === UPDATE existing record ===
-      const desc = descriptionMap.get(dto.descriptionID);
-      const req = requestMap.get(dto.requestID);
-
-      const updatePayload: any = {
-        status: false,
-        staffID: dto.staffID,
-        jobID: dto.jobID,
-        note: dto.note,
-        statusContinue: dto.statusContinue,
-        staffName: staffMap.get(dto.staffID ?? '') ?? dto.staffName ?? null,
-        specialJob: dto.specialJob || null,
-      };
-
-      if (desc) {
-        updatePayload.vehicleName = desc.vehicleName;
-        updatePayload.riceName = desc.riceType;
-        updatePayload.noOfBags = desc.quantity;
-        updatePayload.grossWeight = desc.grossWeight;
-        updatePayload.netWeightW = desc.netWeightW;
-        updatePayload.netWeightTon = desc.netWeightTON;
-      }
-
-      if (req) {
-        updatePayload.goDown = req.portName;
-        updatePayload.time = req.shippingDateTime;
-        updatePayload.supplierName = req.companyName;
-      }
-
-      await this.prisma.validate_Check_Weight.updateMany({
-        where: { descriptionID: dto.descriptionID },
-        data: updatePayload,
+  private async linkReceiptsToCheckWeights(
+    tx: Prisma.TransactionClient,
+    checkWeightDtos: ValidateCheckWeightDto[],
+    receiptIdByDescriptionId: Map<string, string>,
+    checkWeightIdByDescriptionId: Map<string, string>,
+  ): Promise<void> {
+    for (const dto of checkWeightDtos) {
+      const notificationReceiptID = receiptIdByDescriptionId.get(dto.descriptionID);
+      const checkWeightID = checkWeightIdByDescriptionId.get(dto.descriptionID);
+      if (!notificationReceiptID || !checkWeightID) continue;
+      await tx.notificationReceipt.update({
+        where: { notificationReceiptID },
+        data: { checkWeightID },
       });
-
-      await this.linkNotificationReceiptToCheckWeight(
-        notificationReceiptMap.get(dto.descriptionID),
-        existingCheckWeightIdMap.get(dto.descriptionID),
-      );
-    } else {
-      // === CREATE new record (original logic) ===
-      const desc = descriptionMap.get(dto.descriptionID);
-      const req = requestMap.get(dto.requestID);
-
-      const created = await this.prisma.validate_Check_Weight.create({
-        data: {
-          descriptionID: dto.descriptionID,
-          requestID: dto.requestID,
-          status: false,
-          staffID: dto.staffID,
-          jobID: dto.jobID,
-          note: dto.note,
-          statusContinue: dto.statusContinue,
-          staffName: staffMap.get(dto.staffID ?? '') ?? dto.staffName ?? null,
-          specialJob: dto.specialJob || null,
-          vehicleName: desc?.vehicleName || null,
-          riceName: desc?.riceType || null,
-          noOfBags: desc?.quantity || null,
-          grossWeight: desc?.grossWeight || null,
-          netWeightW: desc?.netWeightW || null,
-          netWeightTon: desc?.netWeightTON || null,
-          goDown: req?.portName || null,
-          time: req?.shippingDateTime || null,
-          supplierName: req?.companyName || null,
-        },
-      });
-
-      await this.linkNotificationReceiptToCheckWeight(
-        notificationReceiptMap.get(dto.descriptionID),
-        created.checkWeightID,
-      );
     }
   }
 
-  // 4️⃣ Update request status
-  await this.prisma.request.updateMany({
-    where: { requestID: { in: dtoArray.map((dto) => dto.requestID) } },
-    data: { status: 'completed' },
-  });
+  private buildCheckWeightUpdateData(
+    dto: ValidateCheckWeightDto,
+    staffNameById: Map<string, string | null>,
+    description: Description | undefined,
+    request: Request | undefined,
+  ): Prisma.validate_Check_WeightUpdateManyMutationInput {
+    // Fields from description/request are only overwritten when the source row exists.
+    return {
+      status: false,
+      staffID: dto.staffID,
+      jobID: dto.jobID,
+      note: dto.note,
+      statusContinue: dto.statusContinue,
+      staffName: this.resolveStaffName(dto, staffNameById),
+      specialJob: dto.specialJob || null,
+      ...(description && {
+        vehicleName: description.vehicleName,
+        riceName: description.riceType,
+        noOfBags: description.quantity,
+        grossWeight: description.grossWeight,
+        netWeightW: description.netWeightW,
+        netWeightTon: description.netWeightTON,
+      }),
+      ...(request && {
+        goDown: request.portName,
+        time: request.shippingDateTime,
+        supplierName: request.companyName,
+      }),
+    };
+  }
 
-  return {
-    message: 'Successfully processed check weight data',
-    updated: Array.from(existingDescriptionIds).length,
-    created: checkWeightDtos.length - existingDescriptionIds.size,
-  };
-} catch (error) {
-  return response.status(500).send({
-    message: 'Failed to post or update data',
-    error: error instanceof Error ? error.message : String(error),
-  });
-}
-}
+  private buildCheckWeightCreateData(
+    dto: ValidateCheckWeightDto,
+    staffNameById: Map<string, string | null>,
+    description: Description | undefined,
+    request: Request | undefined,
+  ): Prisma.validate_Check_WeightCreateManyInput {
+    return {
+      descriptionID: dto.descriptionID,
+      requestID: dto.requestID,
+      status: false,
+      staffID: dto.staffID,
+      jobID: dto.jobID,
+      note: dto.note,
+      statusContinue: dto.statusContinue,
+      staffName: this.resolveStaffName(dto, staffNameById),
+      specialJob: dto.specialJob || null,
+      vehicleName: description?.vehicleName || null,
+      riceName: description?.riceType || null,
+      noOfBags: description?.quantity || null,
+      grossWeight: description?.grossWeight || null,
+      netWeightW: description?.netWeightW || null,
+      netWeightTon: description?.netWeightTON || null,
+      goDown: request?.portName || null,
+      time: request?.shippingDateTime || null,
+      supplierName: request?.companyName || null,
+    };
+  }
 
-  private async linkNotificationReceiptToCheckWeight(
-    notificationReceiptID: string | undefined,
-    checkWeightID: string | null | undefined,
-  ) {
-    if (!notificationReceiptID || !checkWeightID) return;
-    await this.prisma.notificationReceipt.update({
-      where: { notificationReceiptID },
-      data: { checkWeightID },
+  private resolveStaffName(dto: ValidateCheckWeightDto, staffNameById: Map<string, string | null>): string | null {
+    return staffNameById.get(dto.staffID ?? '') ?? dto.staffName ?? null;
+  }
+
+  // ─── Private helpers: updateCheckWeight ─────────────────────────────────────
+
+  /**
+   * First update (status = false): subtract the whole new totalNetWeight.
+   * Re-update (status = true): subtract only the difference from the previous totalNetWeight.
+   */
+  private calculateNewRemain(
+    checkWeight: CheckWeightWithRelations,
+    currentRemain: number,
+    newTotalNetWeight: number,
+  ): number {
+    const isFirstUpdate = !checkWeight.status;
+
+    if (isFirstUpdate && currentRemain <= 0) {
+      throw new BadRequestException(
+        'Cannot update check weight data because remainNetWeightKGM is zero or negative',
+      );
+    }
+
+    const weightToSubtract = isFirstUpdate
+      ? newTotalNetWeight
+      : newTotalNetWeight - (checkWeight.totalNetWeight || 0);
+    const newRemain = currentRemain - weightToSubtract;
+
+    if (newRemain < 0) {
+      throw new BadRequestException(
+        isFirstUpdate
+          ? 'Cannot update: totalNetWeight exceeds remaining remainNetWeightKGM'
+          : 'Cannot update: adjusted totalNetWeight exceeds remaining remainNetWeightKGM',
+      );
+    }
+    return newRemain;
+  }
+
+  private async syncCertificateSheet(
+    tx: Prisma.TransactionClient,
+    original: CheckWeightWithRelations,
+    updated: validate_Check_Weight,
+  ): Promise<void> {
+    const weights = {
+      totalGrossWeight: updated.totalGrossWeight || 0,
+      totalTareWeight: updated.totalTareWeight || 0,
+      totalNettWeight: updated.totalNetWeight || 0,
+    };
+
+    if (original.status) {
+      await tx.certificatesheet.update({ where: { checkWeightID: updated.checkWeightID }, data: weights });
+      return;
+    }
+
+    const { request, description } = original;
+    await tx.certificatesheet.create({
+      data: {
+        ...weights,
+        checkWeightID: updated.checkWeightID,
+        jobID: original.jobID || 0,
+        licenseNumber: request.licenseNumber || '',
+        index: description?.index || 0,
+        specialJob: original.specialJob || '',
+        companyName: request.companyName || '',
+        surveyLocateNameThai: request.surveyLocateNameThai || '',
+        portName: request.portName || '',
+        destination: description?.destination || '',
+        riceType: description?.riceType || '',
+        quantity: description?.quantity || 0,
+        shipper: request.requestBy || '',
+        dateCheckWeight: request.requestDate || new Date(),
+        marks: DEFAULT_CERTIFICATE_MARKS,
+        status: false,
+        applyGodown: true,
+      },
     });
   }
 
-  async getCheckWeightDataFilterjobNoandid(jobNo: number,licenseId: string,  @Req() request: any,
-    @Res({ passthrough: true }) response: FastifyReply,){
+  // ─── Private helpers: shared ────────────────────────────────────────────────
 
-      try {
-        const query = await this.prisma.validate_Check_Weight.findMany({
-          where: {
-            OR: [
-              { jobID: jobNo },
-              { request: { licenseNumber: licenseId } },
-            ],
-          },
-          include: {
-            request: true,
-          },
-        });
-        if (!query || query.length === 0) {
-          return response.status(404).send({
-            message: 'No check weight data found for the given jobNo and licenseId',
-          });
-        }
-        return response.status(200).send({
-          message: 'Check weight data retrieved successfully by jobNo and licenseId',
-          data: query,
-        });
-      } catch (error) {
-        return response.status(500).send({
-          message: 'Failed to retrieve check weight data by jobNo and licenseId',
-          error: error instanceof Error ? error.message : String(error),
-        });
+  private async findCompanyNameEn(companyNameTh: string | null): Promise<string | null> {
+    // Without a Thai name there is nothing to match — previously this matched an arbitrary company.
+    if (!companyNameTh) return null;
+    const company = await this.prisma.company.findFirst({
+      where: { companyNameTH: companyNameTh },
+      select: { companyNameEN: true },
+    });
+    return company?.companyNameEN ?? null;
+  }
+
+  private async buildCompanyNameEnMap(companyNamesTh: string[]): Promise<Map<string, string>> {
+    const companies = await this.prisma.company.findMany({
+      where: { companyNameTH: { in: companyNamesTh } },
+      select: { companyNameTH: true, companyNameEN: true },
+    });
+    // Keep the first match per Thai name (same as the previous Array.find lookup).
+    const companyNameEnByTh = new Map<string, string>();
+    for (const company of companies) {
+      if (!companyNameEnByTh.has(company.companyNameTH)) {
+        companyNameEnByTh.set(company.companyNameTH, company.companyNameEN);
       }
+    }
+    return companyNameEnByTh;
+  }
+
+  private stripCompanySuffix(companyName: string | null | undefined): string {
+    return companyName?.replace(COMPANY_SUFFIX_PATTERN, '').trim() || '';
+  }
+
+  private buildDayRange(date: string): { gte: Date; lt: Date } {
+    const parsed = new Date(date);
+    if (isNaN(parsed.getTime())) throw new BadRequestException('Invalid date format');
+    const year = parsed.getFullYear();
+    const month = parsed.getMonth();
+    const day = parsed.getDate();
+    return { gte: new Date(year, month, day), lt: new Date(year, month, day + 1) };
+  }
+
+  private uniqueNonEmpty(values: (string | null | undefined)[]): string[] {
+    return [...new Set(values.filter((value): value is string => Boolean(value)))];
   }
 }

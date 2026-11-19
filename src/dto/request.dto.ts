@@ -1,10 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsArray,
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateOrderDescriptionDto {
@@ -144,4 +146,48 @@ export class CreateOrderDto {
   @IsArray()
   @ArrayNotEmpty()
   description!: CreateOrderDescriptionDto[];
+}
+
+
+export class UpdateOrderDescriptionDto {
+  @ApiPropertyOptional({ description: 'มีในระบบ = อัปเดต / ไม่มีในระบบ = สร้างใหม่ / ไม่ส่ง = ข้ามรายการนี้' })
+  @IsOptional()
+  @IsString()
+  descriptionID?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() licenseDetailID?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() destination?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() riceType?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() vehicleName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() marker?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() licenseNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() quantity?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() quantityUnit?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() grossWeight?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() netWeightW?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() netWeightKGM?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() netWeightTON?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() index?: number;
+}
+
+export class UpdateOrderDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() companyName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() requestBy?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() requestDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() shippingDateTime?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() surveyLocateNameThai?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() surveyLocateNameEng?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() surveyPaidBy?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() surveyProvince?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() surveySubDistrict?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() telInspector?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() telDebtor?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() payer?: string;
+
+  @ApiPropertyOptional({ type: [UpdateOrderDescriptionDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateOrderDescriptionDto)
+  description?: UpdateOrderDescriptionDto[];
 }

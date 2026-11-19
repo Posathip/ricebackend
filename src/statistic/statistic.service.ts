@@ -1,186 +1,188 @@
-import { Injectable, Req, Res } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { FastifyReply } from 'fastify';
+import { Injectable } from '@nestjs/common';
+import { Prisma, riceManage } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { rethrowAsHttpException } from 'src/common/service-error';
+
+const BUDDHIST_ERA_OFFSET = 543;
+const SHORT_YEAR_LENGTH = 2;
+const SHORT_LICENSE_NO_LENGTH = 5;
+const LOADING_KEYWORD = 'loading';
+const CHECK_MARK = '✓';
+
+const CHECK_WEIGHT_SELECT = {
+  riceName: true,
+  loadingDetails: true,
+  jobID: true,
+  time: true,
+  request: {
+    select: {
+      licenseNumber: true,
+      companyName: true,
+      surveyLocateNameThai: true,
+    },
+  },
+  description: {
+    select: {
+      index: true,
+      destination: true,
+      vehicleName: true,
+      licenseDetailID: true,
+      netWeightTON: true,
+    },
+  },
+} satisfies Prisma.validate_Check_WeightSelect;
+
+type CheckWeightRow = Prisma.validate_Check_WeightGetPayload<{
+  select: typeof CHECK_WEIGHT_SELECT;
+}>;
+
+type RiceInfo = Pick<
+  riceManage,
+  'riceNameThai' | 'riceNameEng' | 'riceCodeT' | 'riceCode1' | 'riceCode2'
+>;
+
+interface LicensePrice {
+  pricePerUnit: number | null;
+  exchangeRate: number;
+}
+
+interface LookupMaps {
+  licensePriceByDetailId: Map<string, LicensePrice>;
+  surveyNameEnByTh: Map<string, string | null>;
+  riceInfoByThaiName: Map<string, RiceInfo>;
+}
+
+/** One row of the statistic Excel sheet — keys are the Thai column headers used by the frontend. */
+export type StatisticRow = Record<string, string | number | null | undefined>;
 
 @Injectable()
 export class StatisticService {
-  [x: string]: any;
-  constructor(
-    private prisma: PrismaService,
-    private jwt: JwtService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getStatisticData(startdate: string, enddate: string, @Req() request: any,
-      @Res({ passthrough: true }) response: FastifyReply) {
+  async getStatisticData(startDate: string, endDate: string): Promise<StatisticRow[]> {
+    console.log('[StatisticService.getStatisticData] startDate:', startDate, 'endDate:', endDate);
     try {
-      const parsedStartDate = new Date(startdate);
-      const parsedEndDate = new Date(enddate);
-     const staticticData = await this.prisma.validate_Check_Weight.findMany({
-  where: {
-    time: {
-      gte: parsedStartDate,
-      lte: parsedEndDate,
-    },
-    certificate :{
-      status: true,
-    }
-  },
-  select: {
-    riceName    : true,
-    supplierName    : true,
-   goDown       : true,
-  weightPerTon  : true,
-    checkWeightID: true,
-    jobID       : true,
-    loadingDetails  : true,
-    time: true,
-    request: {
-      select: {
-        requestID: true,
-        licenseNumber: true,
-        companyName: true,
-        companyNameEng: true,
-        surveyLocateNameThai: true,
-      },
-    },
-    description:{
-        select:{
-            descriptionID:true,
-            index:true,
-            destination : true,
-            vehicleName : true,
-            licenseDetailID: true,
-              netWeightTON : true,
-        }
-    },
-    certificate: {
-      select: {
-        certNo: true,
-      },
-    },
-  },
-  orderBy: {
-  time: 'asc'
-}
-
-});
-
-const licenseNumbers = [
-  ...new Set(staticticData.map((item) => item.request.licenseNumber).filter(Boolean)),
-];
-
-const licenseDetails = await this.prisma.dataFromGoverment.findMany({
-  where: {
-    licenseNumber: {
-      in: licenseNumbers,
-    },
-  },
-  select: {
-    licenseNumber: true,
-    exchangeRate: true,
-    licenseDetails: {
-      select: {
-        licenseDetailID: true,
-        pricePerUnit: true,
-      },
-    },
-  },
-});
-
-
-const licenseDetailMap = new Map<string, { pricePerUnit: number | null; exchangeRate: number }>();
-licenseDetails.forEach((item) => {
-  item.licenseDetails.forEach((detail) => {
-    licenseDetailMap.set(detail.licenseDetailID, {
-      pricePerUnit: detail.pricePerUnit,
-      exchangeRate: item.exchangeRate,
-    });
-  });
-});
-
-const surveyNameTHList = [
-  ...new Set(staticticData.map((item) => item.request?.surveyLocateNameThai).filter(Boolean)),
-];
-
-const surveyNames = await this.prisma.surveyName.findMany({
-  where: { surveyNameTH: { in: surveyNameTHList as string[] } },
-  select: { surveyNameTH: true, surveyNameEN: true },
-});
-
-const surveyNameMap = new Map(
-  surveyNames.map((s) => [s.surveyNameTH, s.surveyNameEN])
-);
-
-const riceNameList = [
-  ...new Set(staticticData.map((item) => item.riceName).filter(Boolean)),
-];
-
-const riceManageList = await this.prisma.riceManage.findMany({
-  where: { riceNameThai: { in: riceNameList as string[] } },
-  select: {
-    riceNameThai: true,
-    riceNameEng: true,
-    riceCodeT: true,
-    riceCode1: true,
-    riceCode2: true,
-    riceType: true,
-  },
-});
-
-const riceManageMap = new Map(
-  riceManageList.map((r) => [r.riceNameThai, r])
-);
-
-const excelLikeData = staticticData.map((cw, index) =>
-    {
-    const licenseDetail = cw.description?.licenseDetailID ? licenseDetailMap.get(cw.description.licenseDetailID) : null;
-    const surveyNameTH = cw.request?.surveyLocateNameThai || null;
-    const surveyNameEN = surveyNameTH ? surveyNameMap.get(surveyNameTH) : null;
-    const riceInfo = cw.riceName ? riceManageMap.get(cw.riceName) : null;
-      
-    return {
-      'ลำดับที่': index + 1,
-//   checkWeightID: cw.checkWeightID,
-ผู้ได้รับอนุญาติส่งออก : cw.request?.companyName || null,
- ผู้ส่งมอบ: surveyNameEN || surveyNameTH,
-  เข้าตู้: cw.loadingDetails?.toLowerCase().includes('loading') ? '✓' : '',
-    'รายการที่': cw.description?.index || null,
-    ปี: cw.time
-  ? (cw.time.getFullYear() + 543).toString().slice(-2)
-  : null,
-  'เลขใบอนุญาต': cw.request?.licenseNumber?.slice(-5) || null,
-    'คำสั่งจ่างงานที่': cw.jobID,
-      เรือใหญ่: cw.description?.vehicleName,
-      เมืองตราส่ง : cw.description?.destination,
-        
-       'ชนิดข้าว EN': riceInfo?.riceNameEng || null,
-         'ปริมาณต่อตัน'  : cw.description?.netWeightTON  || null,
-        T: riceInfo?.riceCodeT || null,
-        'CODE 1': riceInfo?.riceCode1 || null,
-        '(Space1)':  null,
-        'CODE 2': riceInfo?.riceCode2 || null,
-          '(Space2)':  null,
-           'ราคา': licenseDetail?.pricePerUnit ?? null,
-               'อัตราแลกเปลี่ยน': licenseDetail?.exchangeRate ?? null,
-        ชื่อข้าวไทย: cw.riceName,
-
-
-//   certNo : cw.certificate?.certNo || null,
-// //   requestID: cw.request?.requestID || null,
-//   destination : cw.description?.destination || null,
-//     supplierName: cw.supplierName,
-//     ราคา: license?.licenseDetails?.[0]?.pricePerUnit || null,
-
-//     เพิ่มเติม: cw.riceName,
-}
-    });
-
-
-      return response.status(200).send(excelLikeData);
+      const checkWeights = await this.findCertifiedCheckWeights(startDate, endDate);
+      const lookupMaps = await this.buildLookupMaps(checkWeights);
+      const result = checkWeights.map((checkWeight, index) =>
+        this.toStatisticRow(checkWeight, index, lookupMaps),
+      );
+      console.log('[StatisticService.getStatisticData] result count:', result.length);
+      return result;
     } catch (error) {
-      throw new Error('Error fetching statistic data');
+      rethrowAsHttpException('StatisticService.getStatisticData', error);
     }
   }
-}
 
+  // ─── Private helpers ────────────────────────────────────────────────────────
+
+  private findCertifiedCheckWeights(startDate: string, endDate: string): Promise<CheckWeightRow[]> {
+    return this.prisma.validate_Check_Weight.findMany({
+      where: {
+        time: { gte: new Date(startDate), lte: new Date(endDate) },
+        certificate: { status: true },
+      },
+      select: CHECK_WEIGHT_SELECT,
+      orderBy: { time: 'asc' },
+    });
+  }
+
+  private async buildLookupMaps(checkWeights: CheckWeightRow[]): Promise<LookupMaps> {
+    const licenseNumbers = this.uniqueNonEmpty(checkWeights.map((cw) => cw.request?.licenseNumber));
+    const surveyNamesTh = this.uniqueNonEmpty(checkWeights.map((cw) => cw.request?.surveyLocateNameThai));
+    const riceNamesTh = this.uniqueNonEmpty(checkWeights.map((cw) => cw.riceName));
+
+    const [licensePriceByDetailId, surveyNameEnByTh, riceInfoByThaiName] = await Promise.all([
+      this.buildLicensePriceMap(licenseNumbers),
+      this.buildSurveyNameMap(surveyNamesTh),
+      this.buildRiceInfoMap(riceNamesTh),
+    ]);
+    return { licensePriceByDetailId, surveyNameEnByTh, riceInfoByThaiName };
+  }
+
+  private async buildLicensePriceMap(licenseNumbers: string[]): Promise<Map<string, LicensePrice>> {
+    const governmentLicenses = await this.prisma.dataFromGoverment.findMany({
+      where: { licenseNumber: { in: licenseNumbers } },
+      select: {
+        exchangeRate: true,
+        licenseDetails: { select: { licenseDetailID: true, pricePerUnit: true } },
+      },
+    });
+    return new Map(
+      governmentLicenses.flatMap((license) =>
+        license.licenseDetails.map((detail): [string, LicensePrice] => [
+          detail.licenseDetailID,
+          { pricePerUnit: detail.pricePerUnit, exchangeRate: license.exchangeRate },
+        ]),
+      ),
+    );
+  }
+
+  private async buildSurveyNameMap(surveyNamesTh: string[]): Promise<Map<string, string | null>> {
+    const surveyNames = await this.prisma.surveyName.findMany({
+      where: { surveyNameTH: { in: surveyNamesTh } },
+      select: { surveyNameTH: true, surveyNameEN: true },
+    });
+    return new Map(surveyNames.map((survey) => [survey.surveyNameTH, survey.surveyNameEN]));
+  }
+
+  private async buildRiceInfoMap(riceNamesTh: string[]): Promise<Map<string, RiceInfo>> {
+    const riceList = await this.prisma.riceManage.findMany({
+      where: { riceNameThai: { in: riceNamesTh } },
+      select: {
+        riceNameThai: true,
+        riceNameEng: true,
+        riceCodeT: true,
+        riceCode1: true,
+        riceCode2: true,
+      },
+    });
+    return new Map(
+      riceList
+        .filter((rice): rice is RiceInfo & { riceNameThai: string } => Boolean(rice.riceNameThai))
+        .map((rice) => [rice.riceNameThai, rice]),
+    );
+  }
+
+  private toStatisticRow(checkWeight: CheckWeightRow, index: number, maps: LookupMaps): StatisticRow {
+    const { request, description } = checkWeight;
+    const licensePrice = description?.licenseDetailID
+      ? maps.licensePriceByDetailId.get(description.licenseDetailID)
+      : null;
+    const surveyNameTh = request?.surveyLocateNameThai || null;
+    const surveyNameEn = surveyNameTh ? maps.surveyNameEnByTh.get(surveyNameTh) : null;
+    const riceInfo = checkWeight.riceName ? maps.riceInfoByThaiName.get(checkWeight.riceName) : null;
+
+    return {
+      'ลำดับที่': index + 1,
+      'ผู้ได้รับอนุญาติส่งออก': request?.companyName || null,
+      'ผู้ส่งมอบ': surveyNameEn || surveyNameTh,
+      'เข้าตู้': checkWeight.loadingDetails?.toLowerCase().includes(LOADING_KEYWORD) ? CHECK_MARK : '',
+      'รายการที่': description?.index || null,
+      'ปี': this.toShortBuddhistYear(checkWeight.time),
+      'เลขใบอนุญาต': request?.licenseNumber?.slice(-SHORT_LICENSE_NO_LENGTH) || null,
+      'คำสั่งจ่างงานที่': checkWeight.jobID,
+      'เรือใหญ่': description?.vehicleName,
+      'เมืองตราส่ง': description?.destination,
+      'ชนิดข้าว EN': riceInfo?.riceNameEng || null,
+      'ปริมาณต่อตัน': description?.netWeightTON || null,
+      T: riceInfo?.riceCodeT || null,
+      'CODE 1': riceInfo?.riceCode1 || null,
+      '(Space1)': null,
+      'CODE 2': riceInfo?.riceCode2 || null,
+      '(Space2)': null,
+      'ราคา': licensePrice?.pricePerUnit ?? null,
+      'อัตราแลกเปลี่ยน': licensePrice?.exchangeRate ?? null,
+      'ชื่อข้าวไทย': checkWeight.riceName,
+    };
+  }
+
+  private toShortBuddhistYear(date: Date | null): string | null {
+    if (!date) return null;
+    return (date.getFullYear() + BUDDHIST_ERA_OFFSET).toString().slice(-SHORT_YEAR_LENGTH);
+  }
+
+  private uniqueNonEmpty(values: (string | null | undefined)[]): string[] {
+    return [...new Set(values.filter((value): value is string => Boolean(value)))];
+  }
+}

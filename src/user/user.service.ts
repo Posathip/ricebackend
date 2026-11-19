@@ -1,19 +1,25 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
+import { rethrowAsHttpException } from 'src/common/service-error';
 import { CreateStaffDto } from 'src/dto/user.dto';
+
+export interface StaffSummary {
+  staffID: string;
+  staffNo: number;
+  staffName: string;
+  email: string;
+  phone: string | null;
+  position: string | null;
+}
 
 @Injectable()
 export class UserService {
-  constructor(
-    private prisma: PrismaService,
-    private jwt: JwtService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getUserData(request: any, response: any): Promise<void> {
-    // console.log('[UserService.getUserData]');
+  async getAllStaff(): Promise<StaffSummary[]> {
+    console.log('[UserService.getAllStaff]');
     try {
-      const users = await this.prisma.staff.findMany({
+      const staffList = await this.prisma.staff.findMany({
         select: {
           staffID: true,
           staffNo: true,
@@ -23,57 +29,46 @@ export class UserService {
           position: true,
         },
       });
+      if (staffList.length === 0) throw new NotFoundException('Staff not found');
 
-      if (!users || users.length === 0) {
-        // console.log('[UserService.getUserData] no staff found');
-        return response.status(404).send({ message: 'Staff not found' });
-      }
-
-      const result = users.map((u) => ({
-        ...u,
-        staffName: u.staffName ? u.staffName.split(' ')[0] : '',
+      const result = staffList.map((staff) => ({
+        ...staff,
+        staffName: this.extractFirstName(staff.staffName),
       }));
-
-      // console.log('[UserService.getUserData] returned', result.length, 'staff');
-      return response.status(200).send(result);
+      console.log('[UserService.getAllStaff] result count:', result.length);
+      return result;
     } catch (error) {
-      console.error('[UserService.getUserData]', error);
-      const message = error instanceof Error ? error.message : String(error);
-      throw new InternalServerErrorException(message);
+      rethrowAsHttpException('UserService.getAllStaff', error);
     }
   }
 
-  async postData(
-    dto: CreateStaffDto[],
-    request: any,
-    response: any,
-  ): Promise<void> {
-    // console.log('[UserService.postData] count:', dto.length);
+  async createManyStaff(dtoList: CreateStaffDto[]): Promise<{ message: string }> {
+    console.log('[UserService.createManyStaff] count:', dtoList.length);
     try {
-      const last = await this.prisma.staff.findFirst({
+      const lastStaff = await this.prisma.staff.findFirst({
         orderBy: { staffNo: 'desc' },
+        select: { staffNo: true },
       });
+      const nextStaffNo = (lastStaff?.staffNo ?? 0) + 1;
 
-      const nextStaffNo = (last?.staffNo ?? 0) + 1;
-
-      await this.prisma.staff.createMany({
-        data: dto.map((item) => ({
-          staffNo: nextStaffNo,
-          staffName: item.staffName,
-          email: item.email,
-          phone: item.phone,
-          position: item.position,
+      const { count } = await this.prisma.staff.createMany({
+        data: dtoList.map((dto, index) => ({
+          staffNo: nextStaffNo + index,
+          staffName: dto.staffName,
+          email: dto.email,
+          phone: dto.phone,
+          position: dto.position,
         })),
       });
 
-      // console.log('[UserService.postData] created', dto.length, 'staff');
-      return response.status(200).send({
-        message: `Staff with email  created successfully`,
-      });
+      console.log('[UserService.createManyStaff] result created:', count);
+      return { message: `Staff with email  created successfully` };
     } catch (error) {
-      console.error('[UserService.postData]', error);
-      const message = error instanceof Error ? error.message : String(error);
-      throw new InternalServerErrorException(message);
+      rethrowAsHttpException('UserService.createManyStaff', error);
     }
+  }
+
+  private extractFirstName(fullName: string | null): string {
+    return fullName ? fullName.split(' ')[0] : '';
   }
 }

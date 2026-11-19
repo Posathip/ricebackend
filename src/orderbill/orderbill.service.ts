@@ -1,36 +1,49 @@
-import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { FastifyReply } from 'fastify';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, orderBill } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { rethrowAsHttpException } from 'src/common/service-error';
 import {
+  CreateExtraInvoiceDto,
+  CreatePhysicalAnalysisDto,
+  CreateSellingLiquidsDto,
   UpdateDataAnalysisDto,
   UpdateExtraInvoiceDto,
   UpdateOrderStatusDto,
   UpdateSellingLiquidsDto,
 } from 'src/dto/orderBill.dto';
 
+const ORDER_BILL_DETAIL_INCLUDE = {
+  physicalAnalyses: true,
+  extraInvoices: true,
+  sellingLiquids: true,
+} satisfies Prisma.orderBillInclude;
+
+export type OrderBillDetail = Prisma.orderBillGetPayload<{ include: typeof ORDER_BILL_DETAIL_INCLUDE }>;
+
+export interface MessageResponse {
+  message: string;
+}
+
+export interface MessageDataResponse<T> extends MessageResponse {
+  data: T;
+}
+
 @Injectable()
 export class OrderbillService {
-  constructor(
-    private prisma: PrismaService,
-    private jwt: JwtService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async postDataAnalysis(
-    dto: any,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.postDataAnalysis] orderNo:', dto.orderNo);
+  async createPhysicalAnalysis(dto: CreatePhysicalAnalysisDto): Promise<MessageResponse> {
+    console.log('[OrderbillService.createPhysicalAnalysis] orderNo:', dto.orderNo);
     try {
-      await this.prisma.orderBill.create({
+      const billDate = new Date(dto.date);
+      const created = await this.prisma.orderBill.create({
         data: {
           status: dto.status,
-          date: new Date(dto.date),
+          date: billDate,
           physicalAnalyses: {
             create: {
               orderNo: dto.orderNo,
-              date: new Date(dto.date),
+              date: billDate,
               companyName: dto.companyName,
               physicalAnalysis: dto.physicalAnalysis,
               physicalChemical: dto.physicalChemical,
@@ -40,29 +53,21 @@ export class OrderbillService {
           },
         },
       });
-
-      // console.log('[OrderbillService.postDataAnalysis] created successfully');
-      return response.status(200).send({ message: 'Order bill data created successfully' });
+      console.log('[OrderbillService.createPhysicalAnalysis] result:', created.orderBillID);
+      return { message: 'Order bill data created successfully' };
     } catch (error) {
-      console.error('[OrderbillService.postDataAnalysis]', error);
-      return response.status(500).send({
-        message: 'Failed to create order bill data',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.createPhysicalAnalysis', error);
     }
   }
 
-  async postDataExtrainvoice(
-    dto: any,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.postDataExtrainvoice] orderNo:', dto.orderNo);
+  async createExtraInvoice(dto: CreateExtraInvoiceDto): Promise<MessageResponse> {
+    console.log('[OrderbillService.createExtraInvoice] orderNo:', dto.orderNo);
     try {
-      await this.prisma.orderBill.create({
+      const billDate = new Date(dto.date);
+      const created = await this.prisma.orderBill.create({
         data: {
           status: dto.status,
-          date: new Date(dto.date),
+          date: billDate,
           extraInvoices: {
             create: {
               orderNo: dto.orderNo,
@@ -71,39 +76,31 @@ export class OrderbillService {
               pricePerUnit: dto.pricePerUnit,
               totalPrice: dto.totalPrice,
               note: dto.note,
-              date: new Date(dto.date),
+              date: billDate,
             },
           },
         },
       });
-
-      // console.log('[OrderbillService.postDataExtrainvoice] created successfully');
-      return response.status(200).send({ message: 'Extra invoice data created successfully' });
+      console.log('[OrderbillService.createExtraInvoice] result:', created.orderBillID);
+      return { message: 'Extra invoice data created successfully' };
     } catch (error) {
-      console.error('[OrderbillService.postDataExtrainvoice]', error);
-      return response.status(500).send({
-        message: 'Failed to create extra invoice data',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.createExtraInvoice', error);
     }
   }
 
-  async postDataSellingLiquids(
-    dto: any,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.postDataSellingLiquids] orderNo:', dto.orderNo);
+  async createSellingLiquids(dto: CreateSellingLiquidsDto): Promise<MessageResponse> {
+    console.log('[OrderbillService.createSellingLiquids] orderNo:', dto.orderNo);
     try {
-      await this.prisma.orderBill.create({
+      const billDate = new Date(dto.date);
+      const created = await this.prisma.orderBill.create({
         data: {
           status: dto.status,
-          date: new Date(dto.date),
+          date: billDate,
           sellingLiquids: {
             create: {
               orderNo: dto.orderNo,
               companyName: dto.companyName,
-              date: new Date(dto.date),
+              date: billDate,
               liquidsBoolean: dto.liquidsBoolean,
               numberNo1: dto.numberNo1,
               pricePerUnitNo1: dto.pricePerUnitNo1,
@@ -115,257 +112,143 @@ export class OrderbillService {
           },
         },
       });
-
-      // console.log('[OrderbillService.postDataSellingLiquids] created successfully');
-      return response.status(200).send({ message: 'Order Liquid data created successfully' });
+      console.log('[OrderbillService.createSellingLiquids] result:', created.orderBillID);
+      return { message: 'Order Liquid data created successfully' };
     } catch (error) {
-      console.error('[OrderbillService.postDataSellingLiquids]', error);
-      return response.status(500).send({
-        message: 'Failed to create selling liquids data',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.createSellingLiquids', error);
     }
   }
 
-  async getOrderBillDataByDate(
-    date: string,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.getOrderBillDataByDate] date:', date);
+  async getOrderBillsByDate(date: string): Promise<MessageDataResponse<orderBill[]>> {
+    console.log('[OrderbillService.getOrderBillsByDate] date:', date);
     try {
-      const parsedDate = new Date(date);
-      const getOrderByDate = await this.prisma.orderBill.findMany({
-        where: {
-          date: {
-            gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
-            lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
-          },
-        },
+      const orderBills = await this.prisma.orderBill.findMany({
+        where: { date: this.buildDayRange(date) },
       });
-
-      if (!getOrderByDate || getOrderByDate.length === 0) {
-        // console.log('[OrderbillService.getOrderBillDataByDate] no data found');
-        return response.status(404).send({
-          message: 'No order bill data found for the given date',
-        });
+      if (orderBills.length === 0) {
+        throw new NotFoundException('No order bill data found for the given date');
       }
-
-      // console.log('[OrderbillService.getOrderBillDataByDate] returned', getOrderByDate.length, 'records');
-      return response.status(200).send({
-        message: 'Order bill data retrieved successfully by date',
-        data: getOrderByDate,
-      });
+      console.log('[OrderbillService.getOrderBillsByDate] result count:', orderBills.length);
+      return { message: 'Order bill data retrieved successfully by date', data: orderBills };
     } catch (error) {
-      console.error('[OrderbillService.getOrderBillDataByDate]', error);
-      return response.status(500).send({
-        message: 'Failed to retrieve order bill data by date',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.getOrderBillsByDate', error);
     }
   }
 
-  async deleteOrderBillData(
-    orderBillID: string,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.deleteOrderBillData] orderBillID:', orderBillID);
+  async deleteOrderBill(orderBillID: string): Promise<MessageResponse> {
+    console.log('[OrderbillService.deleteOrderBill] orderBillID:', orderBillID);
     try {
-      const orderBillData = await this.prisma.orderBill.findUnique({
-        where: { orderBillID: orderBillID },
-      });
+      const orderBill = await this.prisma.orderBill.findUnique({ where: { orderBillID } });
+      if (!orderBill) throw new NotFoundException('Order bill data not found');
 
-      if (!orderBillData) {
-        // console.log('[OrderbillService.deleteOrderBillData] not found:', orderBillID);
-        return response.status(404).send({ message: 'Order bill data not found' });
-      }
-
-      await this.prisma.orderBill.delete({ where: { orderBillID: orderBillID } });
-
-      // console.log('[OrderbillService.deleteOrderBillData] deleted:', orderBillID);
-      return response.status(200).send({ message: 'Order bill data deleted successfully' });
+      await this.prisma.orderBill.delete({ where: { orderBillID } });
+      console.log('[OrderbillService.deleteOrderBill] result deleted:', orderBillID);
+      return { message: 'Order bill data deleted successfully' };
     } catch (error) {
-      console.error('[OrderbillService.deleteOrderBillData]', error);
-      return response.status(500).send({
-        message: 'Failed to delete order bill data',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.deleteOrderBill', error);
     }
   }
 
-  async getOrderBillDataDetail(
-    orderBillID: string,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.getOrderBillDataDetail] orderBillID:', orderBillID);
+  async getOrderBillDetail(orderBillID: string): Promise<MessageDataResponse<OrderBillDetail>> {
+    console.log('[OrderbillService.getOrderBillDetail] orderBillID:', orderBillID);
     try {
-      const detail = await this.prisma.orderBill.findUnique({
-        where: { orderBillID: orderBillID },
-        include: {
-          physicalAnalyses: true,
-          extraInvoices: true,
-          sellingLiquids: true,
-        },
+      const orderBillDetail = await this.prisma.orderBill.findUnique({
+        where: { orderBillID },
+        include: ORDER_BILL_DETAIL_INCLUDE,
       });
+      if (!orderBillDetail) throw new NotFoundException('Order bill data not found');
 
-      if (!detail) {
-        // console.log('[OrderbillService.getOrderBillDataDetail] not found:', orderBillID);
-        return response.status(404).send({ message: 'Order bill data not found' });
-      }
-
-      // console.log('[OrderbillService.getOrderBillDataDetail] found:', detail.orderBillID);
-      return response.status(200).send({
-        message: 'Order bill data retrieved successfully',
-        data: detail,
-      });
+      console.log('[OrderbillService.getOrderBillDetail] result:', orderBillDetail.orderBillID);
+      return { message: 'Order bill data retrieved successfully', data: orderBillDetail };
     } catch (error) {
-      console.error('[OrderbillService.getOrderBillDataDetail]', error);
-      return response.status(500).send({
-        message: 'Failed to retrieve order bill data detail',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.getOrderBillDetail', error);
     }
   }
 
-  async updateStatus(
-    dto: UpdateOrderStatusDto,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.updateStatus] status:', dto.status);
+  async updateStatus(dto: UpdateOrderStatusDto): Promise<MessageResponse> {
+    console.log('[OrderbillService.updateStatus] status:', dto.status, 'count:', dto.order?.length);
     try {
       if (!dto.order?.length) {
-        return response.status(400).send({
-          message: 'No order bills provided for status update',
-        });
+        throw new BadRequestException('No order bills provided for status update');
       }
+      const orderBillIds = dto.order
+        .map((item) => item.orderbillID)
+        .filter((id): id is string => id !== undefined);
 
-      await this.prisma.orderBill.updateMany({
-        where: {
-          orderBillID: {
-            in: dto.order
-              .map((bill) => bill.orderbillID)
-              .filter((id): id is string => id !== undefined),
-          },
-        },
+      const { count } = await this.prisma.orderBill.updateMany({
+        where: { orderBillID: { in: orderBillIds } },
         data: { status: dto.status },
       });
-
-      // console.log('[OrderbillService.updateStatus] updated', dto.order.length, 'bills to status:', dto.status);
-      return response.status(200).send({ message: 'Order bill status updated successfully' });
+      console.log('[OrderbillService.updateStatus] result updated:', count);
+      return { message: 'Order bill status updated successfully' };
     } catch (error) {
-      console.error('[OrderbillService.updateStatus]', error);
-      return response.status(500).send({
-        message: 'Failed to update status',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.updateStatus', error);
     }
   }
 
-  async updatedataanalysis(
+  async updatePhysicalAnalysis(
     physicalAnalysisID: string,
     dto: UpdateDataAnalysisDto,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.updatedataanalysis] physicalAnalysisID:', physicalAnalysisID);
+  ): Promise<MessageResponse> {
+    console.log('[OrderbillService.updatePhysicalAnalysis] physicalAnalysisID:', physicalAnalysisID);
     try {
-      const finddata = await this.prisma.physicalAnalysis.findUnique({
-        where: { physicalAnalysisID: physicalAnalysisID },
+      const physicalAnalysis = await this.prisma.physicalAnalysis.findUnique({
+        where: { physicalAnalysisID },
       });
-
-      if (!finddata) {
-        // console.log('[OrderbillService.updatedataanalysis] not found:', physicalAnalysisID);
-        return response.status(404).send({
-          message: 'Physical analysis data not found for the given order bill ID',
-        });
+      if (!physicalAnalysis) {
+        throw new NotFoundException('Physical analysis data not found for the given order bill ID');
       }
 
-      await this.prisma.physicalAnalysis.update({
-        where: { physicalAnalysisID: physicalAnalysisID },
-        data: dto,
-      });
-
-      // console.log('[OrderbillService.updatedataanalysis] updated:', physicalAnalysisID);
-      return response.status(200).send({ message: 'Physical analysis data updated successfully' });
+      await this.prisma.physicalAnalysis.update({ where: { physicalAnalysisID }, data: dto });
+      console.log('[OrderbillService.updatePhysicalAnalysis] result updated:', physicalAnalysisID);
+      return { message: 'Physical analysis data updated successfully' };
     } catch (error) {
-      console.error('[OrderbillService.updatedataanalysis]', error);
-      return response.status(500).send({
-        message: 'Failed to update physical analysis data',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.updatePhysicalAnalysis', error);
     }
   }
 
-  async updatedataextrainvoice(
-    extrainvoiceID: string,
-    dto: UpdateExtraInvoiceDto,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.updatedataextrainvoice] extrainvoiceID:', extrainvoiceID);
+  async updateExtraInvoice(extraInvoiceID: string, dto: UpdateExtraInvoiceDto): Promise<MessageResponse> {
+    console.log('[OrderbillService.updateExtraInvoice] extraInvoiceID:', extraInvoiceID);
     try {
-      const finddata = await this.prisma.extraInvoice.findUnique({
-        where: { extraInvoiceID: extrainvoiceID },
-      });
-
-      if (!finddata) {
-        // console.log('[OrderbillService.updatedataextrainvoice] not found:', extrainvoiceID);
-        return response.status(404).send({
-          message: 'Extra invoice data not found for the given order bill ID',
-        });
+      const extraInvoice = await this.prisma.extraInvoice.findUnique({ where: { extraInvoiceID } });
+      if (!extraInvoice) {
+        throw new NotFoundException('Extra invoice data not found for the given order bill ID');
       }
 
-      await this.prisma.extraInvoice.update({
-        where: { extraInvoiceID: extrainvoiceID },
-        data: dto,
-      });
-
-      // console.log('[OrderbillService.updatedataextrainvoice] updated:', extrainvoiceID);
-      return response.status(200).send({ message: 'Extra invoice data updated successfully' });
+      await this.prisma.extraInvoice.update({ where: { extraInvoiceID }, data: dto });
+      console.log('[OrderbillService.updateExtraInvoice] result updated:', extraInvoiceID);
+      return { message: 'Extra invoice data updated successfully' };
     } catch (error) {
-      console.error('[OrderbillService.updatedataextrainvoice]', error);
-      return response.status(500).send({
-        message: 'Failed to update extra invoice data',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.updateExtraInvoice', error);
     }
   }
 
-  async updatedatasellingliquids(
+  async updateSellingLiquids(
     sellingLiquidsID: string,
     dto: UpdateSellingLiquidsDto,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[OrderbillService.updatedatasellingliquids] sellingLiquidsID:', sellingLiquidsID);
+  ): Promise<MessageResponse> {
+    console.log('[OrderbillService.updateSellingLiquids] sellingLiquidsID:', sellingLiquidsID);
     try {
-      const finddata = await this.prisma.sellingLiquids.findUnique({
-        where: { sellingLiquidsID: sellingLiquidsID },
-      });
-
-      if (!finddata) {
-        // console.log('[OrderbillService.updatedatasellingliquids] not found:', sellingLiquidsID);
-        return response.status(404).send({
-          message: 'Selling liquids data not found for the given order bill ID',
-        });
+      const sellingLiquids = await this.prisma.sellingLiquids.findUnique({ where: { sellingLiquidsID } });
+      if (!sellingLiquids) {
+        throw new NotFoundException('Selling liquids data not found for the given order bill ID');
       }
 
-      await this.prisma.sellingLiquids.update({
-        where: { sellingLiquidsID: sellingLiquidsID },
-        data: dto,
-      });
-
-      // console.log('[OrderbillService.updatedatasellingliquids] updated:', sellingLiquidsID);
-      return response.status(200).send({ message: 'Selling liquids data updated successfully' });
+      await this.prisma.sellingLiquids.update({ where: { sellingLiquidsID }, data: dto });
+      console.log('[OrderbillService.updateSellingLiquids] result updated:', sellingLiquidsID);
+      return { message: 'Selling liquids data updated successfully' };
     } catch (error) {
-      console.error('[OrderbillService.updatedatasellingliquids]', error);
-      return response.status(500).send({
-        message: 'Failed to update selling liquids data',
-        error: error,
-      });
+      rethrowAsHttpException('OrderbillService.updateSellingLiquids', error);
     }
+  }
+
+  // ─── Private helpers ────────────────────────────────────────────────────────
+
+  private buildDayRange(date: string): { gte: Date; lt: Date } {
+    const parsed = new Date(date);
+    const year = parsed.getFullYear();
+    const month = parsed.getMonth();
+    const day = parsed.getDate();
+    return { gte: new Date(year, month, day), lt: new Date(year, month, day + 1) };
   }
 }

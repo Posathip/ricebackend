@@ -1,22 +1,533 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from 'prisma/prisma.service';
-import { FastifyReply } from 'fastify';
+import { Description, Prisma } from '@prisma/client';
 import * as https from 'https';
-import { parseStringPromise } from 'xml2js';
+import { PrismaService } from 'prisma/prisma.service';
+import { rethrowAsHttpException } from 'src/common/service-error';
+import { CreateOrderDto, UpdateOrderDescriptionDto, UpdateOrderDto } from 'src/dto/request.dto';
 import { CreateSurveyDto } from 'src/dto/user.dto';
-import { CreateOrderDto } from 'src/dto/request.dto';
+import { parseStringPromise } from 'xml2js';
+import {
+  cleanCompanyName,
+  cleanRiceType,
+  convertBuddhistDateToAD,
+  digitsOnly,
+  extractFirstName,
+  extractTelephone,
+  toArray,
+} from './trade.helpers';
+
+const DEFAULT_ORDER_STATUS_INCOMPLETE = 'incomplete';
+const DEFAULT_FINAL_JOB_NO = '0000';
+const EMPTY_SURVEY_FIELD = '-';
+const SOAP_CONTENT_TYPE = 'text/xml; charset=utf-8';
+
+/** Raw license header as parsed from the government SOAP response (all values are strings). */
+export interface SoapLicenseHeader {
+  LicenseNumber: string;
+  Exporter?: string;
+  Recipient: string;
+  Buyer?: string;
+  Export_Agent?: string;
+  CompanyTax: string;
+  Product: string;
+  IssueDate: string;
+  ExpiredDate: string;
+  ExportDate?: string;
+  BuyerCountry: string;
+  DestinationCountry: string;
+  ExportBy?: string;
+  Vehicle: string;
+  PortName: string;
+  Currency: string;
+  ExchangeRate: string;
+  PermitConditions: string;
+  PaperlessDetail?: { LicenseDetail?: SoapLicenseDetail | SoapLicenseDetail[] };
+}
+
+export interface SoapLicenseDetail {
+  TariffType: string;
+  NetWeightTON: string;
+  NetWeightUnit: string;
+  NetWeightKGM: string;
+  NetWeightUnitKGM: string;
+  Quantity: string;
+  QuantityUnit: string;
+  PricePerUnit: string;
+  CurrencyPerTON: string;
+  FOB: string;
+  Price: string;
+  Incoterms: string;
+  ProductDescription: string;
+}
+
+const REQUEST_BY_DATE_SELECT = {
+  requestID: true,
+  companyName: true,
+  status: true,
+  surveySubDistrict: true,
+  surveyLocateNameEng: true,
+  surveyLocateNameThai: true,
+  surveyProvince: true,
+  shippingDateTime: true,
+  descriptions: {
+    select: {
+      index: true,
+      descriptionID: true,
+      licenseNumber: true,
+      riceType: true,
+      quantity: true,
+      destination: true,
+      vehicleName: true,
+      netWeightTON: true,
+    },
+    orderBy: [
+      { index: 'asc' },
+      { licenseNumber: 'asc' },
+      { riceType: 'asc' },
+      { quantity: 'asc' },
+      { vehicleName: 'asc' },
+      { destination: 'asc' },
+    ],
+  },
+  validate_Check_Weight: {
+    select: {
+      checkWeightID: true,
+      jobID: true,
+      status: true,
+      staffName: true,
+      staffID: true,
+      vehicleName: true,
+      riceName: true,
+      quantity: true,
+      netWeightTon: true,
+      totalNetWeight: true,
+      grossWeight: true,
+      noOfBags: true,
+      goDown: true,
+      specialJob: true,
+      statusContinue: true,
+      descriptionID: true,
+    },
+  },
+  notificationReceipts: {
+    select: {
+      notificationReceiptID: true,
+      jobName: true,
+      staffID: true,
+      jobID: true,
+      specialJob: true,
+    },
+  },
+} satisfies Prisma.RequestSelect;
+
+type RequestByDate = Prisma.RequestGetPayload<{ select: typeof REQUEST_BY_DATE_SELECT }>;
+type RequestWithDescriptions = Prisma.RequestGetPayload<{ include: { descriptions: true } }>;
+type GovernmentLicenseWithDetails = Prisma.DataFromGovermentGetPayload<{ include: { licenseDetails: true } }>;
+
+interface GoDownGroupInfo {
+  goDownGroupID: string | null;
+  goDownGroupName: string | null;
+  goDownColor: string | null;
+}
+
+interface RequestLookups {
+  companyNameEnByTh: Map<string, string>;
+  staffNameById: Map<string, string | null>;
+  goDownGroupBySurveyNameTh: Map<string, GoDownGroupInfo>;
+  latestJobIdByRequestId: Map<string, number | null>;
+}
+
+export type RequestByDateResult = Omit<RequestByDate, 'notificationReceipts'> &
+  GoDownGroupInfo & {
+    companyNameEng: string;
+    jobID: number | null;
+    notificationReceipts: (RequestByDate['notificationReceipts'][number] & { staffName: string | null })[];
+  };
+
+export interface SuccessResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface SuccessDataResponse<T> {
+  success: boolean;
+  data: T;
+}
+
+export interface RequestsByDateResponse extends SuccessDataResponse<RequestByDateResult[]> {
+  finalNo: number | string;
+}
+
+export interface FetchGovernmentDataResult {
+  message: string;
+  inserted: number;
+  skipped: number;
+}
+
+export interface InspectPlace {
+  surveyNameTH: string;
+  surveyNameEN: string;
+  changwat: string;
+  amphoes: string;
+}
 
 @Injectable()
 export class TradeService {
   constructor(
-    private prisma: PrismaService,
-    private jwt: JwtService,
+    private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {}
 
-  // ─── Private helpers ────────────────────────────────────────────────────────
+  // ─── Government SOAP data ───────────────────────────────────────────────────
+
+  /** Fetches today's licenses from the government SOAP service and stores the new ones. */
+  async fetchTodayGovernmentData(): Promise<FetchGovernmentDataResult> {
+    const { startDate, endDate } = this.buildTodayDateRange();
+    console.log('[TradeService.fetchTodayGovernmentData] range:', startDate, '→', endDate);
+    try {
+      const licenseHeaders = await this.fetchLicenseHeaders(startDate, endDate);
+      const newHeaders = await this.filterNewLicenses(licenseHeaders);
+
+      const governmentRows: Prisma.DataFromGovermentCreateManyInput[] = [];
+      const detailRows: Prisma.LicenseDetailCreateManyInput[] = [];
+      for (const header of newHeaders) {
+        const dataID = crypto.randomUUID();
+        governmentRows.push(this.toGovernmentRow(header, dataID));
+        detailRows.push(
+          ...toArray(header.PaperlessDetail?.LicenseDetail).map((detail) =>
+            this.toLicenseDetailRow(detail, header.LicenseNumber, dataID),
+          ),
+        );
+      }
+
+      await this.prisma.$transaction([
+        this.prisma.dataFromGoverment.createMany({ data: governmentRows, skipDuplicates: true }),
+        this.prisma.licenseDetail.createMany({ data: detailRows }),
+      ]);
+
+      const result = {
+        message: '✅ Data fetched and saved from SOAP service',
+        inserted: governmentRows.length,
+        skipped: licenseHeaders.length - governmentRows.length,
+      };
+      console.log('[TradeService.fetchTodayGovernmentData] result:', result.inserted, 'inserted,', result.skipped, 'skipped');
+      return result;
+    } catch (error) {
+      rethrowAsHttpException('TradeService.fetchTodayGovernmentData', error);
+    }
+  }
+
+  /** Returns raw license headers from the government SOAP service (not stored). */
+  async getGovernmentLicensesByDate(
+    startDate: string,
+    endDate: string,
+  ): Promise<{ message: string; data: SoapLicenseHeader | SoapLicenseHeader[] | null }> {
+    console.log('[TradeService.getGovernmentLicensesByDate] startDate:', startDate, 'endDate:', endDate);
+    try {
+      const licenseHeaders = await this.fetchRawLicenseHeaders(startDate, endDate);
+      console.log('[TradeService.getGovernmentLicensesByDate] result count:', toArray(licenseHeaders).length);
+      return { message: '✅ Data fetched from SOAP service', data: licenseHeaders };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.getGovernmentLicensesByDate', error);
+    }
+  }
+
+  async getLicenseByNumber(
+    licenseNumber: string,
+  ): Promise<{ message: string; querydata: GovernmentLicenseWithDetails }> {
+    console.log('[TradeService.getLicenseByNumber] licenseNumber:', licenseNumber);
+    try {
+      const license = await this.prisma.dataFromGoverment.findFirst({
+        where: { licenseNumber },
+        include: { licenseDetails: true },
+      });
+      if (!license) throw new NotFoundException('No License Data');
+
+      console.log('[TradeService.getLicenseByNumber] result:', license.dataID);
+      return { message: 'Get data  sucessfully', querydata: license };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.getLicenseByNumber', error);
+    }
+  }
+
+  // ─── Inspection requests (orders) ───────────────────────────────────────────
+
+  async createRequest(dto: CreateOrderDto): Promise<SuccessResponse> {
+    console.log('[TradeService.createRequest] licenseNumber:', dto.licenseNumber, 'descriptions:', dto.description.length);
+    try {
+      const license = await this.prisma.dataFromGoverment.findUnique({
+        where: { licenseNumber: dto.licenseNumber },
+        select: { portName: true },
+      });
+
+      const bufferRemainRows = dto.description
+        .filter((desc) => desc.licenseDetailID)
+        .map((desc) => ({
+          licenseDetailID: desc.licenseDetailID!,
+          remainNetWeightKGM: desc.netWeightKGM,
+          MaximumWeight: desc.netWeightKGM,
+        }));
+
+      await this.prisma.$transaction([
+        this.prisma.request.create({ data: this.buildRequestCreateData(dto, license?.portName) }),
+        this.prisma.bufferRemain.createMany({ data: bufferRemainRows, skipDuplicates: true }),
+      ]);
+
+      console.log('[TradeService.createRequest] result: created for license', dto.licenseNumber);
+      return { success: true, message: 'Order created successfully' };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.createRequest', error);
+    }
+  }
+
+  async getRequestsByDate(date: string): Promise<RequestsByDateResponse> {
+    console.log('[TradeService.getRequestsByDate] date:', date);
+    try {
+      const parsedDate = new Date(date);
+      if (isNaN(parsedDate.getTime())) {
+        throw new BadRequestException({ success: false, message: 'Invalid date format' });
+      }
+
+      const [requests, finalNo] = await Promise.all([
+        this.prisma.request.findMany({
+          where: { requestDate: this.buildDayRange(parsedDate) },
+          select: REQUEST_BY_DATE_SELECT,
+          orderBy: { createdAt: 'asc' },
+        }),
+        this.findLatestNotificationJobNo(),
+      ]);
+      if (requests.length === 0) {
+        throw new NotFoundException({ success: false, message: 'No requests found for the given date', finalNo });
+      }
+
+      const lookups = await this.buildRequestLookups(requests);
+      const result = requests.map((request) => this.toRequestByDateResult(request, lookups));
+      console.log('[TradeService.getRequestsByDate] result count:', result.length);
+      return { success: true, data: result, finalNo };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.getRequestsByDate', error);
+    }
+  }
+
+  async getRequestById(requestID: string): Promise<SuccessDataResponse<RequestWithDescriptions>> {
+    console.log('[TradeService.getRequestById] requestID:', requestID);
+    try {
+      const request = await this.prisma.request.findUnique({
+        where: { requestID },
+        include: { descriptions: true },
+      });
+      if (!request) throw new NotFoundException({ success: false, message: 'Request not found' });
+
+      console.log('[TradeService.getRequestById] result:', request.requestID);
+      return { success: true, data: request };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.getRequestById', error);
+    }
+  }
+
+  async updateRequest(requestID: string, dto: UpdateOrderDto): Promise<SuccessResponse> {
+    console.log('[TradeService.updateRequest] requestID:', requestID, 'descriptions:', dto.description?.length ?? 0);
+    try {
+      const existing = await this.prisma.request.findUnique({ where: { requestID }, select: { requestID: true } });
+      if (!existing) throw new NotFoundException({ success: false, message: 'Request not found' });
+
+      const requestData = this.buildRequestUpdateData(dto);
+      const hasRequestChanges = Object.values(requestData).some((value) => value !== undefined);
+      const descriptionsToUpsert = (dto.description ?? []).filter((desc) => desc.descriptionID);
+
+      await this.prisma.$transaction([
+        ...(hasRequestChanges ? [this.prisma.request.update({ where: { requestID }, data: requestData })] : []),
+        ...descriptionsToUpsert.map((desc) => this.upsertDescription(requestID, desc)),
+      ]);
+
+      console.log('[TradeService.updateRequest] result: updated', requestID);
+      return { success: true, message: 'Order updated successfully' };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.updateRequest', error);
+    }
+  }
+
+  async deleteRequest(requestID: string): Promise<SuccessResponse> {
+    console.log('[TradeService.deleteRequest] requestID:', requestID);
+    try {
+      const [request, checkWeight] = await Promise.all([
+        this.prisma.request.findUnique({ where: { requestID }, select: { requestID: true } }),
+        this.prisma.validate_Check_Weight.findFirst({ where: { requestID }, select: { checkWeightID: true } }),
+      ]);
+      if (!request) throw new NotFoundException({ success: false, message: 'Order not found' });
+      if (checkWeight) {
+        throw new BadRequestException({ success: false, message: 'Order is submitted already cannot delete' });
+      }
+
+      await this.prisma.$transaction([
+        this.prisma.notificationReceipt.deleteMany({ where: { requestID } }),
+        this.prisma.description.deleteMany({ where: { requestId: requestID } }),
+        this.prisma.request.delete({ where: { requestID } }),
+      ]);
+
+      console.log('[TradeService.deleteRequest] result deleted:', requestID);
+      return { success: true, message: 'Order deleted successfully' };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.deleteRequest', error);
+    }
+  }
+
+  async deleteDescription(descriptionID: string): Promise<SuccessResponse> {
+    console.log('[TradeService.deleteDescription] descriptionID:', descriptionID);
+    try {
+      const [checkWeight, description] = await Promise.all([
+        this.prisma.validate_Check_Weight.findFirst({ where: { descriptionID }, select: { checkWeightID: true } }),
+        this.prisma.description.findUnique({ where: { descriptionID }, select: { descriptionID: true } }),
+      ]);
+      if (checkWeight) {
+        throw new BadRequestException({
+          success: false,
+          message: 'Cannot delete order detail, it has been submitted for weight check',
+        });
+      }
+      if (!description) throw new NotFoundException({ success: false, message: 'Order not found' });
+
+      await this.prisma.description.delete({ where: { descriptionID } });
+      console.log('[TradeService.deleteDescription] result deleted:', descriptionID);
+      return { success: true, message: 'Order deleted successfully' };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.deleteDescription', error);
+    }
+  }
+
+  // ─── Survey / inspection places ─────────────────────────────────────────────
+
+  async createSurveys(dtoList: CreateSurveyDto[]): Promise<SuccessResponse> {
+    console.log('[TradeService.createSurveys] count:', dtoList.length);
+    try {
+      const { count } = await this.prisma.surveyName.createMany({
+        data: dtoList.map((dto) => ({
+          amphoes: dto.amphoes || EMPTY_SURVEY_FIELD,
+          changwat: dto.changwat || EMPTY_SURVEY_FIELD,
+          surveyNameEN: dto.surveyNameEN || EMPTY_SURVEY_FIELD,
+          surveyNameTH: dto.surveyNameTH || EMPTY_SURVEY_FIELD,
+        })),
+      });
+      console.log('[TradeService.createSurveys] result created:', count);
+      return { success: true, message: 'Survey posted successfully' };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.createSurveys', error);
+    }
+  }
+
+  async getInspectPlaces(): Promise<SuccessDataResponse<InspectPlace[]>> {
+    console.log('[TradeService.getInspectPlaces]');
+    try {
+      const inspectPlaces = await this.prisma.surveyName.findMany({
+        select: { surveyNameTH: true, surveyNameEN: true, changwat: true, amphoes: true },
+        distinct: ['surveyNameTH', 'surveyNameEN'],
+        orderBy: { surveyNameTH: 'asc' },
+      });
+      console.log('[TradeService.getInspectPlaces] result count:', inspectPlaces.length);
+      return { success: true, data: inspectPlaces };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.getInspectPlaces', error);
+    }
+  }
+
+  // ─── Private helpers: SOAP ──────────────────────────────────────────────────
+
+  private async fetchRawLicenseHeaders(
+    startDate: string,
+    endDate: string,
+  ): Promise<SoapLicenseHeader | SoapLicenseHeader[] | null> {
+    const rawXml = await this.postSoapRequest(this.buildSoapXml(startDate, endDate));
+    const parsed = await parseStringPromise(rawXml, { explicitArray: false });
+    return (
+      parsed['soap:Envelope']?.['soap:Body']?.['GetPaperlessDataResponse']?.['GetPaperlessDataResult']?.[
+        'LicenseHeader'
+      ] ?? null
+    );
+  }
+
+  private async fetchLicenseHeaders(startDate: string, endDate: string): Promise<SoapLicenseHeader[]> {
+    return toArray(await this.fetchRawLicenseHeaders(startDate, endDate));
+  }
+
+  /** Drops licenses already stored (by full or digits-only number) and duplicates within the same response. */
+  private async filterNewLicenses(headers: SoapLicenseHeader[]): Promise<SoapLicenseHeader[]> {
+    const fullNumbers = headers.map((header) => header.LicenseNumber);
+    const existing = await this.prisma.dataFromGoverment.findMany({
+      where: {
+        OR: [
+          { fullLicenseNumber: { in: fullNumbers } },
+          { licenseNumber: { in: fullNumbers.map(digitsOnly) } },
+        ],
+      },
+      select: { fullLicenseNumber: true, licenseNumber: true },
+    });
+
+    const seenNumbers = new Set(existing.flatMap((row) => [row.fullLicenseNumber, row.licenseNumber]));
+    return headers.filter((header) => {
+      const fullNumber = header.LicenseNumber;
+      const shortNumber = digitsOnly(fullNumber);
+      if (seenNumbers.has(fullNumber) || seenNumbers.has(shortNumber)) return false;
+      seenNumbers.add(fullNumber);
+      seenNumbers.add(shortNumber);
+      return true;
+    });
+  }
+
+  private toGovernmentRow(header: SoapLicenseHeader, dataID: string): Prisma.DataFromGovermentCreateManyInput {
+    return {
+      dataID,
+      fullLicenseNumber: header.LicenseNumber,
+      licenseNumber: digitsOnly(header.LicenseNumber),
+      exporter: cleanCompanyName(header.Exporter ?? ''),
+      exporterNoCut: header.Exporter || null,
+      recipient: header.Recipient,
+      telephone: extractTelephone(header.Exporter),
+      buyer: header.Buyer || null,
+      exportAgent: extractFirstName(header.Export_Agent),
+      exportAgentNoCut: header.Export_Agent || null,
+      companyTax: header.CompanyTax,
+      product: header.Product,
+      issueDate: convertBuddhistDateToAD(header.IssueDate),
+      expiredDate: convertBuddhistDateToAD(header.ExpiredDate),
+      exportDate: header.ExportDate ? convertBuddhistDateToAD(header.ExportDate) : null,
+      buyerCountry: header.BuyerCountry,
+      destinationCountry: header.DestinationCountry,
+      exportBy: header.ExportBy || null,
+      vehicle: header.Vehicle,
+      portName: header.PortName,
+      currency: header.Currency,
+      exchangeRate: parseFloat(header.ExchangeRate),
+      permitConditions: header.PermitConditions,
+    };
+  }
+
+  private toLicenseDetailRow(
+    detail: SoapLicenseDetail,
+    fullLicenseNumber: string,
+    permitId: string,
+  ): Prisma.LicenseDetailCreateManyInput {
+    const netWeightKGM = parseFloat(detail.NetWeightKGM);
+    return {
+      permitId,
+      licenseNumber: digitsOnly(fullLicenseNumber),
+      tariffType: detail.TariffType,
+      netWeightTON: parseFloat(detail.NetWeightTON),
+      netWeightUnit: detail.NetWeightUnit,
+      netWeightKGM,
+      netWeightUnitKGM: detail.NetWeightUnitKGM,
+      quantity: parseInt(detail.Quantity),
+      quantityUnit: detail.QuantityUnit,
+      pricePerUnit: parseFloat(detail.PricePerUnit),
+      currencyPerTON: detail.CurrencyPerTON,
+      fob: parseFloat(detail.FOB),
+      price: parseFloat(detail.Price),
+      incoterms: detail.Incoterms,
+      productDescription: cleanRiceType(detail.ProductDescription),
+      productDescriptionNotCut: detail.ProductDescription,
+      netWeightW: netWeightKGM / parseFloat(detail.Quantity),
+    };
+  }
 
   private buildSoapXml(startDate: string, endDate: string): string {
     return `<?xml version="1.0" encoding="utf-8"?>
@@ -35,771 +546,198 @@ export class TradeService {
     </soap:Envelope>`;
   }
 
-  private makeSoapRequest(xml: string): Promise<string> {
+  private postSoapRequest(xml: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const options = {
+      const options: https.RequestOptions = {
         hostname: this.configService.get<string>('SOAP_HOSTNAME'),
         path: this.configService.get<string>('SOAP_PATH'),
         method: 'POST',
         headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
+          'Content-Type': SOAP_CONTENT_TYPE,
           'Content-Length': Buffer.byteLength(xml),
           SOAPAction: this.configService.get<string>('SOAP_ACTION'),
         },
       };
 
-      const req = https.request(options, (soapRes) => {
-        let data = '';
-        soapRes.on('data', (chunk) => (data += chunk));
-        soapRes.on('end', () => resolve(data));
+      const soapRequest = https.request(options, (soapResponse) => {
+        let body = '';
+        soapResponse.on('data', (chunk) => (body += chunk));
+        soapResponse.on('end', () => resolve(body));
       });
-
-      req.on('error', (err) => reject(err));
-      req.write(xml);
-      req.end();
+      soapRequest.on('error', reject);
+      soapRequest.write(xml);
+      soapRequest.end();
     });
   }
 
-  private buildTodayDateRange(): { STARTDATE: string; ENDDATE: string } {
+  private buildTodayDateRange(): { startDate: string; endDate: string } {
     const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    const today = `${y}-${m}-${d}`;
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
+    return { startDate: `${today}T00:00:00`, endDate: `${today}T23:59:59` };
+  }
+
+  // ─── Private helpers: requests ──────────────────────────────────────────────
+
+  private buildRequestCreateData(dto: CreateOrderDto, portName: string | undefined): Prisma.RequestCreateInput {
     return {
-      STARTDATE: `${today}T00:00:00`,
-      ENDDATE: `${today}T23:59:59`,
+      companyName: cleanCompanyName(dto.companyName),
+      requestBy: dto.requestBy,
+      requestDate: new Date(dto.requestDate),
+      shippingDateTime: new Date(dto.shippingDateTime),
+      surveyLocateNameThai: dto.surveyLocateNameThai,
+      surveyLocateNameEng: dto.surveyLocateNameEng,
+      surveyPaidBy: dto.surveyPaidBy,
+      surveyProvince: dto.surveyProvince,
+      surveySubDistrict: dto.surveySubDistrict,
+      telInspector: dto.telInspector,
+      telDebtor: dto.telDebtor,
+      licenseNumber: dto.licenseNumber,
+      status: this.configService.get<string>('ORDER_STATUS_INCOMPLETE', DEFAULT_ORDER_STATUS_INCOMPLETE),
+      payer: dto.payer,
+      portName,
+      descriptions: {
+        // `portName` / `netWeight` exist in the DTO but not on the Description model — not stored.
+        create: dto.description.map((desc) => ({
+          descriptionID: desc.descriptionID,
+          destination: desc.destination,
+          riceType: cleanRiceType(desc.riceType),
+          vehicleName: desc.vehicleName,
+          marker: desc.marker,
+          licenseNumber: desc.licenseNumber,
+          licenseDetailID: desc.licenseDetailID,
+          quantity: desc.quantity,
+          quantityUnit: desc.quantityUnit,
+          grossWeight: desc.grossWeight,
+          netWeightW: desc.netWeightW,
+          netWeightKGM: desc.netWeightKGM,
+          netWeightTON: desc.netWeightTON,
+          index: desc.index,
+        })),
+      },
     };
   }
 
-  // ─── Public methods ──────────────────────────────────────────────────────────
-
-  async getData(request: any, response: FastifyReply): Promise<void> {
-    // console.log('[TradeService.getData]');
-    const { STARTDATE, ENDDATE } = this.buildTodayDateRange();
-    // console.log('[TradeService.getData] range:', STARTDATE, '→', ENDDATE);
-
-    const xml = this.buildSoapXml(STARTDATE, ENDDATE);
-
-    try {
-      const rawXML = await this.makeSoapRequest(xml);
-      const result = await parseStringPromise(rawXML, { explicitArray: false });
-
-      const parsedList =
-        result['soap:Envelope']['soap:Body']['GetPaperlessDataResponse'][
-          'GetPaperlessDataResult'
-        ]['LicenseHeader'];
-
-      const dataGovList: any[] = [];
-      const licenseDetailList: any[] = [];
-
-      for (const item of parsedList) {
-        const exists = await this.prisma.dataFromGoverment.findUnique({
-          where: { fullLicenseNumber: item.LicenseNumber },
-        });
-
-        if (exists) {
-          // console.log('[TradeService.getData] skip existing:', item.LicenseNumber);
-          continue;
-        }
-
-        const dataID = crypto.randomUUID();
-
-        dataGovList.push({
-          dataID,
-          fullLicenseNumber: item.LicenseNumber,
-          licenseNumber: item.LicenseNumber.replace(/\D/g, ''),
-          exporter: cleanCompanyName(item.Exporter),
-          exporterNoCut: item.Exporter || null,
-          recipient: item.Recipient,
-          telephone: extractTelephone(item.Exporter),
-          buyer: item.Buyer || null,
-          exportAgent: extractFirstName(item.Export_Agent),
-          exportAgentNoCut: item.Export_Agent || null,
-          companyTax: item.CompanyTax,
-          product: item.Product,
-          issueDate: convertToAD(item.IssueDate),
-          expiredDate: convertToAD(item.ExpiredDate),
-          exportDate: item.ExportDate ? convertToAD(item.ExportDate) : null,
-          buyerCountry: item.BuyerCountry,
-          destinationCountry: item.DestinationCountry,
-          exportBy: item.ExportBy || null,
-          vehicle: item.Vehicle,
-          portName: item.PortName,
-          currency: item.Currency,
-          exchangeRate: parseFloat(item.ExchangeRate),
-          permitConditions: item.PermitConditions,
-        });
-
-        const details = item.PaperlessDetail?.LicenseDetail;
-        if (details) {
-          const detailsArray = Array.isArray(details) ? details : [details];
-          for (const detail of detailsArray) {
-            const existsDetail = await this.prisma.licenseDetail.findFirst({
-              where: {
-                productDescription: detail.ProductDescription,
-                price: parseFloat(detail.Price),
-                netWeightTON: parseFloat(detail.NetWeightTON),
-              },
-            });
-            if (!existsDetail) {
-              const netWeightW =
-                parseFloat(detail.NetWeightKGM) / parseFloat(detail.Quantity);
-              licenseDetailList.push({
-                permitId: dataID,
-                licenseNumber: item.LicenseNumber.replace(/\D/g, ''),
-                tariffType: detail.TariffType,
-                netWeightTON: parseFloat(detail.NetWeightTON),
-                netWeightUnit: detail.NetWeightUnit,
-                netWeightKGM: parseFloat(detail.NetWeightKGM),
-                netWeightUnitKGM: detail.NetWeightUnitKGM,
-                quantity: parseInt(detail.Quantity),
-                quantityUnit: detail.QuantityUnit,
-                pricePerUnit: parseFloat(detail.PricePerUnit),
-                currencyPerTON: detail.CurrencyPerTON,
-                fob: parseFloat(detail.FOB),
-                price: parseFloat(detail.Price),
-                incoterms: detail.Incoterms,
-                productDescription: cleanRiceType(detail.ProductDescription),
-                productDescriptionNotCut: detail.ProductDescription,
-                netWeightW,
-              });
-            }
-          }
-        }
-      }
-
-      await this.prisma.dataFromGoverment.createMany({
-        data: dataGovList,
-        skipDuplicates: true,
-      });
-      await this.prisma.licenseDetail.createMany({ data: licenseDetailList });
-
-      // console.log('[TradeService.getData] inserted dataGov:', dataGovList.length, 'details:', licenseDetailList.length);
-      return response.status(200).send({
-        message: '✅ Data fetched and saved from SOAP service',
-        inserted: dataGovList.length,
-        skipped: parsedList.length - dataGovList.length,
-      });
-    } catch (err: any) {
-      console.error('[TradeService.getData] SOAP Error:', err);
-      return response.status(500).send({
-        message: '❌ Failed to fetch SOAP data',
-        error: err.message || err,
-      });
-    }
+  private buildRequestUpdateData(dto: UpdateOrderDto): Prisma.RequestUpdateInput {
+    return {
+      companyName: dto.companyName,
+      requestBy: dto.requestBy,
+      requestDate: dto.requestDate ? new Date(dto.requestDate) : undefined,
+      shippingDateTime: dto.shippingDateTime ? new Date(dto.shippingDateTime) : undefined,
+      surveyLocateNameThai: dto.surveyLocateNameThai,
+      surveyLocateNameEng: dto.surveyLocateNameEng,
+      surveyPaidBy: dto.surveyPaidBy,
+      surveyProvince: dto.surveyProvince,
+      surveySubDistrict: dto.surveySubDistrict,
+      telInspector: dto.telInspector,
+      telDebtor: dto.telDebtor,
+      payer: dto.payer,
+    };
   }
 
-  async licensequery(
-    licenseNo: string,
-    request: any,
-    response: FastifyReply,
-  ): Promise<object> {
-    // console.log('[TradeService.licensequery] licenseNo:', licenseNo);
-    try {
-      const querydata = await this.prisma.dataFromGoverment.findFirst({
-        where: { licenseNumber: licenseNo },
-        include: { licenseDetails: true },
-      });
-
-      if (!querydata) {
-        throw new NotFoundException('No License Data');
-      }
-
-      // console.log('[TradeService.licensequery] found:', querydata.dataID);
-      return { message: 'Get data  sucessfully', querydata };
-    } catch (error) {
-      console.error('[TradeService.licensequery]', error);
-      return { error };
-    }
+  private upsertDescription(requestID: string, desc: UpdateOrderDescriptionDto): Prisma.PrismaPromise<Description> {
+    const { descriptionID, ...fields } = desc;
+    return this.prisma.description.upsert({
+      where: { descriptionID },
+      update: fields,
+      // Required columns missing from the payload make Prisma reject the create (same as before).
+      create: { ...(fields as Prisma.DescriptionUncheckedCreateInput), descriptionID, requestId: requestID },
+    });
   }
 
-  async createOrder(
-    dto: CreateOrderDto,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[TradeService.createOrder] licenseNumber:', dto.licenseNumber);
-    try {
-      const getdata = await this.prisma.dataFromGoverment.findUnique({
-        where: { licenseNumber: dto.licenseNumber },
-        include: { licenseDetails: true },
-      });
-
-      await this.prisma.request.create({
-        data: {
-          companyName: cleanCompanyName(dto.companyName),
-          requestBy: dto.requestBy,
-          requestDate: new Date(dto.requestDate),
-          shippingDateTime: new Date(dto.shippingDateTime),
-          surveyLocateNameThai: dto.surveyLocateNameThai,
-          surveyLocateNameEng: dto.surveyLocateNameEng,
-          surveyPaidBy: dto.surveyPaidBy,
-          surveyProvince: dto.surveyProvince,
-          surveySubDistrict: dto.surveySubDistrict,
-          telInspector: dto.telInspector,
-          telDebtor: dto.telDebtor,
-          licenseNumber: dto.licenseNumber,
-          status: this.configService.get<string>('ORDER_STATUS_INCOMPLETE', 'incomplete'),
-          payer: dto.payer,
-          portName: getdata?.portName,
-          descriptions: {
-            create: dto.description.map((desc) => ({
-              descriptionID: desc.descriptionID,
-              destination: desc.destination,
-              riceType: cleanRiceType(desc.riceType),
-              vehicleName: desc.vehicleName,
-              marker: desc.marker,
-              licenseNumber: desc.licenseNumber,
-              licenseDetailID: desc.licenseDetailID,
-              quantity: desc.quantity,
-              quantityUnit: desc.quantityUnit,
-              grossWeight: desc.grossWeight,
-              netWeightW: desc.netWeightW,
-              netWeightKGM: desc.netWeightKGM,
-              netWeightTON: desc.netWeightTON,
-              portName: desc.portName,
-              index: desc.index,
-            })),
-          },
-        },
-      });
-
-      const bufferRemainList = dto.description
-        .filter((desc) => desc.licenseDetailID)
-        .map((desc) => ({
-          licenseDetailID: desc.licenseDetailID!,
-          remainNetWeightKGM: desc.netWeightKGM,
-          MaximumWeight: desc.netWeightKGM,
-        }));
-
-      if (bufferRemainList.length > 0) {
-        await this.prisma.bufferRemain.createMany({
-          data: bufferRemainList,
-          skipDuplicates: true,
-        });
-      }
-
-      // console.log('[TradeService.createOrder] order created for license:', dto.licenseNumber);
-      return response.status(200).send({
-        success: true,
-        message: 'Order created successfully',
-      });
-    } catch (error) {
-      console.error('[TradeService.createOrder]', error);
-      return response.status(500).send({
-        success: false,
-        message: 'Failed to create order',
-        error: error,
-      });
-    }
+  private async findLatestNotificationJobNo(): Promise<number | string> {
+    const latestReceipt = await this.prisma.notificationReceipt.findFirst({
+      where: { jobID: { not: null } },
+      orderBy: { jobID: 'desc' },
+      select: { jobID: true },
+    });
+    return latestReceipt?.jobID || DEFAULT_FINAL_JOB_NO;
   }
 
-  async getRequestbydate(
-    date: string,
-    req: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[TradeService.getRequestbydate] date:', date);
-    try {
-      const parsedDate = new Date(date);
-      if (isNaN(parsedDate.getTime())) {
-        return response.status(400).send({ success: false, message: 'Invalid date format' });
-      }
+  private async buildRequestLookups(requests: RequestByDate[]): Promise<RequestLookups> {
+    const companyNames = this.uniqueNonEmpty(requests.map((r) => r.companyName));
+    const surveyNamesTh = this.uniqueNonEmpty(requests.map((r) => r.surveyLocateNameThai));
+    const staffIds = this.uniqueNonEmpty(requests.flatMap((r) => r.notificationReceipts.map((n) => n.staffID)));
 
-      const requests = await this.prisma.request.findMany({
-        where: {
-          requestDate: {
-            gte: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()),
-            lt: new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate() + 1),
-          },
-        },
-        select: {
-          requestID: true,
-        
-          companyName: true,
-          status: true,
-          surveySubDistrict: true,
-          
-          descriptions: {
-            select: {
-              index: true,
-              descriptionID: true,
-              licenseNumber: true,
-              riceType: true,
-              quantity: true,
-              destination: true,
-              vehicleName: true,
-              netWeightTON: true,
-            },
-            
-            orderBy: [
-              { index: 'asc' },
-              { licenseNumber: 'asc' },
-              { riceType: 'asc' },
-              { quantity: 'asc' },
-              { vehicleName: 'asc' },
-              { destination: 'asc' },
-            ],
-          },
-          surveyLocateNameEng: true,
-          surveyLocateNameThai: true,
-          surveyProvince: true,
-          shippingDateTime: true,
-          validate_Check_Weight: {
-            select: {
-              checkWeightID: true,
-              jobID: true,
-              status: true,
-              staffName: true,
-              staffID: true,
-              vehicleName: true,
-              riceName: true,
-              quantity: true,
-              netWeightTon: true,
-              totalNetWeight: true,
-              grossWeight: true,
-              noOfBags: true,
-              goDown: true,
-              specialJob: true,
-              statusContinue: true,
-              descriptionID: true,
-            },
-          },
-          notificationReceipts: {
-            select: {
-              notificationReceiptID: true,
-              jobName: true,
-              staffID: true,
-              jobID: true,
-              specialJob: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'asc' },
-      });
-
-      const companyNames = [...new Set(requests.map((r) => r.companyName))].filter(Boolean);
-      const companies = await this.prisma.company.findMany({
+    const [companies, staffList, surveyNames, latestJobs] = await Promise.all([
+      this.prisma.company.findMany({
         where: { companyNameTH: { in: companyNames } },
         select: { companyNameTH: true, companyNameEN: true },
-      });
-
-      const notificationStaffIds = [
-        ...new Set(
-          requests.flatMap((r) => r.notificationReceipts.map((n) => n.staffID)).filter(Boolean),
-        ),
-      ] as string[];
-      const notificationStaffs = await this.prisma.staff.findMany({
-        where: { staffID: { in: notificationStaffIds } },
+      }),
+      this.prisma.staff.findMany({
+        where: { staffID: { in: staffIds } },
         select: { staffID: true, staffName: true },
-      });
-      const notificationStaffNameMap = new Map(
-        notificationStaffs.map((s) => [s.staffID, s.staffName]),
-      );
-
-      const surveyNames = [...new Set(requests.map((r) => r.surveyLocateNameThai))].filter(Boolean);
-      const surveyNameRecords = await this.prisma.surveyName.findMany({
-        where: { surveyNameTH: { in: surveyNames } },
+      }),
+      this.prisma.surveyName.findMany({
+        where: { surveyNameTH: { in: surveyNamesTh } },
         select: {
           surveyNameTH: true,
           goDownGroupID: true,
-          goDownGroup: {
-            select: {
-              goDownGroupName: true,
-              goDownColor: true,
-            },
+          goDownGroup: { select: { goDownGroupName: true, goDownColor: true } },
+        },
+      }),
+      this.prisma.validate_Check_Weight.groupBy({
+        by: ['requestID'],
+        where: { requestID: { in: requests.map((r) => r.requestID) } },
+        _max: { jobID: true },
+      }),
+    ]);
+
+    return {
+      companyNameEnByTh: this.firstMatchMap(companies.map((c) => [c.companyNameTH, c.companyNameEN])),
+      staffNameById: new Map(staffList.map((s) => [s.staffID, s.staffName])),
+      goDownGroupBySurveyNameTh: this.firstMatchMap(
+        surveyNames.map((s) => [
+          s.surveyNameTH,
+          {
+            goDownGroupID: s.goDownGroupID ?? null,
+            goDownGroupName: s.goDownGroup?.goDownGroupName ?? null,
+            goDownColor: s.goDownGroup?.goDownColor ?? null,
           },
-        },
-      });
+        ]),
+      ),
+      latestJobIdByRequestId: new Map(latestJobs.map((job) => [job.requestID, job._max.jobID])),
+    };
+  }
 
-      const result = await Promise.all(
-        requests.map(async (r) => {
-          const foundCompany = companies.find((c) => c.companyNameTH === r.companyName);
-          const latestJob = await this.prisma.validate_Check_Weight.findFirst({
-            where: { requestID: r.requestID },
-            orderBy: { jobID: 'desc' },
-            select: { jobID: true },
-          });
+  private toRequestByDateResult(request: RequestByDate, lookups: RequestLookups): RequestByDateResult {
+    const goDownGroup = lookups.goDownGroupBySurveyNameTh.get(request.surveyLocateNameThai);
+    return {
+      ...request,
+      surveyLocateNameThai: `${request.surveyLocateNameThai ?? ''}-${request.surveyProvince ?? ''}`.trim(),
+      companyNameEng: lookups.companyNameEnByTh.get(request.companyName) ?? '',
+      jobID: lookups.latestJobIdByRequestId.get(request.requestID) ?? null,
+      goDownGroupID: goDownGroup?.goDownGroupID ?? null,
+      goDownGroupName: goDownGroup?.goDownGroupName ?? null,
+      goDownColor: goDownGroup?.goDownColor ?? null,
+      notificationReceipts: request.notificationReceipts.map((receipt) => ({
+        ...receipt,
+        staffName: lookups.staffNameById.get(receipt.staffID ?? '') ?? null,
+      })),
+    };
+  }
 
-          const matchedSurvey = surveyNameRecords.find((s) => s.surveyNameTH === r.surveyLocateNameThai);
+  // ─── Private helpers: shared ────────────────────────────────────────────────
 
-          return {
-            ...r,
-            surveyLocateNameThai: `${r.surveyLocateNameThai ?? ''}-${r.surveyProvince ?? ''}`.trim(),
-            companyNameEng: foundCompany?.companyNameEN ?? '',
-            jobID: latestJob?.jobID ?? null,
-            goDownGroupID: matchedSurvey?.goDownGroupID ?? null,
-            goDownGroupName: matchedSurvey?.goDownGroup?.goDownGroupName ?? null,
-            goDownColor: matchedSurvey?.goDownGroup?.goDownColor ?? null,
-            notificationReceipts: r.notificationReceipts.map((n) => ({
-              ...n,
-              staffName: notificationStaffNameMap.get(n.staffID ?? '') ?? null,
-            })),
-          };
-        }),
-      );
+  private buildDayRange(date: Date): { gte: Date; lt: Date } {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    return { gte: new Date(year, month, day), lt: new Date(year, month, day + 1) };
+  }
 
-      const prevRequest = await this.prisma.notificationReceipt.findFirst({
-        where: { jobID: { not: null } },
-        orderBy: { jobID: 'desc' },
-        select: { jobID: true },
-      });
-
-      console.log(prevRequest);
-      if (!requests || requests.length === 0) {
-        // console.log('[TradeService.getRequestbydate] no requests found');
-        return response.status(404).send({
-          success: false,
-          message: 'No requests found for the given date',
-          finalNo: prevRequest?.jobID || '0000',
-        });
-      }
-
-      // console.log('[TradeService.getRequestbydate] returned', result.length, 'requests');
-      return response.status(200).send({
-        success: true,
-        data: result,
-        finalNo: prevRequest?.jobID || '0000',
-      });
-    } catch (error) {
-      console.error('[TradeService.getRequestbydate]', error);
-      return response.status(500).send({
-        success: false,
-        message: 'Failed to fetch request by date',
-        error: error,
-      });
+  /** Keeps the first value per key (same result as the previous `Array.find` lookups). */
+  private firstMatchMap<V>(entries: [string, V][]): Map<string, V> {
+    const map = new Map<string, V>();
+    for (const [key, value] of entries) {
+      if (!map.has(key)) map.set(key, value);
     }
+    return map;
   }
 
-  async getRequest(
-    requestID: string,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[TradeService.getRequest] requestID:', requestID);
-    try {
-      const found = await this.prisma.request.findUnique({
-        where: { requestID: requestID },
-        include: { descriptions: true },
-      });
-
-      if (!found) {
-        // console.log('[TradeService.getRequest] not found:', requestID);
-        return response.status(404).send({ success: false, message: 'Request not found' });
-      }
-
-      // console.log('[TradeService.getRequest] found:', found.requestID);
-      return response.status(200).send({ success: true, data: found });
-    } catch (error) {
-      console.error('[TradeService.getRequest]', error);
-      return response.status(500).send({
-        success: false,
-        message: 'Failed to fetch request',
-        error: error,
-      });
-    }
+  private uniqueNonEmpty(values: (string | null | undefined)[]): string[] {
+    return [...new Set(values.filter((value): value is string => Boolean(value)))];
   }
-
-  async deleteOrder(
-    orderID: string,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[TradeService.deleteOrder] orderID:', orderID);
-    try {
-      const existingOrder = await this.prisma.request.findUnique({
-        where: { requestID: orderID },
-      });
-
-      if (!existingOrder) {
-        // console.log('[TradeService.deleteOrder] not found:', orderID);
-        return response.status(404).send({ success: false, message: 'Order not found' });
-      }
-
-      const findOrder = await this.prisma.validate_Check_Weight.findFirst({
-        where: { requestID: orderID },
-      });
-
-      if (findOrder) {
-        return response.status(400).send({
-          success: false,
-          message: 'Order is submitted already cannot delete',
-        });
-      }
-
-      await this.prisma.notificationReceipt.deleteMany({ where: { requestID: orderID } });
-      await this.prisma.description.deleteMany({ where: { requestId: orderID } });
-      await this.prisma.request.delete({ where: { requestID: orderID } });
-
-      // console.log('[TradeService.deleteOrder] deleted:', orderID);
-      return response.status(200).send({ success: true, message: 'Order deleted successfully' });
-    } catch (error) {
-      console.error('[TradeService.deleteOrder]', error);
-      return response.status(500).send({
-        success: false,
-        message: 'Failed to delete order',
-        error: error,
-      });
-    }
-  }
-
-  async deleteOrderDetail(
-    descriptionID: string,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[TradeService.deleteOrderDetail] descriptionID:', descriptionID);
-    try {
-      const checkWeight = await this.prisma.validate_Check_Weight.findFirst({
-        where: { descriptionID: descriptionID },
-      });
-
-      if (checkWeight) {
-        return response.status(400).send({
-          success: false,
-          message: 'Cannot delete order detail, it has been submitted for weight check',
-        });
-      }
-
-      const existingOrder = await this.prisma.description.findUnique({
-        where: { descriptionID: descriptionID },
-      });
-
-      if (!existingOrder) {
-        // console.log('[TradeService.deleteOrderDetail] not found:', descriptionID);
-        return response.status(404).send({ success: false, message: 'Order not found' });
-      }
-
-      await this.prisma.description.delete({ where: { descriptionID: descriptionID } });
-
-      // console.log('[TradeService.deleteOrderDetail] deleted:', descriptionID);
-      return response.status(200).send({ success: true, message: 'Order deleted successfully' });
-    } catch (error) {
-      console.error('[TradeService.deleteOrderDetail]', error);
-      return response.status(500).send({
-        success: false,
-        message: 'Failed to delete order',
-        error: error,
-      });
-    }
-  }
-
-  async updateOrder(
-    id: string,
-    body: any,
-    request: any,
-    response: FastifyReply,
-  ): Promise<object> {
-    // console.log('[TradeService.updateOrder] id:', id);
-    try {
-      const updateRequestData = {
-        companyName: body.companyName,
-        requestBy: body.requestBy,
-        requestDate: body.requestDate ? new Date(body.requestDate) : undefined,
-        shippingDateTime: body.shippingDateTime ? new Date(body.shippingDateTime) : undefined,
-        surveyLocateNameThai: body.surveyLocateNameThai,
-        surveyLocateNameEng: body.surveyLocateNameEng,
-        surveyPaidBy: body.surveyPaidBy,
-        surveyProvince: body.surveyProvince,
-        surveySubDistrict: body.surveySubDistrict,
-        telInspector: body.telInspector,
-        telDebtor: body.telDebtor,
-        license: body.license,
-        payer: body.payer,
-      };
-
-      const hasRequestData = Object.values(updateRequestData).some((val) => val !== undefined);
-
-      if (hasRequestData) {
-        await this.prisma.request.update({
-          where: { requestID: String(id) },
-          data: updateRequestData,
-        });
-      }
-
-      if (Array.isArray(body.description)) {
-        for (const desc of body.description) {
-          if (!desc.descriptionID) continue;
-
-          const existing = await this.prisma.description.findUnique({
-            where: { descriptionID: desc.descriptionID },
-          });
-
-          if (existing) {
-            await this.prisma.description.update({
-              where: { descriptionID: desc.descriptionID },
-              data: { ...desc },
-            });
-          } else {
-            await this.prisma.description.create({
-              data: { ...desc, requestID: id },
-            });
-          }
-        }
-      }
-
-      // console.log('[TradeService.updateOrder] updated:', id);
-      return { success: true, message: 'Order updated successfully' };
-    } catch (error) {
-      console.error('[TradeService.updateOrder]', error);
-      return response.status(500).send({
-        success: false,
-        message: 'Failed to update order',
-        error: error,
-      });
-    }
-  }
-
-  async postSurvey(
-    dto: CreateSurveyDto[],
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[TradeService.postSurvey] count:', dto.length);
-    try {
-      await this.prisma.surveyName.createMany({
-        data: dto.map((item) => ({
-          amphoes: item.amphoes || '-',
-          changwat: item.changwat || '-',
-          surveyNameEN: item.surveyNameEN || '-',
-          surveyNameTH: item.surveyNameTH || '-',
-        })),
-      });
-
-      // console.log('[TradeService.postSurvey] created', dto.length, 'survey entries');
-      return response.status(200).send({ success: true, message: 'Survey posted successfully' });
-    } catch (error) {
-      console.error('[TradeService.postSurvey]', error);
-      return response.status(500).send({
-        success: false,
-        message: 'Failed to post survey',
-        error: error,
-      });
-    }
-  }
-
-  async getInspectPlace(request: any, response: FastifyReply): Promise<void> {
-    // console.log('[TradeService.getInspectPlace]');
-    try {
-      const getInspectPlace = await this.prisma.surveyName.findMany({
-        select: {
-          surveyNameTH: true,
-          surveyNameEN: true,
-          changwat: true,
-          amphoes: true,
-        },
-        distinct: ['surveyNameTH', 'surveyNameEN'],
-        orderBy: { surveyNameTH: 'asc' },
-      });
-
-      // console.log('[TradeService.getInspectPlace] count:', getInspectPlace.length);
-      return response.status(200).send({ success: true, data: getInspectPlace });
-    } catch (error) {
-      console.error('[TradeService.getInspectPlace]', error);
-      return response.status(500).send({
-        success: false,
-        message: 'Failed to fetch inspect places',
-        error: error,
-      });
-    }
-  }
-
-  async getlicensebyDate(
-    startdate: string,
-    enddate: string,
-    request: any,
-    response: FastifyReply,
-  ): Promise<void> {
-    // console.log('[TradeService.getlicensebyDate] startdate:', startdate, 'enddate:', enddate);
-    const xml = this.buildSoapXml(startdate, enddate);
-
-    try {
-      const rawXML = await this.makeSoapRequest(xml);
-      const parsed = await parseStringPromise(rawXML, { explicitArray: false });
-
-      const responseData =
-        parsed['soap:Envelope']?.['soap:Body']?.['GetPaperlessDataResponse']?.[
-          'GetPaperlessDataResult'
-        ]?.['LicenseHeader'] ?? null;
-
-      // console.log('[TradeService.getlicensebyDate] data fetched');
-      return response.status(200).send({
-        message: '✅ Data fetched from SOAP service',
-        data: responseData,
-      });
-    } catch (err: any) {
-      console.error('[TradeService.getlicensebyDate] SOAP Error:', err);
-      return response.status(500).send({
-        message: '❌ Failed to fetch SOAP data',
-        error: err.message || err,
-      });
-    }
-  }
-}
-
-// ─── Module-level helpers ────────────────────────────────────────────────────
-
-function cleanRiceType(riceType: string): string {
-  if (!riceType) return riceType;
-
-  const percentIndex = riceType.indexOf('%');
-  if (percentIndex !== -1) {
-    return riceType.substring(0, percentIndex + 1).trim();
-  }
-
-  const packIndex = riceType.indexOf('บรรจุ');
-  if (packIndex !== -1) {
-    return riceType.substring(0, packIndex).trim();
-  }
-
-  return riceType.trim();
-}
-
-function convertToAD(dateStr: string): Date {
-  if (!dateStr || typeof dateStr !== 'string') {
-    throw new Error(`Invalid date string: ${dateStr}`);
-  }
-
-  const [day, month, buddhistYear] = dateStr.split('/');
-  if (!day || !month || !buddhistYear) {
-    throw new Error(`Malformed Thai date: ${dateStr}`);
-  }
-
-  const year = parseInt(buddhistYear, 10) - 543;
-  const isoString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00.000Z`;
-  const date = new Date(isoString);
-
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid converted date: ${isoString}`);
-  }
-
-  return date;
-}
-
-function cleanCompanyName(companyName: string): string {
-  if (!companyName) return companyName;
-
-  companyName = companyName.replace(/^บริษัท\s*/, '');
-  const index = companyName.indexOf('จำกัด');
-
-  if (index !== -1) {
-    return companyName.substring(0, index + 'จำกัด'.length).trim();
-  }
-
-  return companyName.trim();
-}
-
-function extractTelephone(text: string): string {
-  const match = text.match(/Tel\.?\s*([0-9]+)/);
-  return match ? match[1].trim() : '';
-}
-
-function extractFirstName(text: string): string {
-  const prefixes = ['ว่าที่ร้อยตรี', 'นางสาว', 'นาง', 'นาย'];
-  const regex = new RegExp(
-    `^(?:${prefixes.join('|')})\\s*([\\u0E00-\\u0E7Fa-zA-Z]+)`,
-    'u',
-  );
-  const match = text.match(regex);
-  return match ? match[1].trim() : '';
 }
