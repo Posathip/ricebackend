@@ -1,10 +1,15 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Description, Prisma } from '@prisma/client';
 import * as https from 'https';
 import { PrismaService } from 'prisma/prisma.service';
 import { rethrowAsHttpException } from 'src/common/service-error';
-import { CreateOrderDto, UpdateOrderDescriptionDto, UpdateOrderDto } from 'src/dto/request.dto';
+import {
+  CreateOrderDto,
+  UpdateOrderDescriptionDto,
+  UpdateOrderDto,
+  UpdateRequestJobDto,
+} from 'src/dto/request.dto';
 import { CreateSurveyDto } from 'src/dto/user.dto';
 import { parseStringPromise } from 'xml2js';
 import {
@@ -21,6 +26,9 @@ const DEFAULT_ORDER_STATUS_INCOMPLETE = 'incomplete';
 const DEFAULT_FINAL_JOB_NO = '0000';
 const EMPTY_SURVEY_FIELD = '-';
 const SOAP_CONTENT_TYPE = 'text/xml; charset=utf-8';
+const PRISMA_UNIQUE_VIOLATION = 'P2002';
+const STAFF_DISPLAY_SEPARATOR = ' ';
+const WHITESPACE_RUN = /\s+/g;
 
 /** Raw license header as parsed from the government SOAP response (all values are strings). */
 export interface SoapLicenseHeader {
@@ -64,12 +72,19 @@ export interface SoapLicenseDetail {
 const REQUEST_BY_DATE_SELECT = {
   requestID: true,
   companyName: true,
+  licenseNumber: true,
   status: true,
   surveySubDistrict: true,
   surveyLocateNameEng: true,
   surveyLocateNameThai: true,
   surveyProvince: true,
   shippingDateTime: true,
+  jobID: true,
+  jobName: true,
+  specialJob: true,
+  staffID: true,
+  startTimeOperation: true,
+  stopTimeOperation: true,
   descriptions: {
     select: {
       index: true,
@@ -110,15 +125,6 @@ const REQUEST_BY_DATE_SELECT = {
       descriptionID: true,
     },
   },
-  notificationReceipts: {
-    select: {
-      notificationReceiptID: true,
-      jobName: true,
-      staffID: true,
-      jobID: true,
-      specialJob: true,
-    },
-  },
 } satisfies Prisma.RequestSelect;
 
 type RequestByDate = Prisma.RequestGetPayload<{ select: typeof REQUEST_BY_DATE_SELECT }>;
@@ -133,16 +139,16 @@ interface GoDownGroupInfo {
 
 interface RequestLookups {
   companyNameEnByTh: Map<string, string>;
-  staffNameById: Map<string, string | null>;
+  /** "staffNo staffName" for the request's assigned staff */
+  staffDisplayNameById: Map<string, string>;
   goDownGroupBySurveyNameTh: Map<string, GoDownGroupInfo>;
-  latestJobIdByRequestId: Map<string, number | null>;
 }
 
-export type RequestByDateResult = Omit<RequestByDate, 'notificationReceipts'> &
+export type RequestByDateResult = RequestByDate &
   GoDownGroupInfo & {
     companyNameEng: string;
-    jobID: number | null;
-    notificationReceipts: (RequestByDate['notificationReceipts'][number] & { staffName: string | null })[];
+    /** Assigned staff as "staffNo staffName" (looked up from `staffID`). */
+    staffName: string | null;
   };
 
 export interface SuccessResponse {
@@ -157,6 +163,24 @@ export interface SuccessDataResponse<T> {
 
 export interface RequestsByDateResponse extends SuccessDataResponse<RequestByDateResult[]> {
   finalNo: number | string;
+}
+
+const REQUEST_JOB_SELECT = {
+  requestID: true,
+  jobID: true,
+  jobName: true,
+  specialJob: true,
+  staffID: true,
+  startTimeOperation: true,
+  stopTimeOperation: true,
+} satisfies Prisma.RequestSelect;
+
+type RequestJobRow = Prisma.RequestGetPayload<{ select: typeof REQUEST_JOB_SELECT }>;
+
+export type RequestJobInfo = RequestJobRow & { staffName: string | null };
+
+export interface UpdateRequestJobResponse extends SuccessDataResponse<RequestJobInfo> {
+  message: string;
 }
 
 export interface FetchGovernmentDataResult {
@@ -289,21 +313,22 @@ export class TradeService {
         throw new BadRequestException({ success: false, message: 'Invalid date format' });
       }
 
-      const [requests, finalNo] = await Promise.all([
+      const [allRequests, finalNo] = await Promise.all([
         this.prisma.request.findMany({
           where: { requestDate: this.buildDayRange(parsedDate) },
           select: REQUEST_BY_DATE_SELECT,
           orderBy: { createdAt: 'asc' },
         }),
-        this.findLatestNotificationJobNo(),
+        this.findLatestRequestJobNo(),
       ]);
-      if (requests.length === 0) {
+      if (allRequests.length === 0) {
         throw new NotFoundException({ success: false, message: 'No requests found for the given date', finalNo });
       }
 
+      const requests = this.removeDuplicateRequests(allRequests);
       const lookups = await this.buildRequestLookups(requests);
       const result = requests.map((request) => this.toRequestByDateResult(request, lookups));
-      console.log('[TradeService.getRequestsByDate] result count:', result.length);
+      console.log('[TradeService.getRequestsByDate] result count:', result.length, 'duplicates hidden:', allRequests.length - requests.length);
       return { success: true, data: result, finalNo };
     } catch (error) {
       rethrowAsHttpException('TradeService.getRequestsByDate', error);
@@ -348,6 +373,34 @@ export class TradeService {
     }
   }
 
+  /** Assigns / changes the job info of ONE request (requestID comes in the body; jobID must be unique). */
+  async updateRequestJob(dto: UpdateRequestJobDto): Promise<UpdateRequestJobResponse> {
+    console.log('[TradeService.updateRequestJob] dto:', dto);
+    try {
+      const { requestID } = dto;
+      const data = this.buildRequestJobUpdateData(dto);
+      if (Object.keys(data).length === 0) {
+        throw new BadRequestException({ success: false, message: 'No fields to update' });
+      }
+
+      const existing = await this.prisma.request.findUnique({ where: { requestID }, select: REQUEST_JOB_SELECT });
+      if (!existing) throw new NotFoundException({ success: false, message: 'Request not found' });
+
+      await Promise.all([this.assertJobIdAvailable(requestID, dto.jobID), this.assertStaffExists(dto.staffID)]);
+      this.assertOperationTimeOrder(
+        dto.startTimeOperation !== undefined ? dto.startTimeOperation : existing.startTimeOperation,
+        dto.stopTimeOperation !== undefined ? dto.stopTimeOperation : existing.stopTimeOperation,
+      );
+
+      const updated = await this.saveRequestJob(requestID, data);
+      const result: RequestJobInfo = { ...updated, staffName: await this.findStaffName(updated.staffID) };
+      console.log('[TradeService.updateRequestJob] result:', result.requestID, 'jobID:', result.jobID);
+      return { success: true, message: 'Request job updated successfully', data: result };
+    } catch (error) {
+      rethrowAsHttpException('TradeService.updateRequestJob', error);
+    }
+  }
+
   async deleteRequest(requestID: string): Promise<SuccessResponse> {
     console.log('[TradeService.deleteRequest] requestID:', requestID);
     try {
@@ -361,7 +414,6 @@ export class TradeService {
       }
 
       await this.prisma.$transaction([
-        this.prisma.notificationReceipt.deleteMany({ where: { requestID } }),
         this.prisma.description.deleteMany({ where: { requestId: requestID } }),
         this.prisma.request.delete({ where: { requestID } }),
       ]);
@@ -647,28 +699,25 @@ export class TradeService {
     });
   }
 
-  private async findLatestNotificationJobNo(): Promise<number | string> {
-    const latestReceipt = await this.prisma.notificationReceipt.findFirst({
-      where: { jobID: { not: null } },
-      orderBy: { jobID: 'desc' },
-      select: { jobID: true },
-    });
-    return latestReceipt?.jobID || DEFAULT_FINAL_JOB_NO;
+  /** Highest jobID in the Request table (across all dates) — '0000' when none has been assigned yet. */
+  private async findLatestRequestJobNo(): Promise<number | string> {
+    const { _max } = await this.prisma.request.aggregate({ _max: { jobID: true } });
+    return _max.jobID || DEFAULT_FINAL_JOB_NO;
   }
 
   private async buildRequestLookups(requests: RequestByDate[]): Promise<RequestLookups> {
     const companyNames = this.uniqueNonEmpty(requests.map((r) => r.companyName));
     const surveyNamesTh = this.uniqueNonEmpty(requests.map((r) => r.surveyLocateNameThai));
-    const staffIds = this.uniqueNonEmpty(requests.flatMap((r) => r.notificationReceipts.map((n) => n.staffID)));
+    const staffIds = this.uniqueNonEmpty(requests.map((r) => r.staffID));
 
-    const [companies, staffList, surveyNames, latestJobs] = await Promise.all([
+    const [companies, staffList, surveyNames] = await Promise.all([
       this.prisma.company.findMany({
         where: { companyNameTH: { in: companyNames } },
         select: { companyNameTH: true, companyNameEN: true },
       }),
       this.prisma.staff.findMany({
         where: { staffID: { in: staffIds } },
-        select: { staffID: true, staffName: true },
+        select: { staffID: true, staffNo: true, staffName: true },
       }),
       this.prisma.surveyName.findMany({
         where: { surveyNameTH: { in: surveyNamesTh } },
@@ -678,16 +727,11 @@ export class TradeService {
           goDownGroup: { select: { goDownGroupName: true, goDownColor: true } },
         },
       }),
-      this.prisma.validate_Check_Weight.groupBy({
-        by: ['requestID'],
-        where: { requestID: { in: requests.map((r) => r.requestID) } },
-        _max: { jobID: true },
-      }),
     ]);
 
     return {
       companyNameEnByTh: this.firstMatchMap(companies.map((c) => [c.companyNameTH, c.companyNameEN])),
-      staffNameById: new Map(staffList.map((s) => [s.staffID, s.staffName])),
+      staffDisplayNameById: new Map(staffList.map((s) => [s.staffID, this.formatStaffDisplayName(s.staffNo, s.staffName)])),
       goDownGroupBySurveyNameTh: this.firstMatchMap(
         surveyNames.map((s) => [
           s.surveyNameTH,
@@ -698,7 +742,6 @@ export class TradeService {
           },
         ]),
       ),
-      latestJobIdByRequestId: new Map(latestJobs.map((job) => [job.requestID, job._max.jobID])),
     };
   }
 
@@ -708,18 +751,138 @@ export class TradeService {
       ...request,
       surveyLocateNameThai: `${request.surveyLocateNameThai ?? ''}-${request.surveyProvince ?? ''}`.trim(),
       companyNameEng: lookups.companyNameEnByTh.get(request.companyName) ?? '',
-      jobID: lookups.latestJobIdByRequestId.get(request.requestID) ?? null,
+      staffName: request.staffID ? (lookups.staffDisplayNameById.get(request.staffID) ?? null) : null,
       goDownGroupID: goDownGroup?.goDownGroupID ?? null,
       goDownGroupName: goDownGroup?.goDownGroupName ?? null,
       goDownColor: goDownGroup?.goDownColor ?? null,
-      notificationReceipts: request.notificationReceipts.map((receipt) => ({
-        ...receipt,
-        staffName: lookups.staffNameById.get(receipt.staffID ?? '') ?? null,
-      })),
     };
   }
 
+  /**
+   * Hides requests that were submitted more than once: same company, license, inspection place,
+   * shipping time AND identical description lines.
+   * - A request that already has check weights is ALWAYS shown (real work must stay visible).
+   * - Among the duplicates without check weights, one is shown only when nothing in the group is shown yet
+   *   (preferring one with a jobID, then the newest).
+   * Keeps the original order (by createdAt).
+   */
+  private removeDuplicateRequests(requests: RequestByDate[]): RequestByDate[] {
+    const groups = new Map<string, RequestByDate[]>();
+    for (const request of requests) {
+      const key = this.buildRequestDuplicateKey(request);
+      groups.set(key, [...(groups.get(key) ?? []), request]);
+    }
+
+    const keptIds = new Set<string>();
+    for (const group of groups.values()) {
+      const weighed = group.filter((request) => request.validate_Check_Weight.length > 0);
+      if (weighed.length > 0) {
+        weighed.forEach((request) => keptIds.add(request.requestID));
+        continue;
+      }
+      const withJob = group.filter((request) => request.jobID !== null);
+      const representative = (withJob.length > 0 ? withJob : group).at(-1)!; // newest (list is createdAt asc)
+      keptIds.add(representative.requestID);
+    }
+    return requests.filter((request) => keptIds.has(request.requestID));
+  }
+
+  private buildRequestDuplicateKey(request: RequestByDate): string {
+    const descriptionLines = request.descriptions
+      .map((d) => [d.index, d.licenseNumber, d.riceType, d.quantity, d.destination, d.vehicleName, d.netWeightTON].join('|'))
+      .sort();
+    return JSON.stringify([
+      request.companyName,
+      request.licenseNumber,
+      request.surveyLocateNameThai,
+      request.shippingDateTime?.toISOString(),
+      descriptionLines,
+    ]);
+  }
+
+  // ─── Private helpers: request job ───────────────────────────────────────────
+
+  /** Only fields present in the body are written; `null` clears the column. */
+  private buildRequestJobUpdateData(dto: UpdateRequestJobDto): Prisma.RequestUpdateInput {
+    const toDate = (value: string | null | undefined): Date | null | undefined =>
+      value === undefined || value === null ? value : new Date(value);
+    const data: Prisma.RequestUpdateInput = {
+      jobID: dto.jobID,
+      jobName: dto.jobName,
+      specialJob: dto.specialJob,
+      staffID: dto.staffID,
+      startTimeOperation: toDate(dto.startTimeOperation),
+      stopTimeOperation: toDate(dto.stopTimeOperation),
+    };
+    return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
+  }
+
+  private async assertJobIdAvailable(requestID: string, jobID: number | null | undefined): Promise<void> {
+    if (jobID === undefined || jobID === null) return;
+    const owner = await this.prisma.request.findFirst({
+      where: { jobID, NOT: { requestID } },
+      select: { requestID: true },
+    });
+    if (owner) {
+      throw new ConflictException({
+        success: false,
+        message: `jobID ${jobID} is already used by another request`,
+        requestID: owner.requestID,
+      });
+    }
+  }
+
+  private async assertStaffExists(staffID: string | null | undefined): Promise<void> {
+    if (staffID === undefined || staffID === null) return;
+    const staffMember = await this.prisma.staff.findUnique({ where: { staffID }, select: { staffID: true } });
+    if (!staffMember) throw new BadRequestException({ success: false, message: `Staff ${staffID} not found` });
+  }
+
+  /** stop must not be before start — values not sent are taken from the database. */
+  private assertOperationTimeOrder(start: Date | string | null, stop: Date | string | null): void {
+    if (start && stop && new Date(stop).getTime() < new Date(start).getTime()) {
+      throw new BadRequestException({
+        success: false,
+        message: 'stopTimeOperation must not be earlier than startTimeOperation',
+      });
+    }
+  }
+
+  /** Another request may take the same jobID between our check and the update — the unique index catches it. */
+  private async saveRequestJob(requestID: string, data: Prisma.RequestUpdateInput): Promise<RequestJobRow> {
+    try {
+      return await this.prisma.request.update({ where: { requestID }, data, select: REQUEST_JOB_SELECT });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === PRISMA_UNIQUE_VIOLATION) {
+        throw new ConflictException({ success: false, message: `jobID ${String(data.jobID)} is already used by another request` });
+      }
+      throw error;
+    }
+  }
+
+  /** Same "staffNo staffName" format as getrequestbydate. */
+  private async findStaffName(staffID: string | null): Promise<string | null> {
+    if (!staffID) return null;
+    const staffMember = await this.prisma.staff.findUnique({
+      where: { staffID },
+      select: { staffNo: true, staffName: true },
+    });
+    return staffMember ? this.formatStaffDisplayName(staffMember.staffNo, staffMember.staffName) : null;
+  }
+
   // ─── Private helpers: shared ────────────────────────────────────────────────
+
+  /** e.g. staffNo 12 + "สมชาย ใจดี" → "12 สมชาย ใจดี" (just the number when the name is empty). */
+  private formatStaffDisplayName(staffNo: number, staffName: string | null): string {
+    return [staffNo, this.normalizeWhitespace(staffName)]
+      .filter((part) => part !== null && part !== '')
+      .join(STAFF_DISPLAY_SEPARATOR);
+  }
+
+  /** Display only: tabs / repeated spaces in stored names (e.g. "วินัย\tธรรมขจรจิต") → single spaces. */
+  private normalizeWhitespace(value: string | null): string | null {
+    return value === null ? null : value.replace(WHITESPACE_RUN, ' ').trim();
+  }
 
   private buildDayRange(date: Date): { gte: Date; lt: Date } {
     const year = date.getFullYear();

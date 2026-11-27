@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Description, Prisma, Request, validate_Check_Weight } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { buildLicenseHistory, LicenseHistoryResponse } from 'src/common/license-history';
@@ -10,6 +10,7 @@ const REQUEST_STATUS_COMPLETED = 'completed';
 const DEFAULT_CERTIFICATE_MARKS = 'xxxxxxx';
 const COMPANY_SUFFIX_PATTERN = /จำกัด/g;
 const DECIMAL_RADIX = 10;
+const PRISMA_UNIQUE_VIOLATION = 'P2002';
 /** Bulk check-weight processing runs many writes in one transaction — allow more than Prisma's 5s default. */
 const BULK_TRANSACTION_TIMEOUT_MS = 30_000;
 
@@ -76,8 +77,22 @@ export type CheckWeightByDateResult = Omit<CheckWeightByDate, 'request'> & {
 
 export interface ProcessCheckWeightResult {
   message: string;
+  /** check-weight rows updated (jobName = Checkweight) */
   updated: number;
+  /** check-weight rows created (jobName = Checkweight) */
   created: number;
+  /** requests whose jobID / jobName / staffID / operation times were written */
+  requestJobUpdated: number;
+}
+
+/** Job info to write on a Request (only the fields that were sent). */
+interface RequestJobFields {
+  jobID?: number;
+  jobName?: string;
+  specialJob?: string | null;
+  staffID?: string;
+  startTimeOperation?: Date;
+  stopTimeOperation?: Date;
 }
 
 @Injectable()
@@ -239,6 +254,13 @@ export class RecordnotificationService {
       console.log('[RecordnotificationService.processCheckWeights] result:', result);
       return result;
     } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === PRISMA_UNIQUE_VIOLATION) {
+        // A concurrent call took the same jobID between our check and the write.
+        rethrowAsHttpException(
+          'RecordnotificationService.processCheckWeights',
+          new ConflictException('jobID is already used by another request'),
+        );
+      }
       rethrowAsHttpException('RecordnotificationService.processCheckWeights', error);
     }
   }
@@ -249,8 +271,10 @@ export class RecordnotificationService {
     tx: Prisma.TransactionClient,
     dtoList: ValidateCheckWeightDto[],
   ): Promise<ProcessCheckWeightResult> {
-    // Every incoming item is logged as a NotificationReceipt, whatever its jobName.
-    const receiptIdByDescriptionId = await this.createNotificationReceipts(tx, dtoList);
+    // Every item writes its job info (jobID, jobName, staffID, operation times) onto its Request.
+    // Validate first so we fail before any write.
+    const requestJobFieldsById = this.collectRequestJobFields(dtoList);
+    await this.assertRequestJobFieldsValid(tx, requestJobFieldsById);
 
     const checkWeightDtos = dtoList.filter((dto) => dto.jobName === CHECKWEIGHT_JOB_NAME);
     const descriptionIds = checkWeightDtos.map((dto) => dto.descriptionID);
@@ -287,7 +311,7 @@ export class RecordnotificationService {
       });
     }
 
-    const createdCheckWeights = await tx.validate_Check_Weight.createManyAndReturn({
+    await tx.validate_Check_Weight.createMany({
       data: dtosToCreate.map((dto) =>
         this.buildCheckWeightCreateData(
           dto,
@@ -296,61 +320,100 @@ export class RecordnotificationService {
           requestById.get(dto.requestID),
         ),
       ),
-      select: { descriptionID: true, checkWeightID: true },
     });
-
-    const checkWeightIdByDescriptionId = new Map([
-      ...existingCheckWeightIdByDescriptionId,
-      ...createdCheckWeights.map((cw): [string, string] => [cw.descriptionID, cw.checkWeightID]),
-    ]);
-    await this.linkReceiptsToCheckWeights(tx, checkWeightDtos, receiptIdByDescriptionId, checkWeightIdByDescriptionId);
 
     await tx.request.updateMany({
       where: { requestID: { in: dtoList.map((dto) => dto.requestID) } },
       data: { status: REQUEST_STATUS_COMPLETED },
     });
+    for (const [requestID, fields] of requestJobFieldsById) {
+      await tx.request.update({ where: { requestID }, data: fields });
+    }
 
     const existingCount = existingCheckWeightIdByDescriptionId.size;
     return {
       message: 'Successfully processed check weight data',
       updated: existingCount,
       created: checkWeightDtos.length - existingCount,
+      requestJobUpdated: requestJobFieldsById.size,
     };
   }
 
-  private async createNotificationReceipts(
-    tx: Prisma.TransactionClient,
-    dtoList: ValidateCheckWeightDto[],
-  ): Promise<Map<string, string>> {
-    const receipts = await tx.notificationReceipt.createManyAndReturn({
-      data: dtoList.map((dto) => ({
-        jobName: dto.jobName,
-        staffID: dto.staffID,
-        jobID: dto.jobID,
-        specialJob: dto.specialJob,
-        descriptionID: dto.descriptionID,
-        requestID: dto.requestID,
-      })),
-      select: { descriptionID: true, notificationReceiptID: true },
-    });
-    return new Map(receipts.map((receipt) => [receipt.descriptionID, receipt.notificationReceiptID]));
+  /**
+   * One entry per requestID (several descriptions of the same request usually carry the same values —
+   * the last item wins). Fields that were not sent are left out so they don't overwrite existing values.
+   */
+  private collectRequestJobFields(dtoList: ValidateCheckWeightDto[]): Map<string, RequestJobFields> {
+    const fieldsById = new Map<string, RequestJobFields>();
+    for (const dto of dtoList) {
+      const fields: RequestJobFields = {
+        ...(dto.jobID !== undefined && { jobID: dto.jobID }),
+        ...(dto.jobName !== undefined && { jobName: dto.jobName }),
+        // "" is stored as null — same rule as the check-weight row (`specialJob || null`).
+        ...(dto.specialJob !== undefined && { specialJob: dto.specialJob || null }),
+        ...(dto.staffID !== undefined && { staffID: dto.staffID }),
+        ...(dto.startTimeOperation !== undefined && { startTimeOperation: new Date(dto.startTimeOperation) }),
+        ...(dto.stopTimeOperation !== undefined && { stopTimeOperation: new Date(dto.stopTimeOperation) }),
+      };
+      if (Object.keys(fields).length > 0) {
+        fieldsById.set(dto.requestID, { ...fieldsById.get(dto.requestID), ...fields });
+      }
+    }
+    return fieldsById;
   }
 
-  private async linkReceiptsToCheckWeights(
+  /** jobID unique across requests, staffID must exist, stop time not before start time (DB value used when not sent). */
+  private async assertRequestJobFieldsValid(
     tx: Prisma.TransactionClient,
-    checkWeightDtos: ValidateCheckWeightDto[],
-    receiptIdByDescriptionId: Map<string, string>,
-    checkWeightIdByDescriptionId: Map<string, string>,
+    fieldsById: Map<string, RequestJobFields>,
   ): Promise<void> {
-    for (const dto of checkWeightDtos) {
-      const notificationReceiptID = receiptIdByDescriptionId.get(dto.descriptionID);
-      const checkWeightID = checkWeightIdByDescriptionId.get(dto.descriptionID);
-      if (!notificationReceiptID || !checkWeightID) continue;
-      await tx.notificationReceipt.update({
-        where: { notificationReceiptID },
-        data: { checkWeightID },
-      });
+    if (fieldsById.size === 0) return;
+    const requestIdByJobId = this.mapJobIdsToRequests(fieldsById);
+    const staffIds = this.uniqueNonEmpty([...fieldsById.values()].map((fields) => fields.staffID));
+
+    const [jobOwners, staffList, existingRequests] = await Promise.all([
+      requestIdByJobId.size > 0
+        ? tx.request.findMany({ where: { jobID: { in: [...requestIdByJobId.keys()] } }, select: { requestID: true, jobID: true } })
+        : Promise.resolve<{ requestID: string; jobID: number | null }[]>([]),
+      staffIds.length > 0
+        ? tx.staff.findMany({ where: { staffID: { in: staffIds } }, select: { staffID: true } })
+        : Promise.resolve<{ staffID: string }[]>([]),
+      tx.request.findMany({
+        where: { requestID: { in: [...fieldsById.keys()] } },
+        select: { requestID: true, startTimeOperation: true, stopTimeOperation: true },
+      }),
+    ]);
+
+    const conflict = jobOwners.find((owner) => requestIdByJobId.get(owner.jobID as number) !== owner.requestID);
+    if (conflict) {
+      throw new ConflictException(`jobID ${conflict.jobID} is already used by request ${conflict.requestID}`);
     }
+    const foundStaffIds = new Set(staffList.map((staffMember) => staffMember.staffID));
+    const missingStaffId = staffIds.find((staffID) => !foundStaffIds.has(staffID));
+    if (missingStaffId) throw new BadRequestException(`Staff ${missingStaffId} not found`);
+
+    const existingById = new Map(existingRequests.map((request) => [request.requestID, request]));
+    for (const [requestID, fields] of fieldsById) {
+      const start = fields.startTimeOperation ?? existingById.get(requestID)?.startTimeOperation;
+      const stop = fields.stopTimeOperation ?? existingById.get(requestID)?.stopTimeOperation;
+      if (start && stop && stop.getTime() < start.getTime()) {
+        throw new BadRequestException(`stopTimeOperation must not be earlier than startTimeOperation (request ${requestID})`);
+      }
+    }
+  }
+
+  /** jobID → requestID; the same jobID sent for two different requests is rejected. */
+  private mapJobIdsToRequests(fieldsById: Map<string, RequestJobFields>): Map<number, string> {
+    const requestIdByJobId = new Map<number, string>();
+    for (const [requestID, fields] of fieldsById) {
+      if (fields.jobID === undefined) continue;
+      const other = requestIdByJobId.get(fields.jobID);
+      if (other && other !== requestID) {
+        throw new BadRequestException(`jobID ${fields.jobID} is sent for two different requests (${other}, ${requestID})`);
+      }
+      requestIdByJobId.set(fields.jobID, requestID);
+    }
+    return requestIdByJobId;
   }
 
   private buildCheckWeightUpdateData(

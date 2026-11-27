@@ -94,12 +94,19 @@ model Request {
   status               String? // สถานะการตรวจสอบ
   portName             String? // ท่าเรือ
   payer                 String? // เรียกเก็บเงิน
-  createdAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
+
+  // ข้อมูลการมอบหมายงาน (ไม่ผูก relation — staffID ใช้ดึงชื่อจากตาราง staff ตอนแสดงผล)
+  jobID                Int?      @unique // เลข job ห้ามซ้ำ (NULL ได้หลายแถว)
+  jobName              String? // ประเภทงาน เช่น Checkweight
+  specialJob           String? // งานพิเศษ
+  staffID              String? // พนักงานที่รับผิดชอบ
+  startTimeOperation   DateTime? // เวลาเริ่มปฏิบัติงาน
+  stopTimeOperation    DateTime? // เวลาสิ้นสุดปฏิบัติงาน
+createdAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt            DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
   
   descriptions          Description[]
   validate_Check_Weight validate_Check_Weight[]
-  notificationReceipts  NotificationReceipt[]
 }
 
 model BufferRemain {
@@ -133,7 +140,6 @@ model Description {
   createdAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
   updatedAt             DateTime                @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
   validate_Check_Weight validate_Check_Weight[]
-  notificationReceipts  NotificationReceipt[]
 }
 
 model validate_Check_Weight {
@@ -176,29 +182,9 @@ model validate_Check_Weight {
   description Description @relation(fields: [descriptionID], references: [descriptionID])
   // licenseID           String
     certificate certificatesheet?
-    notificationReceipt NotificationReceipt?
 }
 
 
-model NotificationReceipt {
-  notificationReceiptID String  @id @default(uuid())
-  staffID String?
-  jobName String?
-  jobID             Int?
-  specialJob   String? // งานพิเศษ
-  // statusContinue           String?
-  checkWeightID String?               @unique
-  checkWeight   validate_Check_Weight? @relation(fields: [checkWeightID], references: [checkWeightID])
-
-  descriptionID String
-  requestID     String
-
-  request     Request     @relation(fields: [requestID], references: [requestID])
-  description Description @relation(fields: [descriptionID], references: [descriptionID])
-
-  createdAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())"))
-  updatedAt DateTime @default(dbgenerated("timezone('Asia/Ho_Chi_Minh', now())")) @updatedAt
-}
 
 model certificatesheet {
   certificateSheetID String   @id @default(uuid())

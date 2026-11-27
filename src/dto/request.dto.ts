@@ -3,9 +3,13 @@ import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsArray,
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
@@ -190,4 +194,54 @@ export class UpdateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => UpdateOrderDescriptionDto)
   description?: UpdateOrderDescriptionDto[];
+}
+
+/**
+ * Body of PUT /trade/updaterequestjob — one request per call.
+ * Send only the fields to change. `null` clears a field; omitted fields stay unchanged.
+ */
+export class UpdateRequestJobDto {
+  @ApiProperty({ example: 'ac0ee0b2-38c5-4a32-b233-5d48fb20861c', description: 'requestID ที่จะแก้' })
+  @IsString()
+  @IsNotEmpty()
+  requestID!: string;
+
+  @ApiPropertyOptional({
+    example: 257,
+    nullable: true,
+    description: 'เลข job (ห้ามซ้ำกับ request อื่น) — ส่ง null เพื่อล้างค่า',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  jobID?: number | null;
+
+  @ApiPropertyOptional({ example: 'Checkweight', nullable: true, description: 'ประเภทงาน' })
+  @IsOptional()
+  @IsString()
+  jobName?: string | null;
+
+  @ApiPropertyOptional({ example: 'A', nullable: true, description: 'งานพิเศษ — ส่ง null เพื่อล้างค่า' })
+  @IsOptional()
+  @IsString()
+  specialJob?: string | null;
+
+  @ApiPropertyOptional({
+    example: '2a3b881e-d0be-42c3-bac1-87c2dfaf135a',
+    nullable: true,
+    description: 'staffID จากตาราง staff (ต้องมีอยู่จริง) — ส่ง null เพื่อยกเลิกการมอบหมาย',
+  })
+  @IsOptional()
+  @IsString()
+  staffID?: string | null;
+
+  @ApiPropertyOptional({ example: '2026-11-19T08:30:00.000+07:00', nullable: true, description: 'เวลาเริ่มปฏิบัติงาน (ISO 8601)' })
+  @IsOptional()
+  @IsDateString()
+  startTimeOperation?: string | null;
+
+  @ApiPropertyOptional({ example: '2026-11-19T11:45:00.000+07:00', nullable: true, description: 'เวลาสิ้นสุดปฏิบัติงาน (ISO 8601) ต้องไม่ก่อนเวลาเริ่ม' })
+  @IsOptional()
+  @IsDateString()
+  stopTimeOperation?: string | null;
 }

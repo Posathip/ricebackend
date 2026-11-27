@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, ParseArrayPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { validate_Check_Weight } from '@prisma/client';
 import { LicenseHistoryResponse } from 'src/common/license-history';
@@ -66,12 +66,64 @@ export class RecordnotificationController {
   @ApiOperation({
     summary: 'Process check-weight jobs',
     description:
-      'บันทึก NotificationReceipt ทุกรายการ แล้วสร้าง/อัปเดต check weight สำหรับ jobName = "Checkweight" และเปลี่ยนสถานะ request เป็น completed (ทำใน transaction เดียว)',
+      [
+        'ทำใน transaction เดียว (error → ไม่บันทึกอะไรเลย):',
+        '1. jobName = "Checkweight" → สร้าง/อัปเดตตาราง check weight 1 แถวต่อ description (นับใน created / updated)',
+        '2. ทุกรายการ → เขียน jobID / jobName / specialJob / staffID / startTimeOperation / stopTimeOperation ลงตาราง Request (specialJob "" → null)',
+        '   (เฉพาะ field ที่ส่งมา, หลายรายการของ request เดียวกัน → รายการสุดท้ายชนะ, นับใน requestJobUpdated)',
+        '   - jobID ต้องไม่ซ้ำกับ request อื่น (409), staffID ต้องมีอยู่จริง (400), stop ต้องไม่ก่อน start (400)',
+        '3. ทุก requestID → Request.status = "completed"',
+        '(ไม่สร้าง NotificationReceipt แล้ว — ข้อมูลงานเก็บที่ Request)',
+      ].join('\n'),
   })
-  @ApiBody({ type: [ValidateCheckWeightDto] })
-  @ApiResponse({ status: 201, description: 'Successfully processed check weight data (updated / created counts).' })
+  @ApiBody({
+    type: [ValidateCheckWeightDto],
+    examples: {
+      checkweight: {
+        summary: 'Checkweight — สร้าง/อัปเดต check weight + อัปเดต Request',
+        value: [
+          {
+            descriptionID: 'd28b7a2f-d57f-4a45-8a44-3accf5026096',
+            requestID: 'a12d66cb-fcfa-4cca-bc36-74669a9639e7',
+            staffID: '2a3b881e-d0be-42c3-bac1-87c2dfaf135a',
+            jobID: 401,
+            jobName: 'Checkweight',
+            specialJob: 'A',
+            statusContinue: 'ต่อ',
+            startTimeOperation: '2026-11-19T08:30:00.000+07:00',
+            stopTimeOperation: '2026-11-19T11:45:00.000+07:00',
+            note: '',
+          },
+        ],
+      },
+      otherJob: {
+        summary: 'งานอื่น (ไม่ใช่ Checkweight) — อัปเดตแค่ Request',
+        value: [
+          {
+            descriptionID: 'd28b7a2f-d57f-4a45-8a44-3accf5026096',
+            requestID: 'a12d66cb-fcfa-4cca-bc36-74669a9639e7',
+            staffID: '2a3b881e-d0be-42c3-bac1-87c2dfaf135a',
+            jobID: 401,
+            jobName: 'Loading',
+            specialJob: '',
+            startTimeOperation: '2026-11-19T13:00:00.000+07:00',
+            stopTimeOperation: '2026-11-19T15:30:00.000+07:00',
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Processed',
+    schema: { example: { message: 'Successfully processed check weight data', updated: 0, created: 1, requestJobUpdated: 1 } },
+  })
+  @ApiResponse({ status: 400, description: 'Validation error per item (e.g. "[0].jobID must be an integer number") / staffID not found / same jobID for two requests / stop before start' })
+  @ApiResponse({ status: 409, description: 'jobID already used by another request' })
   @Post('postdata')
-  processCheckWeights(@Body() dtoList: ValidateCheckWeightDto[]): Promise<ProcessCheckWeightResult> {
+  processCheckWeights(
+    @Body(new ParseArrayPipe({ items: ValidateCheckWeightDto, whitelist: true })) dtoList: ValidateCheckWeightDto[],
+  ): Promise<ProcessCheckWeightResult> {
     return this.recordnotificationService.processCheckWeights(dtoList);
   }
 

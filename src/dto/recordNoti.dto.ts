@@ -10,55 +10,63 @@ import {
 } from 'class-validator';
 
 export class ValidateCheckWeightDto {
-
-  @ApiProperty({ example: 'desc123' })
+  @ApiProperty({ example: 'd28b7a2f-d57f-4a45-8a44-3accf5026096', description: 'descriptionID (1 description = 1 check weight)' })
   @IsString()
   descriptionID!: string;
 
-  @ApiProperty({ example: 'req123', required: false })
+  @ApiProperty({ example: 'a12d66cb-fcfa-4cca-bc36-74669a9639e7', description: 'requestID ของ description นี้ — ใช้อัปเดตข้อมูลงานใน Request' })
   @IsString()
   requestID!: string;
 
-  @ApiProperty({ example: false, required: false, default: false })
+  @ApiProperty({ example: false, required: false, default: false, description: 'ไม่ได้ใช้ — check weight ถูกตั้ง status = false เสมอ' })
   @IsBoolean()
   @IsOptional()
-  status?: boolean = false; // default value false
+  status?: boolean = false;
 
-  @ApiProperty({ example: 'staff123 ', required: false })
+  @ApiProperty({ example: '2a3b881e-d0be-42c3-bac1-87c2dfaf135a', required: false, description: 'staffID (ต้องมีในตาราง staff) → Request.staffID' })
   @IsString()
   @IsOptional()
   staffID?: string;
 
-
-  @ApiProperty({ example: 1, required: false })
+  @ApiProperty({ example: 401, required: false, description: 'เลข job (ห้ามซ้ำกับ request อื่น) → Request.jobID' })
   @IsInt()
   @IsOptional()
   jobID?: number;
 
-  @ApiProperty({ example: 'note' })
+  @ApiProperty({ example: '', required: false, description: 'หมายเหตุ (บันทึกใน check weight)' })
   @IsString()
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ example: 'ต่อ', required: false })
+  @ApiProperty({ example: 'ต่อ', required: false, description: 'สถานะต่อเนื่อง (บันทึกใน check weight)' })
   @IsString()
   @IsOptional()
   statusContinue?: string;
 
-  @ApiProperty({ example: 'พสธิป สถาพร', required: false })
+  @ApiProperty({ example: 'พสธิป สถาพร', required: false, description: 'ใช้เป็นชื่อพนักงานใน check weight เมื่อหา staffID ในตาราง staff ไม่เจอ' })
   @IsString()
   @IsOptional()
   staffName?: string;
 
-   @ApiProperty({ example: "A", required: false })
+  @ApiProperty({ example: 'A', required: false, description: 'งานพิเศษ → Request.specialJob ("" = null)' })
   @IsString()
   @IsOptional()
   specialJob?: string;
 
-  @ApiProperty({ example: 'Checkweight', required: false })
+  @ApiProperty({ example: 'Checkweight', required: false, description: '"Checkweight" = สร้าง/อัปเดต check weight ด้วย, ค่าอื่น = อัปเดตแค่ Request → Request.jobName' })
   @IsString()
   @IsOptional()
   jobName?: string;
+
+  @ApiProperty({ example: '2026-11-19T08:30:00.000+07:00', required: false, description: 'เวลาเริ่มปฏิบัติงาน (ISO 8601) → บันทึกลง Request' })
+  @IsDateString()
+  @IsOptional()
+  startTimeOperation?: string;
+
+  @ApiProperty({ example: '2026-11-19T11:45:00.000+07:00', required: false, description: 'เวลาสิ้นสุดปฏิบัติงาน (ISO 8601) ต้องไม่ก่อนเวลาเริ่ม → บันทึกลง Request' })
+  @IsDateString()
+  @IsOptional()
+  stopTimeOperation?: string;
 }
 
 export class UpdateCheckWeightData {
